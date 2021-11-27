@@ -70,6 +70,17 @@ export function checkPasswordCondition(password: string) {
     }
 }
 
+export function checkNewPasswordNotChanged(
+    new_password: string,
+    existing_password: string,
+) {
+    if (new_password == existing_password) {
+        throw new BadRequestError(
+            '새로운 비밀번호가 기존 비밀번호와 동일합니다.',
+        );
+    }
+}
+
 export function generateRandomPassword(length: number = 12) {
     const charset =
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';

@@ -8,4 +8,4 @@ describe('UserService', function () {
             expect(password.length).to.equal(12);
         });
     });
-})
+});

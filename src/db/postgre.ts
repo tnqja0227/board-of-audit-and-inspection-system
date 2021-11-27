@@ -15,7 +15,15 @@ export const sequelize = new Sequelize(
     },
 );
 
-const { Organization, User, Budget, Income, Expense, Transaction, Account } = require('../model');
+const {
+    Organization,
+    User,
+    Budget,
+    Income,
+    Expense,
+    Transaction,
+    Account,
+} = require('../model');
 
 Organization.hasOne(User, {
     onDelete: 'CASCADE',

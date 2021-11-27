@@ -35,7 +35,10 @@ export async function initDB() {
     for (const model of models) {
         logger.debug(`Syncing ${model.name}`);
 
-        if (process.env.NODE_ENV === undefined || process.env.NODE_ENV === 'test') {
+        if (
+            process.env.NODE_ENV === undefined ||
+            process.env.NODE_ENV === 'test'
+        ) {
             await model.sync({ force: true });
         } else if (process.env.NODE_ENV === 'development') {
             await model.sync({ alter: true });
