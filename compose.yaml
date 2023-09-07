@@ -1,0 +1,29 @@
+services:
+    postgresql:
+        image: postgres:15
+        restart: always
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_PASSWORD: password
+            TZ: 'Asia/Seoul'
+    node:
+        build:
+            context: .
+            args:
+                - DB_HOST=postgresql
+                - DB_PORT=5432
+                - DB_USER=postgres
+                - DB_PASSWORD=password
+        volumes:
+            - .:/app
+        environment:
+            - NODE_ENV=development
+        ports:
+            - 3000:3000
+
+volumes:
+    pgdata:
+        external: false
