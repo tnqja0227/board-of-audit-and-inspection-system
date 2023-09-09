@@ -2,6 +2,8 @@
 
 KAIST board of audit and inspection system backend
 
+built with `Node.js` and `PostgreSQL`
+
 ## Usage
 
 Is it recommended to run with [Docker](https://www.docker.com/)
