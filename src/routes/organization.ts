@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
     try {
         const organizations = await db.query('SELECT * FROM organization', []);
-        res.json(organizations);
+        res.json(organizations.rows);
     } catch (error) {
         next(error);
     }
@@ -40,10 +40,10 @@ router.delete('/', async (req, res, next) => {
 
 router.put('/', async (req, res, next) => {
     try {
-        await db.query('ALTER TABLE organization RENAME COLUMN ($1) TO ($2);', [
-            req.body.from,
-            req.body.to,
-        ]);
+        const result = await db.query(
+            'UPDATE organization SET organization_name = ($1) WHERE organization_name = ($2);',
+            [req.body.to, req.body.from],
+        );
         res.sendStatus(200);
     } catch (error) {
         next(error);
