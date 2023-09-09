@@ -1,9 +1,70 @@
 // 예산
+// semester: 'spring', 'fall'
+// status: 'in progress', 'approved', 'rejected'
 
 import express from 'express';
 import * as db from '../db';
 
 const router = express.Router();
+
+router.get('/income/:budget_id', async (req, res, next) => {
+    try {
+        const incomes = await db.query(
+            'SELECT * FROM income WHERE budget_id = ($1);',
+            [req.params.budget_id],
+        );
+        res.json(incomes.rows);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/income/:budget_id', async (req, res, next) => {
+    try {
+        await db.query(
+            // amount: 예산액, status: 상태, opinion: 감사 의견, remark: 비고
+            'INSERT INTO income (budget_id, code, amount, remarks) values ($1, $2, $3, $4);',
+            [
+                req.params.budget_id,
+                req.body.code,
+                req.body.amount,
+                req.body.remarks,
+            ],
+        );
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.delete('/income/:budget_id/:code', async (req, res, next) => {
+    try {
+        await db.query(
+            'DELETE FROM income WHERE budget_id = ($1) AND code = ($2);',
+            [req.params.budget_id, req.params.code],
+        );
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.put('/income/:budget_id/:code', async (req, res, next) => {
+    try {
+        await db.query(
+            'UPDATE income SET amount = ($1), remarks = ($2) WHERE budget_id = ($3) AND code = ($4);',
+            [
+                req.body.amount,
+                req.body.remarks,
+                req.params.budget_id,
+                req.params.code,
+            ],
+        );
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.get('/', async (req, res, next) => {
     try {
