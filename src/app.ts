@@ -1,6 +1,6 @@
 import express from 'express';
 import { query } from './db';
-import { budgets, organizations } from './routes';
+import { budgets, organizations, transactions } from './routes';
 import bodyParser from 'body-parser';
 
 query('SELECT * FROM now()', []).then((res) => {
@@ -9,8 +9,14 @@ query('SELECT * FROM now()', []).then((res) => {
 
 const app = express();
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(function (req, res, next) {
+    console.log('%s %s %s', req.method, req.url, req.path);
+    next();
+});
 
 app.use('/organizations', organizations);
 app.use('/budgets', budgets);
+app.use('/transactions', transactions);
 
 app.listen(3000);

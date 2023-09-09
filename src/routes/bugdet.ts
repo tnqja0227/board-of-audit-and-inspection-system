@@ -8,11 +8,6 @@ import * as db from '../db';
 
 const router = express.Router();
 
-router.use(function (req, res, next) {
-    console.log('%s %s %s', req.method, req.url, req.path);
-    next();
-});
-
 router.get('/income/:budget_id', async (req, res, next) => {
     try {
         const incomes = await db.query(
