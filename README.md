@@ -29,6 +29,8 @@ And, run with `docker compose`
 docker compose up
 ```
 
+For the first local execution, execute `setup.sql` in your postgreSql with CLI or GUI tools (e.g. DBeaver)
+
 ## ER-Diagram
 
 ![감사원 drawio](images/감사원.drawio.png)
