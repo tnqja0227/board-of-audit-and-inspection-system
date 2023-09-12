@@ -1,5 +1,5 @@
 import express from 'express';
-import { query, redisClient } from './db';
+import { query, redisClient, sequelize } from './db';
 import {
     budgets,
     documents,
@@ -11,6 +11,14 @@ import bodyParser from 'body-parser';
 import session from 'express-session';
 import { config } from 'dotenv';
 import RedisStore from 'connect-redis';
+import {
+    Organization,
+    User,
+    Budget,
+    Income,
+    Expense,
+    Transaction,
+} from './model';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -18,8 +26,25 @@ declare module 'express-session' {
     }
 }
 
+async function initDB() {
+    // TODO: change schema name according to environmental variable
+    sequelize.createSchema('development', {}).catch((err) => {
+        console.log(err);
+    });
+
+    const models = [Organization, User, Budget, Income, Expense, Transaction];
+    for (const model of models) {
+        // TODO: change schema name according to environmental variable
+        await model.sync({ schema: 'development' });
+    }
+}
+
 query('SELECT * FROM now()', []).then((res) => {
     console.log(res.rows[0]);
+});
+
+initDB().catch((err) => {
+    console.log(err);
 });
 
 const redisStore = new RedisStore({
