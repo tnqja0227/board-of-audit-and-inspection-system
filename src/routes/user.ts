@@ -50,7 +50,7 @@ router.post('/login', async (req, res, next) => {
         const user = await db.query('SELECT * FROM users WHERE email = ($1)', [
             req.body.email,
         ]);
-        console.log(req.sessionID);
+
         if (user.rows.length === 0) {
             res.sendStatus(404);
         } else {
