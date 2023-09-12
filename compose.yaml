@@ -9,6 +9,13 @@ services:
         environment:
             POSTGRES_PASSWORD: password
             TZ: 'Asia/Seoul'
+    redis:
+        image: redis:7.2-alpine
+        restart: always
+        volumes:
+            - redisdata:/var/lib/redis/data
+        ports:
+            - 6379:6379
     node:
         build:
             context: .
@@ -26,4 +33,6 @@ services:
 
 volumes:
     pgdata:
+        external: false
+    redisdata:
         external: false
