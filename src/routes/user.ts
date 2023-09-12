@@ -1,6 +1,6 @@
 import express from 'express';
-import * as db from '../db';
 import bcrypt from 'bcrypt';
+import { Organization, User } from '../model';
 
 const saltRounds = 10;
 
@@ -8,8 +8,8 @@ const router = express.Router();
 
 router.get('/', async (req, res, next) => {
     try {
-        const users = await db.query('SELECT * FROM users', []);
-        res.json(users.rows);
+        const users = await User.findAll();
+        res.json(users.map((user) => user.toJSON()));
     } catch (error) {
         next(error);
     }
@@ -20,11 +20,15 @@ router.get('/', async (req, res, next) => {
 // TODO: email sanitize (kaist email만 가능하도록)
 router.post('/', async (req, res, next) => {
     try {
-        const organization = await db.query(
-            'SELECT organization_id FROM organization WHERE organization_name = ($1)',
-            [req.body.organization_name],
-        );
-        const organization_id = organization.rows[0].organization_id;
+        const organization = await Organization.findOne({
+            where: {
+                name: req.body.organization_name,
+            },
+        });
+
+        if (organization === null) {
+            return res.sendStatus(404);
+        }
 
         let password = 'password';
         if (req.body.password !== undefined) {
@@ -32,12 +36,12 @@ router.post('/', async (req, res, next) => {
         }
         const encrypted_password = await bcrypt.hash(password, saltRounds);
 
-        await db.query(
-            'INSERT INTO users (email, password, organization_id) \
-                VALUES ($1, $2, $3)',
-            [req.body.email, encrypted_password, organization_id],
-        );
-        res.sendStatus(200);
+        const user = await User.create({
+            email: req.body.email,
+            password: encrypted_password,
+            organization_id: organization.id,
+        });
+        res.json(user.toJSON());
     } catch (error) {
         next(error);
     }
@@ -47,21 +51,20 @@ router.post('/', async (req, res, next) => {
 // TODO: input sanitize
 router.post('/login', async (req, res, next) => {
     try {
-        const user = await db.query('SELECT * FROM users WHERE email = ($1)', [
-            req.body.email,
-        ]);
+        const user = await User.findOne({
+            where: {
+                email: req.body.email,
+            },
+        });
+        if (user === null) {
+            return res.sendStatus(404);
+        }
 
-        if (user.rows.length === 0) {
-            res.sendStatus(404);
+        if (await bcrypt.compare(req.body.password, user.password)) {
+            req.session.user = user.toJSON();
+            res.sendStatus(200);
         } else {
-            if (
-                await bcrypt.compare(req.body.password, user.rows[0].password)
-            ) {
-                req.session.user = user.rows[0];
-                res.sendStatus(200);
-            } else {
-                res.sendStatus(401);
-            }
+            res.sendStatus(401);
         }
     } catch (error) {
         next(error);
@@ -71,10 +74,16 @@ router.post('/login', async (req, res, next) => {
 // 비밀번호 변경
 router.post('/password', async (req, res, next) => {
     try {
-        await db.query('UPDATE users SET password = ($1) WHERE email = ($2)', [
-            req.body.password,
-            req.body.email,
-        ]);
+        await User.update(
+            {
+                password: req.body.password,
+            },
+            {
+                where: {
+                    email: req.body.email,
+                },
+            },
+        );
         res.sendStatus(200);
     } catch (error) {
         next(error);
