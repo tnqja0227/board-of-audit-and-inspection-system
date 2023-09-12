@@ -28,9 +28,9 @@ declare module 'express-session' {
 
 async function initDB() {
     // TODO: change schema name according to environmental variable
-    sequelize.createSchema('development', {}).catch((err) => {
-        console.log(err);
-    });
+    // sequelize.createSchema('development', {}).catch((err) => {
+    //     console.log(err);
+    // });
 
     const models = [Organization, User, Budget, Income, Expense, Transaction];
     for (const model of models) {
