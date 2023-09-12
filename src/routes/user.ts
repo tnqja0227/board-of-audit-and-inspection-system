@@ -68,4 +68,17 @@ router.post('/login', async (req, res, next) => {
     }
 });
 
+// 비밀번호 변경
+router.post('/password', async (req, res, next) => {
+    try {
+        await db.query('UPDATE users SET password = ($1) WHERE email = ($2)', [
+            req.body.password,
+            req.body.email,
+        ]);
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
 export const users = router;
