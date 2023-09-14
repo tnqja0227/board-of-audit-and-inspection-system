@@ -34,6 +34,12 @@ Budget.init(
     {
         tableName: 'budgets',
         sequelize,
+        indexes: [
+            {
+                unique: true,
+                fields: ['year', 'half', 'OrganizationId'],
+            },
+        ],
     },
 );
 

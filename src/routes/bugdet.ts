@@ -4,62 +4,67 @@
 // source: '학생회비'
 
 import express from 'express';
-import * as db from '../db';
+import { Budget, Expense, Income } from '../model';
 
 const router = express.Router();
 
 router.get('/income/:budget_id', async (req, res, next) => {
     try {
-        const incomes = await db.query(
-            'SELECT * FROM income WHERE budget_id = ($1);',
-            [req.params.budget_id],
-        );
-        res.json(incomes.rows);
+        const incomes = await Income.findAll({
+            where: {
+                BudgetId: req.params.budget_id,
+            },
+        });
+        res.json(incomes.map((income) => income.toJSON()));
     } catch (error) {
         next(error);
     }
 });
 
-router.post('/income/:budget_id/:code', async (req, res, next) => {
+router.post('/income/:budget_id', async (req, res, next) => {
     try {
-        await db.query(
-            // amount: 예산액, status: 상태, opinion: 감사 의견, remark: 비고
-            'INSERT INTO income (budget_id, code, amount, remarks) values ($1, $2, $3, $4);',
-            [
-                req.params.budget_id,
-                req.params.code,
-                req.body.amount,
-                req.body.remarks,
-            ],
-        );
+        const income = await Income.create({
+            BudgetId: req.params.budget_id,
+            source: req.body.source, // '학생회비', '본회계', '자치'
+            category: req.body.category,
+            content: req.body.content,
+            amount: req.body.amount,
+            note: req.body.note,
+        });
+        res.json(income.toJSON());
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.delete('/income/:income_id', async (req, res, next) => {
+    try {
+        await Income.destroy({
+            where: {
+                id: req.params.income_id,
+            },
+        });
         res.sendStatus(200);
     } catch (error) {
         next(error);
     }
 });
 
-router.delete('/income/:budget_id/:code', async (req, res, next) => {
+router.put('/income/:income_id', async (req, res, next) => {
     try {
-        await db.query(
-            'DELETE FROM income WHERE budget_id = ($1) AND code = ($2);',
-            [req.params.budget_id, req.params.code],
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.put('/income/:budget_id/:code', async (req, res, next) => {
-    try {
-        await db.query(
-            'UPDATE income SET amount = ($1), remarks = ($2) WHERE budget_id = ($3) AND code = ($4);',
-            [
-                req.body.amount,
-                req.body.remarks,
-                req.params.budget_id,
-                req.params.code,
-            ],
+        await Income.update(
+            {
+                source: req.body.source, // '학생회비', '본회계', '자치'
+                category: req.body.category,
+                content: req.body.content,
+                amount: req.body.amount,
+                note: req.body.note,
+            },
+            {
+                where: {
+                    id: req.params.income_id,
+                },
+            },
         );
         res.sendStatus(200);
     } catch (error) {
@@ -69,32 +74,63 @@ router.put('/income/:budget_id/:code', async (req, res, next) => {
 
 router.get('/expense/:budget_id', async (req, res, next) => {
     try {
-        const expenses = await db.query(
-            'SELECT * FROM expense WHERE budget_id = ($1);',
-            [req.params.budget_id],
-        );
-        res.json(expenses.rows);
+        const expenses = await Expense.findAll({
+            where: {
+                BudgetId: req.params.budget_id,
+            },
+        });
+        res.json(expenses.map((expense) => expense.toJSON()));
     } catch (error) {
         next(error);
     }
 });
 
-router.post('/expense/:budget_id/:code', async (req, res, next) => {
+router.post('/expense/:budget_id', async (req, res, next) => {
     try {
-        await db.query(
-            // amount: 예산액, source: 자금 출처, status: 상태, opinion: 감사 의견, remark: 비고
-            'INSERT INTO expense (budget_id, code, amount, source, project_name, department_name, manager_name, remarks) \
-                values ($1, $2, $3, $4, $5, $6, $7, $8);',
-            [
-                req.params.budget_id,
-                req.params.code,
-                req.body.amount,
-                req.body.source,
-                req.body.project_name,
-                req.body.department_name,
-                req.body.manager_name,
-                req.body.remarks,
-            ],
+        const expense = await Expense.create({
+            BudgetId: req.params.budget_id,
+            source: req.body.source, // '학생회비', '본회계', '자치'
+            category: req.body.category,
+            project: req.body.project,
+            content: req.body.content,
+            amount: req.body.amount,
+            note: req.body.note,
+        });
+        res.json(expense.toJSON());
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.delete('/expense/:expense_id', async (req, res, next) => {
+    try {
+        await Expense.destroy({
+            where: {
+                id: req.params.expense_id,
+            },
+        });
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.put('/expense/:expense_id', async (req, res, next) => {
+    try {
+        await Expense.update(
+            {
+                source: req.body.source, // '학생회비', '본회계', '자치'
+                category: req.body.category,
+                project: req.body.project,
+                content: req.body.content,
+                amount: req.body.amount,
+                note: req.body.note,
+            },
+            {
+                where: {
+                    id: req.params.expense_id,
+                },
+            },
         );
         res.sendStatus(200);
     } catch (error) {
@@ -102,67 +138,39 @@ router.post('/expense/:budget_id/:code', async (req, res, next) => {
     }
 });
 
-router.delete('/expense/:budget_id/:code', async (req, res, next) => {
-    try {
-        await db.query(
-            'DELETE FROM expense WHERE budget_id = ($1) AND code = ($2);',
-            [req.params.budget_id, req.params.code],
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.put('/expense/:budget_id/:code', async (req, res, next) => {
-    try {
-        await db.query(
-            'UPDATE expense SET amount = ($1), source = ($2), project_name = ($3), department_name = ($4), manager_name = ($5), remarks = ($6) \
-                WHERE budget_id = ($7) AND code = ($8);',
-            [
-                req.body.amount,
-                req.body.source,
-                req.body.project_name,
-                req.body.department_name,
-                req.body.manager_name,
-                req.body.remarks,
-                req.params.budget_id,
-                req.params.code,
-            ],
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
-
+// TODO: query options
 router.get('/', async (req, res, next) => {
     try {
-        const budgets = await db.query('SELECT * FROM budget', []);
-        res.json(budgets.rows);
+        const budgets = await Budget.findAll();
+        res.json(budgets.map((budget) => budget.toJSON()));
     } catch (error) {
         next(error);
     }
 });
 
-router.post('/:organization_id/:year/:semester', async (req, res, next) => {
+router.post('/:organization_id/:year/:half', async (req, res, next) => {
     try {
-        await db.query(
-            'INSERT INTO budget (organization_id, year, semester) values ($1, $2, $3);',
-            [req.params.organization_id, req.params.year, req.params.semester],
-        );
-        res.sendStatus(200);
+        const budget = await Budget.create({
+            OrganizationId: req.params.organization_id,
+            year: req.params.year,
+            half: req.params.half,
+            manager: req.body.manager,
+        });
+        res.json(budget.toJSON());
     } catch (error) {
         next(error);
     }
 });
 
-router.delete('/:organization_id/:year/:semester', async (req, res, next) => {
+router.delete('/:organization_id/:year/:half', async (req, res, next) => {
     try {
-        await db.query(
-            'DELETE FROM budget WHERE organization_id = ($1) AND year = ($2) AND semester = ($3);',
-            [req.params.organization_id, req.params.year, req.params.semester],
-        );
+        await Budget.destroy({
+            where: {
+                OrganizationId: req.params.organization_id,
+                year: req.params.year,
+                half: req.params.half,
+            },
+        });
         res.sendStatus(200);
     } catch (error) {
         next(error);

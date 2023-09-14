@@ -35,7 +35,8 @@ async function initDB() {
     const models = [Organization, User, Budget, Income, Expense, Transaction];
     for (const model of models) {
         // TODO: change schema name according to environmental variable
-        await model.sync({ schema: 'development' });
+        // await model.sync({ force: true });
+        await model.sync();
     }
 }
 
