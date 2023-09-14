@@ -1,5 +1,5 @@
 import express from 'express';
-import { query, redisClient, sequelize } from './db';
+import { query, redisClient } from './db';
 import {
     budgets,
     documents,
