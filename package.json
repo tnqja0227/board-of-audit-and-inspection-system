@@ -4,9 +4,9 @@
     "description": "KAIST board of audit and inspection system backend",
     "main": "index.js",
     "scripts": {
-        "start": "ts-node src/app.ts",
+        "start": "NODE_ENV=production ts-node src/app.ts",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "ts-node-dev --respawn src/app.ts"
+        "dev": "NODE_ENV=development ts-node-dev --respawn src/app.ts"
     },
     "author": "Kyungho Byoun",
     "license": "ISC",

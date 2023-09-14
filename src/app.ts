@@ -1,5 +1,5 @@
 import express from 'express';
-import { query, redisClient } from './db';
+import { redisClient } from './db';
 import {
     budgets,
     documents,
@@ -39,10 +39,6 @@ async function initDB() {
         await model.sync();
     }
 }
-
-query('SELECT * FROM now()', []).then((res) => {
-    console.log(res.rows[0]);
-});
 
 initDB().catch((err) => {
     console.log(err);
