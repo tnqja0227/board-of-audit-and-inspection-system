@@ -2,7 +2,12 @@
 
 KAIST board of audit and inspection system backend
 
-built with `Node.js` and `PostgreSQL`
+## Dependency
+
+-   `Node.js` and `Express.js`
+-   `postgreSQL`
+-   `Redis`
+-   `sequelize` as a ORM
 
 ## Usage
 
@@ -23,13 +28,18 @@ DB_USER = postgres
 DB_PASSWORD = password
 ```
 
-And, run with `docker compose`
+And, run with `docker compose` for production.
 
 ```
 docker compose up
 ```
 
-For the first local execution, execute `setup.sql` in your postgreSql with CLI or GUI tools (e.g. DBeaver)
+If you want to use `docker compose` for development purpose (it does not creates Node.js container), use following:
+
+```
+docker compose -f compose-dev.yaml up
+npm run dev
+```
 
 ## ER-Diagram
 
