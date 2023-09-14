@@ -5,6 +5,8 @@
 
 import express from 'express';
 import { Budget, Expense, Income } from '../model';
+import { sequelize } from '../db';
+import { QueryTypes } from 'sequelize';
 
 const router = express.Router();
 
@@ -147,6 +149,108 @@ router.get('/', async (req, res, next) => {
         next(error);
     }
 });
+
+// prettier-ignore
+router.get(
+    '/report/income/:organization_id/:year/:half',
+    async (req, res, next) => {
+        try {
+            const schema_name = process.env.NODE_ENV === 'development' ? '"development"' : '"production"';
+            const income_table = schema_name + '."incomes"';
+            const budget_table = schema_name + '."budgets"';
+            const result = await sequelize.query(
+                `WITH row_numbered AS (
+                    SELECT SOURCE, category, CONTENT, amount, note, "BudgetId", ROW_NUMBER() OVER (PARTITION BY SOURCE
+                    ORDER BY
+                        I.id) AS rn
+                    FROM(
+                        ${income_table} AS I
+                        JOIN (
+                            SELECT id, YEAR, half, "OrganizationId"
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id} AND
+                            YEAR = ${req.params.year} AND half = '${req.params.half}'
+                        ) AS B
+                        ON I."BudgetId" = B.id
+                    )
+                )
+                
+                SELECT SOURCE, json_agg(jsonb_build_object('category', category, 'content', CONTENT,
+                    'amount', amount, 'note', note, 'code', code))
+                FROM(
+                    SELECT SOURCE, category, CONTENT, amount, note, CASE
+                            WHEN SOURCE = '학생회비' THEN 100 + rn
+                            WHEN SOURCE = '본회계' THEN 200 + rn
+                            WHEN SOURCE = '자치' THEN 300 + rn
+                                    END AS code
+                    FROM row_numbered
+                ) Subquery
+                GROUP BY 
+                    SOURCE
+                ORDER BY
+                    SOURCE;
+                `,
+                {
+                    type: QueryTypes.SELECT,
+                },
+            );
+            res.json(result);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+// prettier-ignore
+router.get(
+    '/report/expense/:organization_id/:year/:half',
+    async (req, res, next) => {
+        try {
+            const schema_name = process.env.NODE_ENV === 'development' ? '"development"' : '"production"';
+            const expense_table = schema_name + '."expenses"';
+            const budget_table = schema_name + '."budgets"';
+            const result = await sequelize.query(
+                `WITH row_numbered AS (
+                    SELECT SOURCE, category, CONTENT, project, amount, note, "BudgetId", ROW_NUMBER() OVER (PARTITION BY SOURCE
+                    ORDER BY
+                        E.id) AS rn
+                    FROM(
+                        ${expense_table} AS E
+                        JOIN (
+                            SELECT id, YEAR, half, "OrganizationId"
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id} AND
+                            YEAR = ${req.params.year} AND half = '${req.params.half}'
+                        ) AS B
+                        ON E."BudgetId" = B.id
+                    )
+                )
+                
+                SELECT SOURCE, json_agg(jsonb_build_object('category', category, 'content', CONTENT,
+                    'project', project, 'amount', amount, 'note', note, 'code', code))
+                FROM(
+                    SELECT SOURCE, category, CONTENT, project, amount, note, CASE
+                            WHEN SOURCE = '학생회비' THEN 400 + rn
+                            WHEN SOURCE = '본회계' THEN 500 + rn
+                            WHEN SOURCE = '자치' THEN 600 + rn
+                                    END AS code
+                    FROM row_numbered
+                ) Subquery
+                GROUP BY 
+                    SOURCE
+                ORDER BY
+                    SOURCE;
+                `,
+                {
+                    type: QueryTypes.SELECT,
+                },
+            );
+            res.json(result);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.post('/:organization_id/:year/:half', async (req, res, next) => {
     try {

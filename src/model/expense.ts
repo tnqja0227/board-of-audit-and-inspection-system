@@ -44,7 +44,7 @@ Expense.init(
         },
     },
     {
-        tableName: 'Expenses',
+        tableName: 'expenses',
         sequelize,
     },
 );

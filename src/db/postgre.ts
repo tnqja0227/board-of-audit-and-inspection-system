@@ -7,6 +7,8 @@ if (process.env.NODE_ENV === 'development') {
     schema_name = 'production';
 }
 
+console.log('schema_name: ', schema_name);
+
 export const sequelize = new Sequelize(
     'postgres',
     process.env.DB_USER || 'postgres',
