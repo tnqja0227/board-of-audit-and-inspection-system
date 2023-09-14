@@ -16,18 +16,6 @@ services:
             - redisdata:/var/lib/redis/data
         ports:
             - 6379:6379
-    node:
-        build:
-            context: .
-            args:
-                - DB_HOST=postgresql
-                - DB_PORT=5432
-                - DB_USER=postgres
-                - DB_PASSWORD=password
-        environment:
-            - NODE_ENV=development
-        ports:
-            - 3000:3000
 
 volumes:
     pgdata:
