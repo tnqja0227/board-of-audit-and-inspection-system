@@ -158,38 +158,43 @@ router.get(
             const schema_name = process.env.NODE_ENV === 'development' ? '"development"' : '"production"';
             const income_table = schema_name + '."incomes"';
             const budget_table = schema_name + '."budgets"';
+            const transaction_table = schema_name + '."transactions"';
             const result = await sequelize.query(
-                `WITH row_numbered AS (
-                    SELECT SOURCE, category, CONTENT, amount, note, "BudgetId", ROW_NUMBER() OVER (PARTITION BY SOURCE
-                    ORDER BY
-                        I.id) AS rn
-                    FROM(
-                        ${income_table} AS I
-                        JOIN (
-                            SELECT id, YEAR, half, "OrganizationId"
+                `WITH target_incomes AS (
+                    SELECT id, "source", "category", "content", "amount" budget, "note", ROW_NUMBER() OVER (PARTITION BY "source" ORDER BY id) rn
+                    FROM ${income_table}
+                    WHERE "BudgetId" IN (
+                        SELECT id
                         FROM ${budget_table}
-                        WHERE "OrganizationId" = ${req.params.organization_id} AND
-                            YEAR = ${req.params.year} AND half = '${req.params.half}'
-                        ) AS B
-                        ON I."BudgetId" = B.id
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
                     )
+                ), row_numbered AS (
+                    SELECT "id", "source", "category", "content", "budget", COALESCE("income", 0) income, COALESCE("income", 0)::float / "budget"::float ratio, "note", "rn"
+                    FROM target_incomes AS I
+                        LEFT JOIN (
+                            SELECT sum(amount) AS income, "IncomeId"
+                            FROM ${transaction_table}
+                            WHERE "IncomeId" IS not NULL
+                            GROUP BY "IncomeId") AS T
+                        ON I.id = T."IncomeId"
                 )
                 
-                SELECT SOURCE, json_agg(jsonb_build_object('category', category, 'content', CONTENT,
-                    'amount', amount, 'note', note, 'code', code))
+                SELECT "source", sum("budget") "예산 소계", sum("income") "결산 소계", sum("income")::float / sum("budget")::float "비율", 
+                    json_agg(jsonb_build_object('예산 분류', category, '항목', CONTENT, '예산', budget, 
+                    '결산', income, '비율', ratio, '비고', note, '코드', code))
                 FROM(
-                    SELECT SOURCE, category, CONTENT, amount, note, CASE
-                            WHEN SOURCE = '학생회비' THEN 100 + rn
-                            WHEN SOURCE = '본회계' THEN 200 + rn
-                            WHEN SOURCE = '자치' THEN 300 + rn
-                                    END AS code
-                    FROM row_numbered
+                    SELECT "source", "category", "content", "budget", "income", "ratio", "note", 
+                        CASE
+                            WHEN "source" = '학생회비' THEN 100 + rn
+                            WHEN "source" = '본회계' THEN 200 + rn
+                            WHEN "source" = '자치' THEN 300 + rn
+                        END AS code
+                FROM row_numbered
                 ) Subquery
-                GROUP BY 
-                    SOURCE
-                ORDER BY
-                    SOURCE;
-                `,
+                GROUP BY "source"
+                ORDER BY "source";`
+                ,
                 {
                     type: QueryTypes.SELECT,
                 },
@@ -209,38 +214,43 @@ router.get(
             const schema_name = process.env.NODE_ENV === 'development' ? '"development"' : '"production"';
             const expense_table = schema_name + '."expenses"';
             const budget_table = schema_name + '."budgets"';
+            const transaction_table = schema_name + '."transactions"';
             const result = await sequelize.query(
-                `WITH row_numbered AS (
-                    SELECT SOURCE, category, CONTENT, project, amount, note, "BudgetId", ROW_NUMBER() OVER (PARTITION BY SOURCE
-                    ORDER BY
-                        E.id) AS rn
-                    FROM(
-                        ${expense_table} AS E
-                        JOIN (
-                            SELECT id, YEAR, half, "OrganizationId"
+                `WITH target_expenses AS (
+                    SELECT id, "source", "category", "content", "project", "amount" budget, "note", ROW_NUMBER() OVER (PARTITION BY "source" ORDER BY id) rn
+                    FROM ${expense_table}
+                    WHERE "BudgetId" IN (
+                        SELECT id
                         FROM ${budget_table}
-                        WHERE "OrganizationId" = ${req.params.organization_id} AND
-                            YEAR = ${req.params.year} AND half = '${req.params.half}'
-                        ) AS B
-                        ON E."BudgetId" = B.id
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
                     )
+                ), row_numbered AS (
+                    SELECT "id", "source", "category", "content", "project", "budget", COALESCE("expense", 0) expense, COALESCE("expense", 0)::float / "budget"::float ratio, "note", "rn"
+                    FROM target_expenses AS E
+                        LEFT JOIN (
+                            SELECT sum(amount) AS expense, "ExpenseId"
+                            FROM ${transaction_table}
+                            WHERE "ExpenseId" IS not NULL
+                            GROUP BY "ExpenseId") AS T
+                        ON E.id = T."ExpenseId"
                 )
                 
-                SELECT SOURCE, json_agg(jsonb_build_object('category', category, 'content', CONTENT,
-                    'project', project, 'amount', amount, 'note', note, 'code', code))
+                SELECT "source", sum("budget") "예산 소계", sum("expense") "결산 소계", sum("expense")::float / sum("budget")::float "비율", 
+                    json_agg(jsonb_build_object('예산 분류', category, '항목', CONTENT, '사업', project, 
+                    '예산', budget, '결산', expense, '비율', ratio, '비고', note, '코드', code))
                 FROM(
-                    SELECT SOURCE, category, CONTENT, project, amount, note, CASE
-                            WHEN SOURCE = '학생회비' THEN 400 + rn
-                            WHEN SOURCE = '본회계' THEN 500 + rn
-                            WHEN SOURCE = '자치' THEN 600 + rn
-                                    END AS code
-                    FROM row_numbered
+                    SELECT "source", "category", "content", "project", "budget", "expense", "ratio", "note", 
+                        CASE
+                            WHEN "source" = '학생회비' THEN 400 + rn
+                            WHEN "source" = '본회계' THEN 500 + rn
+                            WHEN "source" = '자치' THEN 600 + rn
+                        END AS code
+                FROM row_numbered
                 ) Subquery
-                GROUP BY 
-                    SOURCE
-                ORDER BY
-                    SOURCE;
-                `,
+                GROUP BY "source"
+                ORDER BY "source";`
+                ,
                 {
                     type: QueryTypes.SELECT,
                 },
