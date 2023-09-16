@@ -19,6 +19,9 @@ import {
     Expense,
     Transaction,
 } from './model';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+import YAML from 'yaml';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -52,9 +55,13 @@ const redisStore = new RedisStore({
 
 config();
 
+const file = fs.readFileSync('swagger.yaml', 'utf8');
+const swaggerDocument = YAML.parse(file);
+
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(
     session({
         store: redisStore,

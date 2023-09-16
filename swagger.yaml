@@ -1,0 +1,80 @@
+openapi: 3.0.0
+info:
+    title: KAIST board of audit and inspection system API
+    version: 1.0.0
+# servers:
+# - url: http://api.example.com/v1
+# description: Optional server description, e.g. Main (production) server
+tags:
+    name: 피감기구
+    description: 피감기구 관련 API
+paths:
+    /organizations:
+        get:
+            description: 모든 피감기구 조회
+            tags: [피감기구]
+            responses:
+                '200': # status code
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Organization'
+        post:
+            description: 피감기구 생성
+            tags: [피감기구]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                    description: 피감기구 이름
+                                    example: 학부총학생회
+            responses:
+                '200': # status code
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Organization'
+        delete:
+            description: 피감기구 삭제
+            tags: [피감기구]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                    description: 피감기구 이름
+                                    example: 학부총학생회
+            responses:
+                '200': # status code
+                    description: OK
+
+components:
+    schemas:
+        Organization:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: 피감기구 id
+                    example: 1
+                name:
+                    type: string
+                    description: 피감기구 이름
+                    example: 학부총학생회
+                created_at:
+                    type: timestampe
+                    example: 2020-01-01 00:00:00
+                updated_at:
+                    type: string
+                    example: 2020-01-01 00:00:00
