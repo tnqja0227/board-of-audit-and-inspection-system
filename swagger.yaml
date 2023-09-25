@@ -90,6 +90,40 @@ paths:
 
     /budget/expense/{budget_id}:
         get:
+            summary: 지출 예산안 조회
+            description: 지출 예산안 id에 해당하는 지출안의 array를 가져 옴.
+            tags: [예산안]
+        
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 지출 예산안 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+                  
+            responses:
+                '200': # status code
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Expense'
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                
+
+                                
         post:
         delete:
         put:
