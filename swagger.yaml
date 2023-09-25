@@ -250,6 +250,8 @@ paths:
                     example: spring
             responses:
 
+            # 모르겠으요
+
 
 
     /budget/{organization_id}/{year}{half}:
