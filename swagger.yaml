@@ -64,7 +64,46 @@ paths:
                 '200': # status code
                     description: OK
     
-    /budgets/income/:budget_id:
+    /budget:
+        get:
+            summary: 모든 예산안 조회
+            description: 데이터베이스로부터 주어진 검색 옵션에 맞는 모든 예산안의 array를 가져 옴.
+            tags: [예산안]
+            responses:
+                    200:
+                        description: Successfully retrieved budgets
+                        content:
+                            application/json:
+                                schema:
+                                    type: array
+                                    items: Budget
+                                    $ref: '#/components/schemas/Budget'
+                    500:
+                        description: Server error or database error
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        message:
+                                            type: string
+
+    /budget/expense/{budget_id}:
+        get:
+        post:
+        delete:
+        put:
+
+    /budget/report/expense/{organization_id}/{year}/{half}:
+        get:
+    
+
+    /budget/{organization_id}/{year}{half}:
+        post:
+    
+
+
+
 
 
 
@@ -124,3 +163,29 @@ components:
                 - project
                 - content
                 - amount
+
+        Budget:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                    description: A unique identifier for each budget entry. Automatically incremented.
+                manager:
+                    type: string
+                    description: 담당자
+                year:
+                    type: integer
+                    format: int32
+                    description: 집행연도
+                half:
+                    type: string
+                    enum:
+                        - spring
+                        - fall
+                    description: 예산 집행 반기 (spring, fall)
+            required:
+                - id
+                - manager
+                - year
+                - half
