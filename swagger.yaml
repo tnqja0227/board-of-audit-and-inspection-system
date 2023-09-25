@@ -125,6 +125,33 @@ paths:
 
                                 
         post:
+            summary: 지출 예산안 등록
+            description: 지출 예산안 id에 해당하는 예산안을 등록함.
+            tags: [예산안]
+
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 지출 예산안 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Expense'
+            responses:
+                200:
+                    description: Created expense
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Expense'
+
         delete:
         put:
 
