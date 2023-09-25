@@ -218,10 +218,103 @@ paths:
 
     /budget/report/expense/{organization_id}/{year}/{half}:
         get:
-    
+            summary: 지출 예산안 보고서 조회
+            description: 피감기구 id, 연도, 반기에 해당하는 지출안을 모두 모아 제공하는 report를 가져 옴.
+            tags: [예산안]
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                    type: string
+                    enum:
+                        - spring
+                        - fall
+                    example: spring
+            responses:
+
+
 
     /budget/{organization_id}/{year}{half}:
         post:
+            summary: 예산안 등록
+            description: 피감기구 id, 연도, 반기, 담당자에 해당하는 예산안을 등록함.
+            tags: [예산안]
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                    type: string
+                    enum:
+                        - spring
+                        - fall
+                    example: spring
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                manager:
+                                    type: string
+                                    description: 담당자
+                                    example: 김넙죽
+                    required:
+                        - manager
+            responses:
+                200:
+                    description: Created budget
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Budget'
+                500:
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+
     
 
 
