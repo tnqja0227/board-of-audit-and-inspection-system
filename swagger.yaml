@@ -153,7 +153,68 @@ paths:
                                 $ref: '#/components/schemas/Expense'
 
         delete:
+            summary: 지출 예산안 삭제
+            description: 지출 예산안 id에 해당하는 지출안을 삭제함.
+            tags: [예산안]
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 지출 예산안 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+                  
+            responses:
+                '200': # status code
+                    description: OK
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                
+
         put:
+            summary: 지출 예산안 업데이트
+            description: 지출 예산안 id에 해당하는 예산안을 입력하는 지출 예산안 값으로 업데이트함.
+            tags: [예산안]
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 지출 예산안 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Expense'
+            responses:
+                200:
+                    description: Successfuly updated expense
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Expense'
+                500:
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
 
     /budget/report/expense/{organization_id}/{year}/{half}:
         get:
