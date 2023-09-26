@@ -8,6 +8,9 @@ info:
 tags:
     name: 피감기구
     description: 피감기구 관련 API
+    name: 예산안
+    description: 예산안 관련 API
+
 paths:
     /organizations:
         get:
@@ -58,6 +61,173 @@ paths:
             responses:
                 '200': # status code
                     description: OK
+    /budget/income/{budget_id}:
+        get:
+            summary: 수입 조회
+            description: 수입 조회 id에 해당하는 예산안의 array를 가져 옴
+            tags: [예산안]
+            parameters:
+                name: budget_id
+                in: path
+                description: 수입 예산안 id
+                required: true
+                schema:
+                    type: integer
+                    format: int32
+                    example: 1
+            responses:
+                '200': # status code
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Income'
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:   
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        post:
+            summary: 수입 예산안 등록
+            description: 수입 예산안 id에 해당하는 예산안을 등록함.
+            tags: [예산안]
+
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 수입 예산안 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Income'
+            responses:
+                200:
+                    description: Created Income
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Income'
+        delete:
+            summary: 수입 예산안 삭제
+            description: 수입 예산안 id에 해당하는 예산안을 삭제함.
+            tags: [예산안]
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 수입 예산안 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+                  
+            responses:
+                '200': # status code
+                    description: OK
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        put:
+            summary: 수입 예산안 업데이트
+            description: 수입 예산안 id에 해당하는 예산안을 입력하는 수입 예산안 값으로 업데이트함.
+            tags: [예산안]
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 수입 예산안 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Expense'
+            responses:
+                200:
+                    description: Successfuly updated expense
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Expense'
+                500:
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+    /budget/{organization_id}/{year}{half}:
+        delete:
+            summary: 예산안 삭제
+            description: 피감기구 id, 연도, 반기에 해당하는 예산안을 삭제함.
+            tags: [예산안]
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                    type: string
+                    enum:
+                        - spring
+                        - fall
+                    example: spring
+            responses:
+                200:
+                    description: Deleted budget
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Budget'
+                500:
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string   
 
 components:
     schemas:
