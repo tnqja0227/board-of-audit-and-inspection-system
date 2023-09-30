@@ -27,6 +27,7 @@ router.post('/income/:budget_id', async (req, res, next) => {
     try {
         const income = await Income.create({
             BudgetId: req.params.budget_id,
+            code: req.body.code,
             source: req.body.source, // '학생회비', '본회계', '자치'
             category: req.body.category,
             content: req.body.content,
@@ -91,6 +92,7 @@ router.post('/expense/:budget_id', async (req, res, next) => {
     try {
         const expense = await Expense.create({
             BudgetId: req.params.budget_id,
+            code: req.body.code,
             source: req.body.source, // '학생회비', '본회계', '자치'
             category: req.body.category,
             project: req.body.project,
@@ -160,38 +162,27 @@ router.get(
             const budget_table = schema_name + '."budgets"';
             const transaction_table = schema_name + '."transactions"';
             const result = await sequelize.query(
-                `WITH target_incomes AS (
-                    SELECT id, "source", "category", "content", "amount" budget, "note", ROW_NUMBER() OVER (PARTITION BY "source" ORDER BY id) rn
-                    FROM ${income_table}
-                    WHERE "BudgetId" IN (
-                        SELECT id
-                        FROM ${budget_table}
-                        WHERE "OrganizationId" = ${req.params.organization_id}
-                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
-                    )
-                ), row_numbered AS (
-                    SELECT "id", "source", "category", "content", "budget", COALESCE("income", 0) income, COALESCE("income", 0)::float / "budget"::float ratio, "note", "rn"
-                    FROM target_incomes AS I
+                `WITH target_income AS (
+                    SELECT "id", "source", "category", "content", "amount" budget, COALESCE("income", 0) income, COALESCE("income", 0)::float / "amount"::float ratio, "note", "code"
+                    FROM ${income_table} AS I 
                         LEFT JOIN (
                             SELECT sum(amount) AS income, "IncomeId"
                             FROM ${transaction_table}
                             WHERE "IncomeId" IS not NULL
                             GROUP BY "IncomeId") AS T
                         ON I.id = T."IncomeId"
+                    WHERE I."BudgetId" IN (
+                        SELECT id
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
+                    )
                 )
                 
                 SELECT "source", sum("budget") "예산 소계", sum("income") "결산 소계", sum("income")::float / sum("budget")::float "비율", 
                     json_agg(jsonb_build_object('예산 분류', category, '항목', CONTENT, '예산', budget, 
                     '결산', income, '비율', ratio, '비고', note, '코드', code))
-                FROM(
-                    SELECT "source", "category", "content", "budget", "income", "ratio", "note", 
-                        CASE
-                            WHEN "source" = '학생회비' THEN 100 + rn
-                            WHEN "source" = '본회계' THEN 200 + rn
-                            WHEN "source" = '자치' THEN 300 + rn
-                        END AS code
-                FROM row_numbered
-                ) Subquery
+                FROM target_income
                 GROUP BY "source"
                 ORDER BY "source";`
                 ,
@@ -217,37 +208,26 @@ router.get(
             const transaction_table = schema_name + '."transactions"';
             const result = await sequelize.query(
                 `WITH target_expenses AS (
-                    SELECT id, "source", "category", "content", "project", "amount" budget, "note", ROW_NUMBER() OVER (PARTITION BY "source" ORDER BY id) rn
-                    FROM ${expense_table}
-                    WHERE "BudgetId" IN (
-                        SELECT id
-                        FROM ${budget_table}
-                        WHERE "OrganizationId" = ${req.params.organization_id}
-                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
-                    )
-                ), row_numbered AS (
-                    SELECT "id", "source", "category", "content", "project", "budget", COALESCE("expense", 0) expense, COALESCE("expense", 0)::float / "budget"::float ratio, "note", "rn"
-                    FROM target_expenses AS E
+                    SELECT "id", "source", "category", "content", "project", "amount" budget, COALESCE("expense", 0) expense, COALESCE("expense", 0)::float / "amount"::float ratio, "note", "code"
+                    FROM ${expense_table} AS E
                         LEFT JOIN (
                             SELECT sum(amount) AS expense, "ExpenseId"
                             FROM ${transaction_table}
                             WHERE "ExpenseId" IS not NULL
                             GROUP BY "ExpenseId") AS T
                         ON E.id = T."ExpenseId"
+                    WHERE "BudgetId" IN (
+                        SELECT id
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
+                    )
                 )
                 
                 SELECT "source", sum("budget") "예산 소계", sum("expense") "결산 소계", sum("expense")::float / sum("budget")::float "비율", 
                     json_agg(jsonb_build_object('예산 분류', category, '항목', CONTENT, '사업', project, 
                     '예산', budget, '결산', expense, '비율', ratio, '비고', note, '코드', code))
-                FROM(
-                    SELECT "source", "category", "content", "project", "budget", "expense", "ratio", "note", 
-                        CASE
-                            WHEN "source" = '학생회비' THEN 400 + rn
-                            WHEN "source" = '본회계' THEN 500 + rn
-                            WHEN "source" = '자치' THEN 600 + rn
-                        END AS code
-                FROM row_numbered
-                ) Subquery
+                FROM target_expenses
                 GROUP BY "source"
                 ORDER BY "source";`
                 ,

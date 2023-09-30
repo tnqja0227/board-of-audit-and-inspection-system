@@ -3,6 +3,7 @@ import { sequelize } from '../db';
 
 class Income extends Model {
     declare id: number;
+    declare code: string; // 예산 코드
     declare source: string; // 재원 (학생회비, 본회계, 자치)
     declare category: string; // 예산 분류 (e.g. 중앙회계, 학교지원금)
     declare content: string; // 항목 (세부 항목)
@@ -16,6 +17,10 @@ Income.init(
             type: DataTypes.INTEGER.UNSIGNED,
             autoIncrement: true,
             primaryKey: true,
+        },
+        code: {
+            type: DataTypes.STRING,
+            allowNull: false,
         },
         source: {
             type: DataTypes.ENUM('학생회비', '본회계', '자치'),
