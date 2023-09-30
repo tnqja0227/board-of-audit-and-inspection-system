@@ -44,6 +44,7 @@ router.post('/', async (req, res, next) => {
             cardOwner: req.body.card_owner,
             bankbook: req.body.bankbook,
             organization_id: organization.id,
+            isDisabled: req.body.is_disabled,
         });
         res.json(user.toJSON());
     } catch (error) {

@@ -10,6 +10,7 @@ class User extends Model {
     declare cardBank: string; // 공금카드 은행명
     declare cardOwner: string; // 공금카드 예금주
     declare bankbook: string; // 통장사본 (url)
+    declare isDisabled: boolean; // 계정 비활성화 여부
 }
 
 User.init(
@@ -51,6 +52,11 @@ User.init(
         bankbook: {
             type: DataTypes.STRING,
             allowNull: true,
+        },
+        isDisabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
         },
     },
     {
