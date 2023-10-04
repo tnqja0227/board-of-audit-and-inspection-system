@@ -64,7 +64,7 @@ paths:
                 '200': # status code
                     description: OK
     
-    /budget:
+    /budgets:
         get:
             summary: 모든 예산안 조회
             description: 데이터베이스로부터 주어진 검색 옵션에 맞는 모든 예산안의 array를 가져 옴.
