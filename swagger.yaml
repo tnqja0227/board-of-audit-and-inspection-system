@@ -78,6 +78,17 @@ paths:
                                     type: array
                                     items: Budget
                                     $ref: '#/components/schemas/Budget'
+                        example:    
+                            value:
+                            - id: 1
+                              manager: "김넙죽"
+                              year: 2023
+                              half: "spring"
+                            - id: 2
+                              manager: "김넙죽"
+                              year: 2023
+                              half: "fall"
+
                     500:
                         description: Server error or database error
                         content:
