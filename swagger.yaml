@@ -123,6 +123,23 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/Expense'
+                    example:
+                        value:
+                        - id: 1
+                          source: "학생회비"
+                          category: "교육"
+                          project: "교통안전교육"
+                          content: "강사비"
+                          amount: 1000000
+                          note: "교육"
+                        - id: 2
+                          source: "학생회비"
+                          category: "교육"
+                          project: "교통안전교육"
+                          content: "교통비"
+                          amount: 100000
+                          note: "교육"
+
                 '500': # status code
                     description: Server error or database error
                     content:
@@ -360,7 +377,7 @@ components:
                 id:
                     type: integer
                     format: int32
-                    description: A unique identifier for each expense entry.
+                    description: 지출예산안 항목 id
                 source:
                     type: string
                     enum:
