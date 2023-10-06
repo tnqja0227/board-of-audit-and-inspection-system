@@ -7,7 +7,10 @@ info:
 # description: Optional server description, e.g. Main (production) server
 tags:
     name: 피감기구
+
     description: 피감기구 관련 API
+
+
 paths:
     /organizations:
         get:
@@ -59,6 +62,184 @@ paths:
                 '200': # status code
                     description: OK
 
+    /document:
+        post:
+            summary: 이미지 업로드
+            description: 특정 조직, 연도 및 학기에 대한 이미지를 업로드 합니다.
+            tags: [문서]
+            parameters:
+                - name: organization_name
+                  in: path
+                  description: 조직 이름
+                  required: true
+                  schema:
+                    type: string
+                    example: 학부총학생회
+                - name: year
+                  in: path
+                  description: 집행연도
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+                    example: 2023
+                - name: semester
+                  in: path
+                  description: 학기 (spring or fall)
+                  required: true
+                  schema:
+                    type: string
+                    example: spring
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                image:
+                                    type: array
+                                    items:
+                                        type: string
+                                        format: binary
+                                    description: 이미지 파일들 (최대 10개, JPG, JPEG, PNG)
+            responses:
+                '200':
+                    description: Successfully uploaded images
+                '400':
+                    description: Invalid file type or exceeded the maximum file size
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+    /transactions:
+        get:
+            summary: 모든 거래 내역 조회
+            tags: [거래내역]
+            responses:
+                '200':
+                    description: Successfully retrieved transactions
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Transaction'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        post:
+            summary: 거래 내역 생성
+            tags: [거래내역]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TransactionInput'
+            responses:
+                '200':
+                    description: Successfully created transaction
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Transaction'
+                '400':
+                    description: Invalid input (Both income_id and expense_id exist)
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+    /transactions/{transaction_id}:
+        delete:
+            summary: 거래 내역 삭제
+            tags: [거래내역]
+            parameters:
+                - name: transaction_id
+                  in: path
+                  description: 거래 내역 ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                '200':
+                    description: Successfully deleted transaction
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        put:
+            summary: 거래 내역 업데이트
+            tags: [거래내역]
+            parameters:
+                - name: transaction_id
+                  in: path
+                  description: 거래 내역 ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TransactionInput'
+            responses:
+                '200':
+                    description: Successfully updated transaction
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+    
+
+    
+
+
 components:
     schemas:
         Organization:
@@ -78,3 +259,4 @@ components:
                 updated_at:
                     type: string
                     example: 2020-01-01 00:00:00
+
