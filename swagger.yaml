@@ -329,6 +329,76 @@ paths:
                                     message:
                                         type: string
 
+    /budgets/report/income/{organization_id}/{year}/{half}:
+        get:
+            summary: 수입항목 보고서 조회
+            description: 피감기구 id, 연도, 반기에 해당하는 지출안을 모두 모아 제공하는 report를 가져 옴.
+            tags: [예산안]
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
+            responses:
+                '200': # status code
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        source:
+                                            type: string
+                                        예산 소계:
+                                            type: string
+                                        결산 소계:
+                                            type: string
+                                        비율:
+                                            type: number
+                                        json_agg:
+                                            type: array
+                                            items:
+                                                type: object
+                                                properties:
+                                                    결산:
+                                                        type: integer
+                                                    비고:
+                                                        type: string
+                                                    비율:
+                                                        type: number
+                                                    예산:
+                                                        type: integer
+                                                    코드:
+                                                        type: string
+                                                    항목:
+                                                        type: string
+                                                    예산 분류:
+                                                        type: string
+
     /budgets/expense/{budget_id}:
         get:
             summary: 지출항목 조회
