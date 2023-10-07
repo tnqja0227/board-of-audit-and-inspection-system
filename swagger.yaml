@@ -10,6 +10,8 @@ tags:
       description: 피감기구 관련 API
     - name: 예산안
       description: 예산안 관련 API
+    - name: 통장거래내역
+      description: 통장거래내역 관련 API
 
 paths:
     /organizations:
@@ -526,6 +528,180 @@ paths:
                                                     예산 분류:
                                                         type: string
 
+    /transactions:
+        get:
+            summary: 모든 통장거래내역 조회
+            tags: [통장거래내역]
+            responses:
+                '200':
+                    description: Successfully retrieved transactions
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Transaction'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        post:
+            summary: 통장거래내역 생성
+            tags: [통장거래내역]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Transaction'
+            responses:
+                '200':
+                    description: Successfully created transaction
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Transaction'
+                '400':
+                    description: Invalid input (Both income_id and expense_id exist)
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+    /transactions/{transaction_id}:
+        delete:
+            summary: 통장거래내역 삭제
+            tags: [통장거래내역]
+            parameters:
+                - name: transaction_id
+                  in: path
+                  description: 통장거래내역 ID
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+            responses:
+                '200':
+                    description: Successfully deleted transaction
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        put:
+            summary: 통장거래내역 업데이트
+            tags: [통장거래내역]
+            parameters:
+                - name: transaction_id
+                  in: path
+                  description: 통장거래내역 ID
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Transaction'
+            responses:
+                '200':
+                    description: Successfully updated transaction
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+    /documents/image/{organization_name}/{year}/{semester}:
+        post:
+            summary: 지출증빙내역 업로드
+            description: 특정 조직, 연도 및 학기에 대한 이미지를 업로드 합니다.
+            tags: [문서]
+            parameters:
+                - name: organization_name
+                  in: path
+                  description: 피감기구 이름
+                  required: true
+                  schema:
+                      type: string
+                      example: 학부총학생회
+                - name: year
+                  in: path
+                  description: 집행연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: semester
+                  in: path
+                  description: 학기 (spring or fall)
+                  required: true
+                  schema:
+                      type: string
+                      example: spring
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                image:
+                                    type: array
+                                    items:
+                                        type: string
+                                        format: binary
+                                    description: 이미지 파일들 (최대 10개, JPG, JPEG, PNG)
+            responses:
+                '200':
+                    description: Successfully uploaded images
+                '400':
+                    description: Invalid file type or exceeded the maximum file size
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
 components:
     schemas:
         Organization:
@@ -625,3 +801,59 @@ components:
                 - project
                 - content
                 - amount
+
+        Transaction:
+            type: object
+            properties:
+                project_at:
+                    type: string
+                    format: date-time
+                    description: 사업 일시
+                    example: 2020-01-01 00:00:00
+                manager:
+                    type: string
+                    description: 담당자
+                    example: 김넙죽
+                content:
+                    type: string
+                    description: 내용
+                    example: 교통비
+                type:
+                    type: string
+                    enum:
+                        - 공금카드
+                        - 계좌이체
+                        - 현금거래
+                        - 사비집행
+                    description: 결제수단
+                    example: 공금카드
+                amount:
+                    type: integer
+                    format: int32
+                    description: 금액
+                    example: 20000
+                transaction_at:
+                    type: string
+                    format: date-time
+                    description: 거래일시
+                    example: 2020-01-01 00:00:00
+                account_number:
+                    type: string
+                    description: 계좌번호
+                    example: 12-12-12-12
+                account_bank:
+                    type: string
+                    description: 은행명
+                    example: 토스뱅크
+                account_owner:
+                    type: string
+                    description: 예금주
+                    example: 김넙죽
+                has_bill:
+                    type: boolean
+                    description: 영수증 여부
+                    example: false
+                note:
+                    type: string
+                    description: 비고
+                    example: ''
