@@ -6,10 +6,10 @@ info:
 # - url: http://api.example.com/v1
 # description: Optional server description, e.g. Main (production) server
 tags:
-    name: 피감기구
-    description: 피감기구 관련 API
-    name: 예산안
-    description: 예산안 관련 API
+    - name: 피감기구
+      description: 피감기구 관련 API
+    - name: 예산안
+      description: 예산안 관련 API
 
 paths:
     /organizations:
@@ -61,20 +61,164 @@ paths:
             responses:
                 '200': # status code
                     description: OK
-    /budget/income/{budget_id}:
+
+    /budgets:
         get:
-            summary: 수입 조회
-            description: 수입 조회 id에 해당하는 예산안의 array를 가져 옴
+            summary: 모든 예산안 조회
+            description: 데이터베이스로부터 주어진 검색 옵션에 맞는 모든 예산안의 array를 가져 옴.
+            tags: [예산안]
+            responses:
+                200:
+                    description: Successfully retrieved budgets
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: Budget
+                                $ref: '#/components/schemas/Budget'
+                    example:
+                        value:
+                            - id: 1
+                              manager: '김넙죽'
+                              year: 2023
+                              half: 'spring'
+                            - id: 2
+                              manager: '김넙죽'
+                              year: 2023
+                              half: 'fall'
+
+                500:
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+    /budgets/{organization_id}/{year}{half}:
+        post:
+            summary: 예산안 등록
+            description: 피감기구 id, 연도, 반기, 담당자에 해당하는 예산안을 등록함.
             tags: [예산안]
             parameters:
-                name: budget_id
-                in: path
-                description: 수입 예산안 id
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
+            requestBody:
                 required: true
-                schema:
-                    type: integer
-                    format: int32
-                    example: 1
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                manager:
+                                    type: string
+                                    description: 담당자
+                                    example: 김넙죽
+                    required:
+                        - manager
+            responses:
+                200:
+                    description: Created budget
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Budget'
+                500:
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        delete:
+            summary: 예산안 삭제
+            description: 피감기구 id, 연도, 반기에 해당하는 예산안을 삭제함.
+            tags: [예산안]
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
+            responses:
+                200:
+                    description: Deleted budget
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Budget'
+                500:
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+    /budgets/income/{budget_id}:
+        get:
+            summary: 수입항목 조회
+            description: 예산 id에 해당하는 수입항목의 array를 가져 옴
+            tags: [예산안]
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 예산안 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
             responses:
                 '200': # status code
                     content:
@@ -86,26 +230,26 @@ paths:
                 '500': # status code
                     description: Server error or database error
                     content:
-                        application/json:   
+                        application/json:
                             schema:
                                 type: object
                                 properties:
                                     message:
                                         type: string
         post:
-            summary: 수입 예산안 등록
-            description: 수입 예산안 id에 해당하는 예산안을 등록함.
+            summary: 수입항목 등록
+            description: 예산안 id에 해당하는 수입항목을 등록함.
             tags: [예산안]
 
             parameters:
                 - name: budget_id
                   in: path
-                  description: 수입 예산안 id
+                  description: 예산안 id
                   required: true
                   schema:
-                    type: integer
-                    format: int32
-                    example: 1
+                      type: integer
+                      format: int32
+                      example: 1
             requestBody:
                 required: true
                 content:
@@ -119,20 +263,22 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Income'
+
+    /budgets/income/{income_id}:
         delete:
-            summary: 수입 예산안 삭제
-            description: 수입 예산안 id에 해당하는 예산안을 삭제함.
+            summary: 수입항목 삭제
+            description: 수입항목 id에 해당하는 수입항목을 삭제함.
             tags: [예산안]
             parameters:
-                - name: budget_id
+                - name: income_id
                   in: path
-                  description: 수입 예산안 id
+                  description: 수입항목 id
                   required: true
                   schema:
-                    type: integer
-                    format: int32
-                    example: 1
-                  
+                      type: integer
+                      format: int32
+                      example: 1
+
             responses:
                 '200': # status code
                     description: OK
@@ -146,18 +292,18 @@ paths:
                                     message:
                                         type: string
         put:
-            summary: 수입 예산안 업데이트
-            description: 수입 예산안 id에 해당하는 예산안을 입력하는 수입 예산안 값으로 업데이트함.
+            summary: 수입항목 업데이트
+            description: 수입항목 id에 해당하는 수입항목을 업데이트함.
             tags: [예산안]
             parameters:
-                - name: budget_id
+                - name: expense_id
                   in: path
-                  description: 수입 예산안 id
+                  description: 수입항목 id
                   required: true
                   schema:
-                    type: integer
-                    format: int32
-                    example: 1
+                      type: integer
+                      format: int32
+                      example: 1
             requestBody:
                 required: true
                 content:
@@ -180,45 +326,124 @@ paths:
                                 properties:
                                     message:
                                         type: string
-    /budget/{organization_id}/{year}{half}:
-        delete:
-            summary: 예산안 삭제
-            description: 피감기구 id, 연도, 반기에 해당하는 예산안을 삭제함.
+
+    /budgets/expense/{budget_id}:
+        get:
+            summary: 지출항목 조회
+            description: 예산안 id에 해당하는 지출항목의 배열을 가져 옴.
             tags: [예산안]
+
             parameters:
-                - name: organization_id
+                - name: budget_id
                   in: path
-                  description: 피감기구 id
+                  description: 예산안 id
                   required: true
                   schema:
-                    type: integer
-                    format: int32
-                    example: 1
-                - name: year
-                  in: path
-                  description: 연도
-                  required: true
-                  schema:
-                    type: integer
-                    format: int32
-                    example: 2023
-                - name: half
-                  in: path
-                  description: 반기
-                  required: true
-                  schema:
-                    type: string
-                    enum:
-                        - spring
-                        - fall
-                    example: spring
+                      type: integer
+                      format: int32
+                      example: 1
+
             responses:
-                200:
-                    description: Deleted budget
+                '200': # status code
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Budget'
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Expense'
+
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+        post:
+            summary: 지출항목 등록
+            description: 예산안 id에 해당하는 지출항목을 등록함.
+            tags: [예산안]
+
+            parameters:
+                - name: budget_id
+                  in: path
+                  description: 예산안 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Expense'
+            responses:
+                200:
+                    description: Created expense
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Expense'
+
+    /budgets/expense/{expense_id}:
+        delete:
+            summary: 지출항목 삭제
+            description: 지출항목 id에 해당하는 지출항목을 삭제함.
+            tags: [예산안]
+            parameters:
+                - name: expense_id
+                  in: path
+                  description: 지출항목 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+
+            responses:
+                '200': # status code
+                    description: OK
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+
+        put:
+            summary: 지출항목 업데이트
+            description: 지출항목 id에 해당하는 지출항목을 업데이트함.
+            tags: [예산안]
+            parameters:
+                - name: expense_id
+                  in: path
+                  description: 지출항목 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Expense'
+            responses:
+                200:
+                    description: Successfuly updated expense
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Expense'
                 500:
                     description: Server error or database error
                     content:
@@ -227,7 +452,79 @@ paths:
                                 type: object
                                 properties:
                                     message:
-                                        type: string   
+                                        type: string
+
+    /budgets/report/expense/{organization_id}/{year}/{half}:
+        get:
+            summary: 지출항목 보고서 조회
+            description: 피감기구 id, 연도, 반기에 해당하는 지출안을 모두 모아 제공하는 report를 가져 옴.
+            tags: [예산안]
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
+            responses:
+                '200': # status code
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        source:
+                                            type: string
+                                        예산 소계:
+                                            type: string
+                                        결산 소계:
+                                            type: string
+                                        비율:
+                                            type: number
+                                        json_agg:
+                                            type: array
+                                            items:
+                                                type: object
+                                                properties:
+                                                    결산:
+                                                        type: integer
+                                                    비고:
+                                                        type: string
+                                                    비율:
+                                                        type: number
+                                                    사업:
+                                                        type: string
+                                                    예산:
+                                                        type: integer
+                                                    코드:
+                                                        type: string
+                                                    항목:
+                                                        type: string
+                                                    예산 분류:
+                                                        type: string
 
 components:
     schemas:
@@ -248,3 +545,83 @@ components:
                 updated_at:
                     type: string
                     example: 2020-01-01 00:00:00
+        Income:
+            type: object
+            properties:
+                source:
+                    type: string
+                    enum:
+                        - 학생회비
+                        - 본회계
+                        - 자치
+                    description: 지출항목 재원
+                    example: 학생회비
+                code:
+                    type: string
+                    description: 예산 분류 코드
+                    example: 101
+                category:
+                    type: string
+                    description: 예산 분류
+                    example: 중앙회계
+                content:
+                    type: string
+                    description: 항목 (세부 항목)
+                    example: 중앙회계지원금
+                amount:
+                    type: integer
+                    format: int32
+                    description: 금액
+                    example: 200000
+                note:
+                    type: string
+                    description: 비고
+                    example: ''
+            required:
+                - source
+                - category
+                - project
+                - content
+                - amount
+        Expense:
+            type: object
+            properties:
+                source:
+                    type: string
+                    enum:
+                        - 학생회비
+                        - 본회계
+                        - 자치
+                    description: 지출항목 재원
+                    example: 학생회비
+                code:
+                    type: string
+                    description: 예산 분류 코드
+                    example: 401
+                category:
+                    type: string
+                    description: 예산 분류
+                    example: 운영비
+                project:
+                    type: string
+                    description: 사업명
+                    example: 격려금
+                content:
+                    type: string
+                    description: 항목 (세부 항목)
+                    example: 격려금
+                amount:
+                    type: integer
+                    format: int32
+                    description: 금액
+                    example: 200000
+                note:
+                    type: string
+                    description: 비고
+                    example: ''
+            required:
+                - source
+                - category
+                - project
+                - content
+                - amount

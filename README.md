@@ -28,16 +28,21 @@ DB_USER = postgres
 DB_PASSWORD = password
 ```
 
-And, run with `docker compose` for production.
+### In production
 
 ```
 docker compose up
 ```
 
-If you want to use `docker compose` for development purpose (it does not creates Node.js container), use following:
+### In development
 
 ```
 docker compose -f compose-dev.yaml up
+
+// set node version, or you can manually install `node:v18.12.0`
+nvm install
+nvm use
+
 npm run dev
 ```
 
