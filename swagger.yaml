@@ -12,6 +12,8 @@ tags:
       description: 예산안 관련 API
     - name: 통장거래내역
       description: 통장거래내역 관련 API
+    - name: 계정
+      description: 계정 관련 API
 
 paths:
     /organizations:
@@ -26,6 +28,15 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/Organization'
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
         post:
             description: 피감기구 생성
             tags: [피감기구]
@@ -63,6 +74,176 @@ paths:
             responses:
                 '200': # status code
                     description: OK
+                '400': # status code
+                    description: Invalid organization name
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+    /users:
+        get:
+            description: 모든 계정 조회
+            tags: [계정]
+            responses:
+                '200': # status code
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/User'
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+        post:
+            description: 계정 생성
+            tags: [계정]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 계정 이메일
+                                    example: boa2023@kaist.ac.kr
+                                password:
+                                    type: string
+                                    description: 계정 비밀번호
+                                    example: password
+            responses:
+                '200': # status code
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+                '404': # status code
+                    description: Organization not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+    /users/login:
+        post:
+            description: 로그인
+            tags: [계정]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 계정 이메일
+                                    example: boa2023@kaist.ac.kr
+                                password:
+                                    type: string
+                                    description: 계정 비밀번호
+                                    example: password
+            responses:
+                '200': # status code
+                    description: Login success
+                '401': # status code
+                    description: Wrong password (Unauthorized)
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '404': # status code
+                    description: User not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+    /users/password:
+        post:
+            description: 비밀번호 변경
+            tags: [계정]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 계정 이메일
+                                    example: boa2023@kaist.ac.kr
+                                password:
+                                    type: string
+                                    description: 계정 비밀번호
+                                    example: password
+            responses:
+                '200': # status code
+                    description: Password chage success
+                '404': # status code
+                    description: Email not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                '500': # status code
+                    description: Server error or database error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
 
     /budgets:
         get:
@@ -786,11 +967,31 @@ components:
                     description: 피감기구 이름
                     example: 학부총학생회
                 created_at:
-                    type: timestampe
+                    type: timestamp
                     example: 2020-01-01 00:00:00
                 updated_at:
-                    type: string
+                    type: timestamp
                     example: 2020-01-01 00:00:00
+        User:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: 계정 id
+                    example: 1
+                email:
+                    type: string
+                    description: 계정 이메일
+                    example: boa2023@kaist.ac.kr
+                password:
+                    type: string
+                    description: 계정 비밀번호
+                    example: password
+                role:
+                    type: string
+                    enum: ['admin', 'user']
+                    description: 관리자 계정과 일반 계정 구분
+                    example: user
         Income:
             type: object
             properties:
