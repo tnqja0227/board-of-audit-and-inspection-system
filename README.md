@@ -46,6 +46,14 @@ nvm use
 npm run dev
 ```
 
+## API Document
+
+```
+npm run dev
+```
+
+Enter to `localhost:1313/api-docs`.
+
 ## ER-Diagram
 
 ![감사원 drawio](images/감사원.drawio.png)
