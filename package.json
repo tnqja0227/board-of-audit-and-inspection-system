@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "start": "NODE_ENV=production ts-node src/app.ts",
-        "test": "ts-mocha test/**/*.spec.ts --exit",
+        "test": "nyc --reporter=text ts-mocha test/**/*.spec.ts --exit",
         "dev": "NODE_ENV=development ts-node-dev --respawn src/app.ts"
     },
     "author": "Kyungho Byoun",
@@ -19,6 +19,7 @@
         "express": "^4.18.2",
         "express-session": "^1.17.3",
         "multer": "^1.4.5-lts.1",
+        "nyc": "^15.1.0",
         "pg": "^8.11.3",
         "pg-hstore": "^2.3.4",
         "redis": "^4.6.8",
