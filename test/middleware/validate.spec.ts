@@ -2,12 +2,12 @@
 
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { validateAuditPeriod } from '../../src/middleware/validate';
+import { validateAuditPeriodByBudgetId } from '../../src/middleware';
 import { Request, Response, NextFunction } from 'express';
 import { AuditPeriod, Budget } from '../../src/model';
 
 describe('validate', () => {
-    describe('validateAuditPeriod', () => {
+    describe('validateAuditPeriodByBudgetId', () => {
         var budgetStub: sinon.SinonStub;
         var auditPeriodStub: sinon.SinonStub;
         var clock: sinon.SinonFakeTimers;
@@ -49,7 +49,7 @@ describe('validate', () => {
                 now: new Date(2023, 3, 1, 0, 0),
             });
 
-            await validateAuditPeriod(req, res, next);
+            await validateAuditPeriodByBudgetId(req, res, next);
             expect(next.calledOnce).to.be.true;
         });
 
@@ -60,7 +60,7 @@ describe('validate', () => {
                 now: new Date(2023, 7, 1, 0, 0),
             });
 
-            await validateAuditPeriod(req, res, next);
+            await validateAuditPeriodByBudgetId(req, res, next);
 
             expect(res.sendStatus.calledOnceWith(403)).to.be.true;
             expect(next.notCalled).to.be.true;
