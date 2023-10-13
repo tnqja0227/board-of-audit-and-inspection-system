@@ -4,7 +4,7 @@
 // source: '학생회비'
 
 import express from 'express';
-import { Budget, Expense, Income } from '../model';
+import { AuditPeriod, Budget, Expense, Income } from '../model';
 import { sequelize } from '../db';
 import { QueryTypes } from 'sequelize';
 
@@ -242,6 +242,40 @@ router.get(
         }
     },
 );
+
+router.post('/period/:year/:half', async (req, res, next) => {
+    try {
+        const auditPeriod = await AuditPeriod.create({
+            year: req.params.year,
+            half: req.params.half,
+            start: req.body.start,
+            end: req.body.end,
+        });
+        res.json(auditPeriod.toJSON());
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.put('/period/:year/:half', async (req, res, next) => {
+    try {
+        await AuditPeriod.update(
+            {
+                start: req.body.start,
+                end: req.body.end,
+            },
+            {
+                where: {
+                    year: req.params.year,
+                    half: req.params.half,
+                },
+            },
+        );
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.post('/:organization_id/:year/:half', async (req, res, next) => {
     try {

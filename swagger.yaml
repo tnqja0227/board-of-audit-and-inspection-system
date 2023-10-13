@@ -279,7 +279,95 @@ paths:
                                 properties:
                                     message:
                                         type: string
-    /budgets/{organization_id}/{year}{half}:
+    /budgets/period/{year}/{half}:
+        post:
+            summary: 감사기간 등록
+            description: 연도, 반기에 해당하는 감사기간을 등록함.
+            tags: [예산안]
+            parameters:
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                start:
+                                    type: date
+                                    format: date-time
+                                    description: 감사 시작일
+                                    example: 2020-01-01
+                                end:
+                                    type: date
+                                    format: date-time
+                                    description: 감사 종료일
+                                    example: 2020-06-31
+            responses:
+                200:
+                    description: Created period
+        put:
+            summary: 감사기간 수정
+            description: 연도, 반기에 해당하는 감사기간을 수정함.
+            tags: [예산안]
+            parameters:
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                start:
+                                    type: date
+                                    format: date-time
+                                    description: 감사 시작일
+                                    example: 2020-01-01
+                                end:
+                                    type: date
+                                    format: date-time
+                                    description: 감사 종료일
+                                    example: 2020-06-31
+            responses:
+                200:
+                    description: Updated period
+
+    /budgets/{organization_id}/{year}/{half}:
         post:
             summary: 예산안 등록
             description: 피감기구 id, 연도, 반기, 담당자에 해당하는 예산안을 등록함.
