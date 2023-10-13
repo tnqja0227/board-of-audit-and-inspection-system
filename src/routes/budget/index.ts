@@ -1,147 +1,15 @@
-// 예산
-// semester: 'spring', 'fall'
-// status: 'in progress', 'approved', 'rejected'
-// source: '학생회비'
-
 import express from 'express';
-import { AuditPeriod, Budget, Expense, Income } from '../model';
-import { sequelize } from '../db';
+import { incomes } from './income';
+import { expenses } from './expense';
+import { Budget } from '../../model';
+import { periods } from './period';
+import { sequelize } from '../../db';
 import { QueryTypes } from 'sequelize';
 
 const router = express.Router();
-
-router.get('/income/:budget_id', async (req, res, next) => {
-    try {
-        const incomes = await Income.findAll({
-            where: {
-                BudgetId: req.params.budget_id,
-            },
-        });
-        res.json(incomes.map((income) => income.toJSON()));
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.post('/income/:budget_id', async (req, res, next) => {
-    try {
-        const income = await Income.create({
-            BudgetId: req.params.budget_id,
-            code: req.body.code,
-            source: req.body.source, // '학생회비', '본회계', '자치'
-            category: req.body.category,
-            content: req.body.content,
-            amount: req.body.amount,
-            note: req.body.note,
-            isReadonly: req.body.is_readonly,
-        });
-        res.json(income.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.delete('/income/:income_id', async (req, res, next) => {
-    try {
-        await Income.destroy({
-            where: {
-                id: req.params.income_id,
-            },
-        });
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.put('/income/:income_id', async (req, res, next) => {
-    try {
-        await Income.update(
-            {
-                source: req.body.source, // '학생회비', '본회계', '자치'
-                category: req.body.category,
-                content: req.body.content,
-                amount: req.body.amount,
-                note: req.body.note,
-            },
-            {
-                where: {
-                    id: req.params.income_id,
-                },
-            },
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.get('/expense/:budget_id', async (req, res, next) => {
-    try {
-        const expenses = await Expense.findAll({
-            where: {
-                BudgetId: req.params.budget_id,
-            },
-        });
-        res.json(expenses.map((expense) => expense.toJSON()));
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.post('/expense/:budget_id', async (req, res, next) => {
-    try {
-        const expense = await Expense.create({
-            BudgetId: req.params.budget_id,
-            code: req.body.code,
-            source: req.body.source, // '학생회비', '본회계', '자치'
-            category: req.body.category,
-            project: req.body.project,
-            content: req.body.content,
-            amount: req.body.amount,
-            note: req.body.note,
-        });
-        res.json(expense.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.delete('/expense/:expense_id', async (req, res, next) => {
-    try {
-        await Expense.destroy({
-            where: {
-                id: req.params.expense_id,
-            },
-        });
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.put('/expense/:expense_id', async (req, res, next) => {
-    try {
-        await Expense.update(
-            {
-                source: req.body.source, // '학생회비', '본회계', '자치'
-                category: req.body.category,
-                project: req.body.project,
-                content: req.body.content,
-                amount: req.body.amount,
-                note: req.body.note,
-            },
-            {
-                where: {
-                    id: req.params.expense_id,
-                },
-            },
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+router.use('/income', incomes);
+router.use('/expense', expenses);
+router.use('/period', periods);
 
 // TODO: query options
 router.get('/', async (req, res, next) => {
@@ -158,7 +26,7 @@ router.get(
     '/report/income/:organization_id/:year/:half',
     async (req, res, next) => {
         try {
-            const schema_name = process.env.NODE_ENV === 'development' ? '"development"' : '"production"';
+            const schema_name = process.env.NODE_ENV || 'development';
             const income_table = schema_name + '."incomes"';
             const budget_table = schema_name + '."budgets"';
             const transaction_table = schema_name + '."transactions"';
@@ -203,7 +71,7 @@ router.get(
     '/report/expense/:organization_id/:year/:half',
     async (req, res, next) => {
         try {
-            const schema_name = process.env.NODE_ENV === 'development' ? '"development"' : '"production"';
+            const schema_name = process.env.NODE_ENV || 'development';
             const expense_table = schema_name + '."expenses"';
             const budget_table = schema_name + '."budgets"';
             const transaction_table = schema_name + '."transactions"';
@@ -242,40 +110,6 @@ router.get(
         }
     },
 );
-
-router.post('/period/:year/:half', async (req, res, next) => {
-    try {
-        const auditPeriod = await AuditPeriod.create({
-            year: req.params.year,
-            half: req.params.half,
-            start: req.body.start,
-            end: req.body.end,
-        });
-        res.json(auditPeriod.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.put('/period/:year/:half', async (req, res, next) => {
-    try {
-        await AuditPeriod.update(
-            {
-                start: req.body.start,
-                end: req.body.end,
-            },
-            {
-                where: {
-                    year: req.params.year,
-                    half: req.params.half,
-                },
-            },
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
 
 router.post('/:organization_id/:year/:half', async (req, res, next) => {
     try {
