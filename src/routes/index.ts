@@ -1,5 +1,5 @@
 export * from './organization';
-export * from './bugdet';
+export * from './budget';
 export * from './transaction';
 export * from './document';
 export * from './user';

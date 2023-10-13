@@ -11,14 +11,6 @@ import bodyParser from 'body-parser';
 import session from 'express-session';
 import { config } from 'dotenv';
 import RedisStore from 'connect-redis';
-import {
-    Organization,
-    User,
-    Budget,
-    Income,
-    Expense,
-    Transaction,
-} from './model';
 import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import YAML from 'yaml';
@@ -29,18 +21,7 @@ declare module 'express-session' {
     }
 }
 
-async function initDB() {
-    const models = [Organization, User, Budget, Income, Expense, Transaction];
-    for (const model of models) {
-        // await model.sync({ force: true });
-        // await model.sync();
-        await model.sync({ alter: true });
-    }
-}
-
-initDB().catch((err) => {
-    console.log(err);
-});
+const app = express();
 
 const redisStore = new RedisStore({
     client: redisClient,
@@ -53,7 +34,6 @@ config();
 const file = fs.readFileSync('swagger.yaml', 'utf8');
 const swaggerDocument = YAML.parse(file);
 
-const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -66,7 +46,9 @@ app.use(
     }),
 );
 app.use(function (req, res, next) {
-    console.log('%s %s %s', req.method, req.url, req.path);
+    if (process.env.NODE_ENV === 'development') {
+        console.log('%s %s %s', req.method, req.url, req.path);
+    }
     next();
 });
 
@@ -77,3 +59,5 @@ app.use('/documents', documents);
 app.use('/users', users);
 
 app.listen(3000);
+
+export default app;
