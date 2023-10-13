@@ -46,6 +46,12 @@ nvm use
 npm run dev
 ```
 
+## Testing
+
+```
+npm test
+```
+
 ## API Document
 
 ```
