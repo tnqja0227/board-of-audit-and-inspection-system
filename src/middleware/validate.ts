@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuditPeriod, Budget, Expense, Income } from '../model';
+import { AuditPeriod, Budget } from '../model';
 import { sequelize } from '../db';
 import { QueryTypes } from 'sequelize';
 
@@ -123,6 +123,22 @@ export async function validateAuditPeriodByExpenseId(
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
+            return res.sendStatus(403);
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function validateIsAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const role = req.session.user!.role;
+        if (role !== 'admin') {
             return res.sendStatus(403);
         }
         next();
