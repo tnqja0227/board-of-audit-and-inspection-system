@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { config } from 'dotenv';
+import logger from '../config/winston';
 
 config();
 
@@ -18,5 +19,5 @@ export async function uploadFile(filename: string, file: Buffer) {
         Body: file,
     });
     const response = await client.send(command);
-    console.log(response);
+    logger.debug(response);
 }

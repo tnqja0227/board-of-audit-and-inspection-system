@@ -25,6 +25,8 @@
         "redis": "^4.6.8",
         "sequelize": "^6.33.0",
         "swagger-ui-express": "^5.0.0",
+        "winston": "^3.11.0",
+        "winston-daily-rotate-file": "^4.7.1",
         "yaml": "^2.3.2"
     },
     "devDependencies": {

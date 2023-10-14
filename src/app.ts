@@ -14,6 +14,8 @@ import RedisStore from 'connect-redis';
 import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import YAML from 'yaml';
+import logger from './config/winston';
+import { initDB } from './db/util';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -28,6 +30,16 @@ const redisStore = new RedisStore({
     prefix: 'BAI:',
     ttl: 86400,
 });
+
+if (process.env.NODE_ENV !== 'test') {
+    initDB()
+        .then(() => {
+            logger.debug('Database connected');
+        })
+        .catch((err) => {
+            logger.debug(err);
+        });
+}
 
 config();
 
@@ -47,7 +59,7 @@ app.use(
 );
 app.use(function (req, res, next) {
     if (process.env.NODE_ENV === 'development') {
-        console.log('%s %s %s', req.method, req.url, req.path);
+        logger.debug('%s %s %s', req.method, req.url, req.path);
     }
     next();
 });

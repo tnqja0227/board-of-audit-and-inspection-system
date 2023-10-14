@@ -8,7 +8,7 @@ import {
     Income,
     Organization,
 } from '../../src/model';
-import { initDB } from '../../src/db';
+import { initDB } from '../../src/db/util';
 import sinon from 'sinon';
 
 chai.use(chaiHttp);
