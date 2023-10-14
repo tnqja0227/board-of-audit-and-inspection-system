@@ -40,7 +40,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(
     session({
         store: redisStore,
-        secret: process.env.SESSION_SECRET as string,
+        secret: (process.env.SESSION_SECRET as string) || 'keyboard cat',
         resave: false,
         saveUninitialized: false,
     }),
