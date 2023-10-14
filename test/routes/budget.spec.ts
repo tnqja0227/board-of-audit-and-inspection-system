@@ -17,7 +17,7 @@ describe('income router', () => {
     var clock: sinon.SinonFakeTimers;
     var budget_id: number;
 
-    before(async () => {
+    before(async function () {
         await initDB();
     });
 

@@ -36,21 +36,6 @@ sequelize.authenticate().catch((err) => {
 });
 
 export async function initDB() {
-    const models = [
-        Organization,
-        User,
-        Budget,
-        Income,
-        Expense,
-        Transaction,
-        AuditPeriod,
-    ];
-    for (const model of models) {
-        await model.sync({ force: true });
-        // await model.sync();
-        // await model.sync({ alter: true });
-    }
-
     // Check if the schema already exists
     const schemaExists = await sequelize.query(
         `SELECT schema_name FROM information_schema.schemata WHERE schema_name = '${schema_name}'`,
@@ -65,5 +50,20 @@ export async function initDB() {
         console.log(`Schema '${schema_name}' created successfully.`);
     } else {
         console.log(`Schema '${schema_name}' already exists.`);
+    }
+
+    const models = [
+        Organization,
+        User,
+        Budget,
+        Income,
+        Expense,
+        Transaction,
+        AuditPeriod,
+    ];
+    for (const model of models) {
+        await model.sync({ force: true });
+        // await model.sync();
+        // await model.sync({ alter: true });
     }
 }
