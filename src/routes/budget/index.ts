@@ -21,6 +21,31 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+// 특정 기간의 예산안 조회
+router.get('/:year/:half', async (req, res, next) => {
+    try {
+        const schema_name = process.env.NODE_ENV || 'development';
+        const budget_schema = schema_name + '."budgets"';
+        const organization_schema = schema_name + '."organizations"';
+        const budgets = await sequelize.query(
+            `SELECT B."id", O."name" organization_name, "manager", "year", "half"
+            FROM ${budget_schema} as B
+                INNER JOIN ${organization_schema} as O
+                ON B."OrganizationId" = O.id
+            WHERE "year" = ${req.params.year} AND "half" = '${req.params.half}'
+            ORDER BY O."name"`,
+            {
+                type: QueryTypes.SELECT,
+            },
+        );
+
+        res.json(budgets);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// TODO: organization authentication
 // prettier-ignore
 router.get(
     '/report/income/:organization_id/:year/:half',
@@ -111,6 +136,7 @@ router.get(
     },
 );
 
+// 예산안 생성
 router.post('/:organization_id/:year/:half', async (req, res, next) => {
     try {
         const budget = await Budget.create({
@@ -125,6 +151,7 @@ router.post('/:organization_id/:year/:half', async (req, res, next) => {
     }
 });
 
+// 예산안 삭제
 router.delete('/:organization_id/:year/:half', async (req, res, next) => {
     try {
         await Budget.destroy({

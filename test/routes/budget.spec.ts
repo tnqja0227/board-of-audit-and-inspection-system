@@ -13,6 +13,54 @@ import sinon from 'sinon';
 
 chai.use(chaiHttp);
 
+describe('budget router', () => {
+    before(async function () {
+        await initDB();
+    });
+
+    describe('GET /:year/:half', () => {
+        it('should return budgets of the given year and half', async () => {
+            const organization1 = await Organization.create({
+                name: '학부총학생회',
+            });
+
+            const organization2 = await Organization.create({
+                name: '감사원',
+            });
+
+            const organization3 = await Organization.create({
+                name: '동아리연합회',
+            });
+
+            await Budget.create({
+                OrganizationId: organization1.id,
+                year: 2023,
+                half: 'spring',
+                manager: '김넙죽',
+            });
+
+            await Budget.create({
+                OrganizationId: organization2.id,
+                year: 2023,
+                half: 'spring',
+                manager: '김넙죽',
+            });
+
+            await Budget.create({
+                OrganizationId: organization3.id,
+                year: 2023,
+                half: 'spring',
+                manager: '김넙죽',
+            });
+
+            const res = await chai.request(app).get('/budgets/2023/spring');
+            expect(res.body.map((budget: any) => budget.organization_name)).eql(
+                ['감사원', '동아리연합회', '학부총학생회'],
+            );
+        });
+    });
+});
+
 describe('income router', () => {
     var clock: sinon.SinonFakeTimers;
     var budget_id: number;
