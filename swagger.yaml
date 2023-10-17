@@ -244,6 +244,42 @@ paths:
                                 properties:
                                     message:
                                         type: string
+    /users/disable:
+        put:
+            description: 계정 비활성화
+            tags: [계정]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 계정 이메일
+                                    example: test@kaist.ac.kr
+            responses:
+                '200': # status code
+                    description: Disable success
+    /users/enable:
+        put:
+            description: 계정 활성화
+            tags: [계정]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 계정 이메일
+                                    example: test@kaist.ac.kr
+            responses:
+                '200': # status code
+                    description: Enable success
 
     /budgets:
         get:

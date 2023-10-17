@@ -27,9 +27,10 @@ router.post('/', async (req, res, next) => {
         });
 
         if (organization === null) {
-            return res.sendStatus(404);
+            return res.status(404).send('잘못된 피감기구입니다.');
         }
 
+        // TODO: 초기 비밀번호 설정
         let password = 'password';
         if (req.body.password !== undefined) {
             password = req.body.password;
@@ -53,7 +54,6 @@ router.post('/', async (req, res, next) => {
 });
 
 // 로그인
-// TODO: input sanitize
 router.post('/login', async (req, res, next) => {
     try {
         const user = await User.findOne({
@@ -62,15 +62,14 @@ router.post('/login', async (req, res, next) => {
             },
         });
         if (user === null) {
-            return res.sendStatus(404);
+            return res.status(404).send('존재하지 않는 계정입니다.');
         }
 
-        if (await bcrypt.compare(req.body.password, user.password)) {
-            req.session.user = user.toJSON();
-            res.sendStatus(200);
-        } else {
-            res.sendStatus(401);
+        if (!(await bcrypt.compare(req.body.password, user.password))) {
+            return res.status(401).send('비밀번호가 일치하지 않습니다.');
         }
+        req.session.user = user.toJSON();
+        res.sendStatus(200);
     } catch (error) {
         next(error);
     }
@@ -82,6 +81,44 @@ router.post('/password', async (req, res, next) => {
         await User.update(
             {
                 password: req.body.password,
+            },
+            {
+                where: {
+                    email: req.body.email,
+                },
+            },
+        );
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// 계정 비활성화
+router.put('/disable', async (req, res, next) => {
+    try {
+        await User.update(
+            {
+                isDisabled: true,
+            },
+            {
+                where: {
+                    email: req.body.email,
+                },
+            },
+        );
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// 계정 활성화
+router.put('/enable', async (req, res, next) => {
+    try {
+        await User.update(
+            {
+                isDisabled: false,
             },
             {
                 where: {
