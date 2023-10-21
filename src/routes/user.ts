@@ -1,6 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import { Organization, User } from '../model';
+import { sequelize } from '../db';
+import { QueryTypes } from 'sequelize';
 
 const saltRounds = 10;
 
@@ -8,8 +10,20 @@ const router = express.Router();
 
 router.get('/', async (req, res, next) => {
     try {
-        const users = await User.findAll();
-        res.json(users.map((user) => user.toJSON()));
+        const schema_name = process.env.NODE_ENV || 'development';
+        const organization_schema = schema_name + '."organizations"';
+        const user_schema = schema_name + '."users"';
+        const users = await sequelize.query(
+            `SELECT U."id", U."email", O."name" organization_name, U."cardNumber", U."cardBank", U."cardOwner", U."bankbook", U."isDisabled"
+            FROM ${organization_schema} as O
+                INNER JOIN ${user_schema} as U
+                ON O.id = U."OrganizationId"
+            ORDER BY O."name"`,
+            {
+                type: QueryTypes.SELECT,
+            },
+        );
+        res.json(users);
     } catch (error) {
         next(error);
     }
@@ -44,7 +58,7 @@ router.post('/', async (req, res, next) => {
             cardBank: req.body.card_bank,
             cardOwner: req.body.card_owner,
             bankbook: req.body.bankbook,
-            organization_id: organization.id,
+            OrganizationId: organization.id,
             isDisabled: req.body.is_disabled,
         });
         res.json(user.toJSON());
