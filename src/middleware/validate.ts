@@ -12,7 +12,7 @@ export async function validateAuditPeriodByBudgetId(
         const budgetId = req.params.budget_id;
         const budget = await Budget.findByPk(budgetId);
         if (!budget) {
-            return res.sendStatus(404);
+            return res.status(404).send('Budget not found');
         }
 
         const year = budget.year;
@@ -24,12 +24,12 @@ export async function validateAuditPeriodByBudgetId(
             },
         });
         if (!auditPeriod) {
-            return res.sendStatus(404);
+            return res.status(404).send('Audit period not found');
         }
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
-            return res.sendStatus(403);
+            return res.status(403).send('Not in audit period');
         }
         next();
     } catch (error) {
@@ -59,7 +59,7 @@ export async function validateAuditPeriodByIncomeId(
         );
 
         if (result.length === 0) {
-            return res.sendStatus(404);
+            return res.status(404).send('Income not found');
         }
 
         const year = result[0]['year'];
@@ -71,12 +71,12 @@ export async function validateAuditPeriodByIncomeId(
             },
         });
         if (!auditPeriod) {
-            return res.sendStatus(404);
+            return res.status(404).send('Audit period not found');
         }
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
-            return res.sendStatus(403);
+            return res.status(403).send('Not in audit period');
         }
         next();
     } catch (error) {
@@ -106,7 +106,7 @@ export async function validateAuditPeriodByExpenseId(
         );
 
         if (result.length === 0) {
-            return res.sendStatus(404);
+            return res.status(404).send('Expense not found');
         }
 
         const year = result[0]['year'];
@@ -118,12 +118,12 @@ export async function validateAuditPeriodByExpenseId(
             },
         });
         if (!auditPeriod) {
-            return res.sendStatus(404);
+            return res.status(404).send('Audit period not found');
         }
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
-            return res.sendStatus(403);
+            return res.status(403).send('Not in audit period');
         }
         next();
     } catch (error) {
@@ -139,7 +139,7 @@ export async function validateIsAdmin(
     try {
         const role = req.session.user!.role;
         if (role !== 'admin') {
-            return res.sendStatus(403);
+            return res.status(403).send('Not admin');
         }
         next();
     } catch (error) {
