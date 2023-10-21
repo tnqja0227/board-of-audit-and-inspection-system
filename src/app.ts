@@ -59,7 +59,7 @@ app.use(
 );
 app.use(function (req, res, next) {
     if (process.env.NODE_ENV === 'development') {
-        logger.debug('%s %s %s', req.method, req.url, req.path);
+        logger.debug(`${req.method}, ${req.url}`);
     }
     next();
 });

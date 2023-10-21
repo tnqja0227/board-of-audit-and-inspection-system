@@ -42,7 +42,7 @@ Transaction.init(
                 '현금거래',
                 '사비집행',
             ),
-            allowNull: false,
+            allowNull: true,
         },
         amount: {
             type: DataTypes.INTEGER,

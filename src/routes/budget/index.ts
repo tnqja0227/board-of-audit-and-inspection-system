@@ -5,6 +5,7 @@ import { Budget } from '../../model';
 import { periods } from './period';
 import { sequelize } from '../../db';
 import { QueryTypes } from 'sequelize';
+import { validateAuditPeriodByYearAndHalf } from '../../middleware';
 
 const router = express.Router();
 router.use('/income', incomes);
@@ -136,35 +137,106 @@ router.get(
     },
 );
 
-// 예산안 생성
-router.post('/:organization_id/:year/:half', async (req, res, next) => {
-    try {
-        const budget = await Budget.create({
-            OrganizationId: req.params.organization_id,
-            year: req.params.year,
-            half: req.params.half,
-            manager: req.body.manager,
-        });
-        res.json(budget.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
+// prettier-ignore
+router.get(
+    '/report/total/:organization_id/:year/:half',
+    async (req, res, next) => {
+        try {
+            const schema_name = process.env.NODE_ENV || 'development';
+            const income_table = schema_name + '."incomes"';
+            const expense_table = schema_name + '."expenses"';
+            const budget_table = schema_name + '."budgets"';
+            const transaction_table = schema_name + '."transactions"';
+            const result = await sequelize.query(
+                `WITH target_expenses AS (
+                    SELECT "source", "amount" expense_budget, COALESCE("expense", 0) expense
+                    FROM ${expense_table} AS E
+                        LEFT JOIN (
+                            SELECT sum(amount) AS expense, "ExpenseId"
+                            FROM ${transaction_table}
+                            WHERE "ExpenseId" IS not NULL
+                            GROUP BY "ExpenseId") AS T
+                        ON E.id = T."ExpenseId"
+                    WHERE "BudgetId" IN (
+                        SELECT id
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
+                    )
+                ), target_income AS (
+                    SELECT "source", "amount" income_budget, COALESCE("income", 0) income
+                    FROM ${income_table} AS I 
+                        LEFT JOIN (
+                            SELECT sum(amount) AS income, "IncomeId"
+                            FROM ${transaction_table}
+                            WHERE "IncomeId" IS not NULL
+                            GROUP BY "IncomeId") AS T
+                        ON I.id = T."IncomeId"
+                    WHERE I."BudgetId" IN (
+                        SELECT id
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
+                    )
+                )
+                
+                SELECT E."source" "자금 출처", COALESCE(sum(I."income_budget"), 0) "수입예산", COALESCE(sum(E."expense_budget"), 0) "지출예산", COALESCE(sum(I."income_budget"), 0) - COALESCE(sum(E."expense_budget"), 0) "예산 잔액",
+                    COALESCE(sum(I."income"), 0) "수입결산", COALESCE(sum(E."expense"), 0) "지출결산", COALESCE(sum(I."income"), 0) - COALESCE(sum(E."expense"), 0) "결산 잔액",
+                    COALESCE(sum(I."income"), 0)::float / sum(I."income_budget")::float "수입비율", COALESCE(sum(E."expense"), 0)::float / sum(E."expense_budget")::float "지출비율"
+                FROM target_expenses AS E
+                    FULL JOIN target_income AS I
+                    ON CAST(E."source" AS TEXT) = CAST(I."source" AS TEXT)
+                GROUP BY E."source"
+                ORDER BY E."source";`
+                ,
+                {
+                    type: QueryTypes.SELECT,
+                },
+            );
+            res.json(result);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
-// 예산안 삭제
-router.delete('/:organization_id/:year/:half', async (req, res, next) => {
-    try {
-        await Budget.destroy({
-            where: {
+// 예산안 생성
+router.post(
+    '/:organization_id/:year/:half',
+    validateAuditPeriodByYearAndHalf,
+    async (req, res, next) => {
+        try {
+            const budget = await Budget.create({
                 OrganizationId: req.params.organization_id,
                 year: req.params.year,
                 half: req.params.half,
-            },
-        });
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+                manager: req.body.manager,
+            });
+            res.json(budget.toJSON());
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+// 예산안 삭제
+router.delete(
+    '/:organization_id/:year/:half',
+    validateAuditPeriodByYearAndHalf,
+    async (req, res, next) => {
+        try {
+            await Budget.destroy({
+                where: {
+                    OrganizationId: req.params.organization_id,
+                    year: req.params.year,
+                    half: req.params.half,
+                },
+            });
+            res.sendStatus(200);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 export const budgets = router;
