@@ -3,6 +3,34 @@ import { AuditPeriod, Budget } from '../model';
 import { sequelize } from '../db';
 import { QueryTypes } from 'sequelize';
 
+export async function validateAuditPeriodByYearAndHalf(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const year = req.params.year;
+        const half = req.params.half;
+        const auditPeriod = await AuditPeriod.findOne({
+            where: {
+                year: year,
+                half: half,
+            },
+        });
+        if (!auditPeriod) {
+            return res.status(404).send('Audit period not found');
+        }
+
+        const today = new Date();
+        if (today < auditPeriod.start || today > auditPeriod.end) {
+            return res.status(403).send('Not in audit period');
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function validateAuditPeriodByBudgetId(
     req: Request,
     res: Response,
