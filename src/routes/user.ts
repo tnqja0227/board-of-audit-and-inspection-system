@@ -8,7 +8,7 @@ const saltRounds = 10;
 
 const router = express.Router();
 
-router.get('/', validateIsAdmin, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
     try {
         const schema_name = process.env.NODE_ENV || 'development';
         const organization_schema = schema_name + '."organizations"';
@@ -110,7 +110,7 @@ router.post('/password', async (req, res, next) => {
 });
 
 // 계정 비활성화
-router.put('/disable', validateIsAdmin, async (req, res, next) => {
+router.put('/disable', async (req, res, next) => {
     try {
         await User.update(
             {
@@ -129,7 +129,7 @@ router.put('/disable', validateIsAdmin, async (req, res, next) => {
 });
 
 // 계정 활성화
-router.put('/enable',validateIsAdmin, async (req, res, next) => {
+router.put('/enable', async (req, res, next) => {
     try {
         await User.update(
             {
