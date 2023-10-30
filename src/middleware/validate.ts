@@ -167,7 +167,7 @@ export async function validateIsAdmin(
     try {
         const role = req.session.user!.role;
         if (role !== 'admin') {
-            return res.status(403).json({ error: 'Not authorized as admin' });
+            return res.status(403).send('Not admin');
         }
         next();
     } catch (error) {
