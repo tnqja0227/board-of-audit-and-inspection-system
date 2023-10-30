@@ -286,6 +286,8 @@ paths:
             summary: 모든 예산안 조회
             description: 데이터베이스로부터 주어진 검색 옵션에 맞는 모든 예산안의 array를 가져 옴.
             tags: [예산안]
+            security:
+                - ApiKeyAuth: []
             responses:
                 200:
                     description: Successfully retrieved budgets
@@ -305,7 +307,15 @@ paths:
                               manager: '김넙죽'
                               year: 2023
                               half: 'fall'
-
+                403:
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
                 500:
                     description: Server error or database error
                     content:
@@ -356,9 +366,13 @@ paths:
                                     format: date-time
                                     description: 감사 종료일
                                     example: 2020-06-31
+
+            security:
+                - ApiKeyAuth: []
             responses:
                 200:
                     description: Created period
+
         put:
             summary: 감사기간 수정
             description: 연도, 반기에 해당하는 감사기간을 수정함.
@@ -399,6 +413,8 @@ paths:
                                     format: date-time
                                     description: 감사 종료일
                                     example: 2020-06-31
+            security:
+                - ApiKeyAuth: []
             responses:
                 200:
                     description: Updated period
@@ -666,6 +682,8 @@ paths:
                           - spring
                           - fall
                       example: spring
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Successful response
@@ -863,6 +881,8 @@ paths:
                           - spring
                           - fall
                       example: spring
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Successful response
@@ -1252,3 +1272,8 @@ components:
                     type: string
                     description: 비고
                     example: ''
+    securitySchemes:
+        ApiKeyAuth:
+            type: apiKey
+            in: header
+            name: sessionid
