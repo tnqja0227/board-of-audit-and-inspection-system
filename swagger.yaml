@@ -308,14 +308,12 @@ paths:
                               year: 2023
                               half: 'fall'
                 403:
-                    description: Unauthorized
+                    description: Unauthorized User
                     content:
-                        application/json:
+                        text/plain:
                             schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
+                                type: string
+                                example: "Not admin"
                 500:
                     description: Server error or database error
                     content:
@@ -373,14 +371,12 @@ paths:
                 200:
                     description: Created period
                 403:
-                    description: Unauthorized
+                    description: Unauthorized User
                     content:
-                        application/json:
+                        text/plain:
                             schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
+                                type: string
+                                example: "Not admin"
 
         put:
             summary: 감사기간 수정
@@ -428,14 +424,12 @@ paths:
                 200:
                     description: Updated period
                 403:
-                    description: Unauthorized
+                    description: Unauthorized User
                     content:
-                        application/json:
+                        text/plain:
                             schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
+                                type: string
+                                example: "Not admin"
 
     /budgets/{organization_id}/{year}/{half}:
         post:
@@ -740,14 +734,12 @@ paths:
                                                     예산 분류:
                                                         type: string
                 403:
-                    description: Unauthorized
+                    description: Unauthorized User
                     content:
-                        application/json:
+                        text/plain:
                             schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
+                                type: string
+                                example: "Not admin"
 
     /budgets/expense/{budget_id}:
         get:
@@ -950,14 +942,13 @@ paths:
                                                     예산 분류:
                                                         type: string
                 403:
-                    description: Unauthorized
+                    description: Unauthorized User
                     content:
-                        application/json:
+                        text/plain:
                             schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
+                                type: string
+                                example: "Not admin"
+
     /transactions:
         get:
             summary: 모든 통장거래내역 조회
