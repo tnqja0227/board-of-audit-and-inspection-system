@@ -123,6 +123,10 @@ paths:
                         schema:
                             type: object
                             properties:
+                                organization_name:
+                                    type: string
+                                    description: 피감기구 이름
+                                    example: 학부총학생회
                                 email:
                                     type: string
                                     description: 계정 이메일
@@ -131,6 +135,11 @@ paths:
                                     type: string
                                     description: 계정 비밀번호
                                     example: password
+                                role:
+                                    type: string
+                                    enum: ['admin', 'user']
+                                    description: 관리자 계정과 일반 계정 구분
+                                    example: user
             responses:
                 '200': # status code
                     content:
