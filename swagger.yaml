@@ -286,8 +286,7 @@ paths:
             summary: 모든 예산안 조회
             description: 데이터베이스로부터 주어진 검색 옵션에 맞는 모든 예산안의 array를 가져 옴.
             tags: [예산안]
-            security:
-                - ApiKeyAuth: []
+            
             responses:
                 200:
                     description: Successfully retrieved budgets
@@ -307,13 +306,7 @@ paths:
                               manager: '김넙죽'
                               year: 2023
                               half: 'fall'
-                403:
-                    description: Unauthorized User
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: "Not admin"
+                
                 500:
                     description: Server error or database error
                     content:
