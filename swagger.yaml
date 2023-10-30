@@ -125,6 +125,8 @@ paths:
         get:
             description: 모든 계정 조회
             tags: [계정]
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     content:
@@ -142,6 +144,13 @@ paths:
                                 properties:
                                     message:
                                         type: string
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
         post:
             description: 계정 생성
             tags: [계정]
@@ -363,7 +372,7 @@ paths:
                             schema:
                                 type: array
                                 items: Budget
-                                $ref: '#/components/schemas/Budget'
+                                $ref: '#/components/schemas/Budget' #TODO: Fix this reference error. There is no Budget schema.
                     example:
                         value:
                             - id: 1
