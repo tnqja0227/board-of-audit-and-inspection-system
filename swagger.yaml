@@ -20,6 +20,8 @@ paths:
         get:
             description: 모든 피감기구 조회
             tags: [피감기구]
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     content:
@@ -28,6 +30,15 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/Organization'
+                403:
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
+                
+                
                 '500': # status code
                     description: Server error or database error
                     content:
@@ -51,12 +62,21 @@ paths:
                                     type: string
                                     description: 피감기구 이름
                                     example: 학부총학생회
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Organization'
+                403:
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
         delete:
             description: 피감기구 삭제
             tags: [피감기구]
@@ -71,6 +91,8 @@ paths:
                                     type: string
                                     description: 피감기구 이름
                                     example: 학부총학생회
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: OK
@@ -92,6 +114,13 @@ paths:
                                 properties:
                                     message:
                                         type: string
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
     /users:
         get:
             description: 모든 계정 조회
@@ -140,6 +169,8 @@ paths:
                                     enum: ['admin', 'user']
                                     description: 관리자 계정과 일반 계정 구분
                                     example: user
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     content:
@@ -155,6 +186,14 @@ paths:
                                 properties:
                                     message:
                                         type: string
+
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
                 '500': # status code
                     description: Server error or database error
                     content:
@@ -268,9 +307,19 @@ paths:
                                     type: string
                                     description: 계정 이메일
                                     example: test@kaist.ac.kr
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Disable success
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
+            
     /users/enable:
         put:
             description: 계정 활성화
@@ -286,16 +335,26 @@ paths:
                                     type: string
                                     description: 계정 이메일
                                     example: test@kaist.ac.kr
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Enable success
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
 
     /budgets:
         get:
             summary: 모든 예산안 조회
             description: 데이터베이스로부터 주어진 검색 옵션에 맞는 모든 예산안의 array를 가져 옴.
             tags: [예산안]
-            
+            security:
+                - ApiKeyAuth: []
             responses:
                 200:
                     description: Successfully retrieved budgets
@@ -325,6 +384,13 @@ paths:
                                 properties:
                                     message:
                                         type: string
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
     /budgets/period/{year}/{half}:
         post:
             summary: 감사기간 등록
@@ -939,6 +1005,8 @@ paths:
         get:
             summary: 모든 통장거래내역 조회
             tags: [통장거래내역]
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200':
                     description: Successfully retrieved transactions
@@ -957,6 +1025,13 @@ paths:
                                 properties:
                                     message:
                                         type: string
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: "Not admin"
         post:
             summary: 통장거래내역 생성
             tags: [통장거래내역]
