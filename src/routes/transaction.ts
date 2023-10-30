@@ -2,10 +2,11 @@
 
 import express from 'express';
 import { Transaction } from '../model';
+import { validateIsAdmin } from '../middleware';
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', validateIsAdmin, async (req, res, next) => {
     try {
         const transactions = await Transaction.findAll();
         res.json(transactions.map((transaction) => transaction.toJSON()));

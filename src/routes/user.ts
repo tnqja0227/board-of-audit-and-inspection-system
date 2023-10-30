@@ -3,12 +3,12 @@ import bcrypt from 'bcrypt';
 import { Organization, User } from '../model';
 import { sequelize } from '../db';
 import { QueryTypes } from 'sequelize';
-
+import { validateIsAdmin } from '../middleware';
 const saltRounds = 10;
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', validateIsAdmin, async (req, res, next) => {
     try {
         const schema_name = process.env.NODE_ENV || 'development';
         const organization_schema = schema_name + '."organizations"';
@@ -32,7 +32,7 @@ router.get('/', async (req, res, next) => {
 // 계정 생성 (default password: password)
 // TODO: admin 계정만 가능하도록 수정
 // TODO: email sanitize (kaist email만 가능하도록)
-router.post('/', async (req, res, next) => {
+router.post('/', validateIsAdmin, async (req, res, next) => {
     try {
         const organization = await Organization.findOne({
             where: {
@@ -110,7 +110,7 @@ router.post('/password', async (req, res, next) => {
 });
 
 // 계정 비활성화
-router.put('/disable', async (req, res, next) => {
+router.put('/disable', validateIsAdmin, async (req, res, next) => {
     try {
         await User.update(
             {
@@ -129,7 +129,7 @@ router.put('/disable', async (req, res, next) => {
 });
 
 // 계정 활성화
-router.put('/enable', async (req, res, next) => {
+router.put('/enable',validateIsAdmin, async (req, res, next) => {
     try {
         await User.update(
             {

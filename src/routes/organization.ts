@@ -2,10 +2,10 @@
 
 import express from 'express';
 import { Organization } from '../model';
-
+import { validateIsAdmin } from '../middleware';
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', validateIsAdmin, async (req, res, next) => {
     try {
         const organizations = await Organization.findAll();
         res.json(organizations.map((organization) => organization.toJSON()));
@@ -14,7 +14,7 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', validateIsAdmin,async (req, res, next) => {
     try {
         const organization = await Organization.create({
             name: req.body.name,
@@ -25,7 +25,7 @@ router.post('/', async (req, res, next) => {
     }
 });
 
-router.delete('/', async (req, res, next) => {
+router.delete('/', validateIsAdmin,async (req, res, next) => {
     try {
         await Organization.destroy({
             where: {
