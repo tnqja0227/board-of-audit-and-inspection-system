@@ -5,7 +5,10 @@ import { Budget } from '../../model';
 import { periods } from './period';
 import { sequelize } from '../../db';
 import { QueryTypes } from 'sequelize';
-import { validateAuditPeriodByYearAndHalf, validateIsAdmin } from '../../middleware';
+import {
+    validateAuditPeriodByYearAndHalf,
+    validateIsAdmin,
+} from '../../middleware';
 
 const router = express.Router();
 router.use('/income', incomes);
@@ -13,7 +16,7 @@ router.use('/expense', expenses);
 router.use('/period', periods);
 
 // TODO: query options
-router.get('/', validateIsAdmin,async (req, res, next) => {
+router.get('/', validateIsAdmin, async (req, res, next) => {
     try {
         const budgets = await Budget.findAll();
         res.json(budgets.map((budget) => budget.toJSON()));

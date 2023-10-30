@@ -14,7 +14,7 @@ router.get('/', validateIsAdmin, async (req, res, next) => {
     }
 });
 
-router.post('/', validateIsAdmin,async (req, res, next) => {
+router.post('/', validateIsAdmin, async (req, res, next) => {
     try {
         const organization = await Organization.create({
             name: req.body.name,
@@ -25,7 +25,7 @@ router.post('/', validateIsAdmin,async (req, res, next) => {
     }
 });
 
-router.delete('/', validateIsAdmin,async (req, res, next) => {
+router.delete('/', validateIsAdmin, async (req, res, next) => {
     try {
         await Organization.destroy({
             where: {

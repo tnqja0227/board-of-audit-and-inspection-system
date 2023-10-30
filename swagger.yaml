@@ -36,9 +36,8 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
-                
-                
+                                example: 'Not admin'
+
                 '500': # status code
                     description: Server error or database error
                     content:
@@ -76,7 +75,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
         delete:
             description: 피감기구 삭제
             tags: [피감기구]
@@ -120,7 +119,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
     /users:
         get:
             description: 모든 계정 조회
@@ -150,7 +149,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
         post:
             description: 계정 생성
             tags: [계정]
@@ -202,7 +201,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
                 '500': # status code
                     description: Server error or database error
                     content:
@@ -327,8 +326,8 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
-            
+                                example: 'Not admin'
+
     /users/enable:
         put:
             description: 계정 활성화
@@ -355,7 +354,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
 
     /budgets:
         get:
@@ -383,7 +382,7 @@ paths:
                               manager: '김넙죽'
                               year: 2023
                               half: 'fall'
-                
+
                 500:
                     description: Server error or database error
                     content:
@@ -399,7 +398,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
     /budgets/period/{year}/{half}:
         post:
             summary: 감사기간 등록
@@ -453,7 +452,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
 
         put:
             summary: 감사기간 수정
@@ -506,7 +505,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
 
     /budgets/{organization_id}/{year}/{half}:
         post:
@@ -808,7 +807,6 @@ paths:
                                                         type: string
                                                     예산 분류:
                                                         type: string
-                
 
     /budgets/expense/{budget_id}:
         get:
@@ -1008,7 +1006,6 @@ paths:
                                                         type: string
                                                     예산 분류:
                                                         type: string
-            
 
     /transactions:
         get:
@@ -1040,7 +1037,7 @@ paths:
                         text/plain:
                             schema:
                                 type: string
-                                example: "Not admin"
+                                example: 'Not admin'
         post:
             summary: 통장거래내역 생성
             tags: [통장거래내역]

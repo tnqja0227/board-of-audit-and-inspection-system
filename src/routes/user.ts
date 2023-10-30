@@ -60,7 +60,7 @@ router.post('/', validateIsAdmin, async (req, res, next) => {
             bankbook: req.body.bankbook,
             OrganizationId: organization.id,
             isDisabled: req.body.is_disabled,
-            role: req.body.role, 
+            role: req.body.role,
         });
         res.json(user.toJSON());
     } catch (error) {
