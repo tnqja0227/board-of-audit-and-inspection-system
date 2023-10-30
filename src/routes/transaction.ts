@@ -7,8 +7,20 @@ const router = express.Router();
 
 router.get('/', async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page as string);
+        const limit = 20;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
         const transactions = await Transaction.findAll();
-        res.json(transactions.map((transaction) => transaction.toJSON()));
+        const sortedTransaction = transactions.sort((a, b) => {
+            return a.transactionAt.getTime() - b.transactionAt.getTime();
+        });
+        const transaction1page = sortedTransaction.slice(startIndex, endIndex);
+        res.json(
+            transaction1page.map((transaction1page) =>
+                transaction1page.toJSON(),
+            ),
+        );
     } catch (error) {
         next(error);
     }
