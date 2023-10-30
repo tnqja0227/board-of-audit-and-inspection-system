@@ -687,8 +687,6 @@ paths:
                           - spring
                           - fall
                       example: spring
-            security:
-                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Successful response
@@ -726,13 +724,7 @@ paths:
                                                         type: string
                                                     예산 분류:
                                                         type: string
-                403:
-                    description: Unauthorized User
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: "Not admin"
+                
 
     /budgets/expense/{budget_id}:
         get:
@@ -893,8 +885,6 @@ paths:
                           - spring
                           - fall
                       example: spring
-            security:
-                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Successful response
@@ -934,13 +924,7 @@ paths:
                                                         type: string
                                                     예산 분류:
                                                         type: string
-                403:
-                    description: Unauthorized User
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: "Not admin"
+            
 
     /transactions:
         get:
