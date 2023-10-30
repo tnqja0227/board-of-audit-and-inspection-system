@@ -1,9 +1,10 @@
 import express from 'express';
 import { AuditPeriod } from '../../model';
+import { validateIsAdmin } from '../../middleware';
 
 const router = express.Router();
 
-router.post('/:year/:half', async (req, res, next) => {
+router.post('/:year/:half', validateIsAdmin, async (req, res, next) => {
     try {
         const auditPeriod = await AuditPeriod.create({
             year: req.params.year,
@@ -17,7 +18,7 @@ router.post('/:year/:half', async (req, res, next) => {
     }
 });
 
-router.put('/:year/:half', async (req, res, next) => {
+router.put('/:year/:half', validateIsAdmin, async (req, res, next) => {
     try {
         await AuditPeriod.update(
             {
