@@ -2,4 +2,3 @@ node_modules/
 .nyc_output/
 .env
 .DS_Store
-.vscode/
