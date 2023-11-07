@@ -22,8 +22,11 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-// 특정 기간의 예산안 조회
 router.get('/:year/:half', async (req, res, next) => {
+    /*
+    모든 피감기관의 예결산안 목록
+    권한: admin
+    */
     try {
         const schema_name = process.env.NODE_ENV || 'development';
         const budget_schema = schema_name + '."budgets"';
