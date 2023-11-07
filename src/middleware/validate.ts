@@ -18,12 +18,12 @@ export async function validateAuditPeriodByYearAndHalf(
             },
         });
         if (!auditPeriod) {
-            return res.status(404).send('Audit period not found');
+            return res.status(404).send('감사기간이 존재하지 않습니다.');
         }
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
-            return res.status(403).send('Not in audit period');
+            return res.status(403).send('감사기간이 아닙니다.');
         }
         next();
     } catch (error) {
@@ -40,7 +40,7 @@ export async function validateAuditPeriodByBudgetId(
         const budgetId = req.params.budget_id;
         const budget = await Budget.findByPk(budgetId);
         if (!budget) {
-            return res.status(404).send('Budget not found');
+            return res.status(404).send('잘못된 예산입니다.');
         }
 
         const year = budget.year;
@@ -52,12 +52,12 @@ export async function validateAuditPeriodByBudgetId(
             },
         });
         if (!auditPeriod) {
-            return res.status(404).send('Audit period not found');
+            return res.status(404).send('감사기간이 존재하지 않습니다.');
         }
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
-            return res.status(403).send('Not in audit period');
+            return res.status(403).send('감사기간이 아닙니다.');
         }
         next();
     } catch (error) {
@@ -87,7 +87,7 @@ export async function validateAuditPeriodByIncomeId(
         );
 
         if (result.length === 0) {
-            return res.status(404).send('Income not found');
+            return res.status(404).send('수입항목이 존재하지 않습니다.');
         }
 
         const year = result[0]['year'];
@@ -99,12 +99,12 @@ export async function validateAuditPeriodByIncomeId(
             },
         });
         if (!auditPeriod) {
-            return res.status(404).send('Audit period not found');
+            return res.status(404).send('감사기간이 존재하지 않습니다.');
         }
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
-            return res.status(403).send('Not in audit period');
+            return res.status(403).send('감사기간이 아닙니다.');
         }
         next();
     } catch (error) {
@@ -134,7 +134,7 @@ export async function validateAuditPeriodByExpenseId(
         );
 
         if (result.length === 0) {
-            return res.status(404).send('Expense not found');
+            return res.status(404).send('지출항목이 존재하지 않습니다.');
         }
 
         const year = result[0]['year'];
@@ -146,12 +146,12 @@ export async function validateAuditPeriodByExpenseId(
             },
         });
         if (!auditPeriod) {
-            return res.status(404).send('Audit period not found');
+            return res.status(404).send('감사기간이 존재하지 않습니다.');
         }
 
         const today = new Date();
         if (today < auditPeriod.start || today > auditPeriod.end) {
-            return res.status(403).send('Not in audit period');
+            return res.status(403).send('감사기간이 아닙니다.');
         }
         next();
     } catch (error) {
