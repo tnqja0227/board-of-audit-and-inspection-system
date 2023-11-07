@@ -9,6 +9,9 @@ const saltRounds = 10;
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
+    /*
+    유저와 유저에 해당하는 피감기구 정보를 조회한다.
+    */
     try {
         const schema_name = process.env.NODE_ENV || 'development';
         const organization_schema = schema_name + '."organizations"';
@@ -43,13 +46,22 @@ router.post('/', async (req, res, next) => {
         if (organization === null) {
             return res.status(404).send('잘못된 피감기구입니다.');
         }
-
-        // TODO: 초기 비밀번호 설정
-        let password = 'password';
-        if (req.body.password !== undefined) {
-            password = req.body.password;
+        const user_with_same_organization = await User.findOne({
+            where: {
+                OrganizationId: organization.id,
+            },
+        });
+        if (user_with_same_organization !== null) {
+            return res
+                .status(409)
+                .send('이미 등록된 피감기구의 계정이 존재합니다.');
         }
-        const encrypted_password = await bcrypt.hash(password, saltRounds);
+
+        const initial_password = 'password';
+        const encrypted_password = await bcrypt.hash(
+            initial_password,
+            saltRounds,
+        );
 
         const user = await User.create({
             email: req.body.email,
@@ -92,9 +104,16 @@ router.post('/login', async (req, res, next) => {
 // 비밀번호 변경
 router.post('/password', async (req, res, next) => {
     try {
+        const password = req.body.password;
+        if (password.length < 8) {
+            return res.status(400).send('비밀번호는 8자 이상이어야 합니다.');
+        } else if (password.length > 12) {
+            return res.status(400).send('비밀번호는 12자 이하이어야 합니다.');
+        }
+
         await User.update(
             {
-                password: req.body.password,
+                password: password,
             },
             {
                 where: {
