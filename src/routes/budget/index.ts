@@ -141,6 +141,9 @@ router.get(
 router.get(
     '/report/total/:organization_id/:year/:half',
     async (req, res, next) => {
+        /*
+        예결산안에 대한 총계
+        */
         try {
             const schema_name = process.env.NODE_ENV || 'development';
             const income_table = schema_name + '."incomes"';

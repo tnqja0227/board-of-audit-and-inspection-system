@@ -25,6 +25,26 @@ router.post(
     validateAuditPeriodByBudgetId,
     async (req, res, next) => {
         try {
+            if (req.body.code.length !== 3) {
+                return res.status(400).send('예산 코드는 3자리여야 합니다.');
+            }
+            if (req.body.source === '학생회비' && req.body.code[0] !== '4') {
+                return res
+                    .status(400)
+                    .send('학생회비는 4로 시작하는 예산 코드여야 합니다.');
+            } else if (
+                req.body.source === '본회계' &&
+                req.body.code[0] !== '5'
+            ) {
+                return res
+                    .status(400)
+                    .send('본회계는 5로 시작하는 예산 코드여야 합니다.');
+            } else if (req.body.source === '자치' && req.body.code[0] !== '6') {
+                return res
+                    .status(400)
+                    .send('자치는 6으로 시작하는 예산 코드여야 합니다.');
+            }
+
             const expense = await Expense.create({
                 BudgetId: req.params.budget_id,
                 code: req.body.code,
