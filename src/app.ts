@@ -34,7 +34,7 @@ const redisStore = new RedisStore({
 if (process.env.NODE_ENV !== 'test') {
     initDB()
         .then(() => {
-            logger.debug('Database connected');
+            logger.info('Database connected');
         })
         .catch((err) => {
             logger.debug(err);

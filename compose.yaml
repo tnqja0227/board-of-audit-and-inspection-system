@@ -24,8 +24,6 @@ services:
                 - DB_PORT=5432
                 - DB_USER=postgres
                 - DB_PASSWORD=password
-        environment:
-            - NODE_ENV=development
         ports:
             - 3000:3000
 
