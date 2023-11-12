@@ -2,13 +2,59 @@
 
 import express from 'express';
 import { Transaction } from '../model';
+import { sequelize } from '../db';
+import { QueryTypes } from 'sequelize';
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/:organization_id/:year/:half', async (req, res, next) => {
     try {
-        const transactions = await Transaction.findAll();
-        res.json(transactions.map((transaction) => transaction.toJSON()));
+        const page = parseInt(req.query.page as string);
+        const limit = 20;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const schema_name = process.env.NODE_ENV || 'development';
+        const transaction_table = schema_name + '."transactions"';
+        const income_table = schema_name + '."incomes"';
+        const expense_table = schema_name + '."expenses"';
+        const budget_table = schema_name + '."budgets"';
+        const transactions = await sequelize.query(
+            `SELECT *
+            FROM
+                (
+                    SELECT T."id", T."projectAt", T."manager", T."content", T."type", T."amount", T."transactionAt", T."accountNumber", T."accountBank", T."accountOwner", T."hasBill", T."note", T."IncomeId", T."ExpenseId", I."code"
+                    FROM ${income_table} AS I 
+                        INNER JOIN ${transaction_table} AS T
+                        ON I.id = T."IncomeId"
+                    WHERE I."BudgetId" IN (
+                        SELECT id
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
+                    )
+                ) as TIE
+                UNION ALL
+                (
+                    SELECT T."id", T."projectAt", T."manager", T."content", T."type", T."amount", T."transactionAt", T."accountNumber", T."accountBank", T."accountOwner", T."hasBill", T."note", T."IncomeId", T."ExpenseId", E."code"
+                    FROM ${expense_table} AS E
+                        INNER JOIN ${transaction_table} AS T
+                        ON E.id = T."ExpenseId"
+                    WHERE "BudgetId" IN (
+                        SELECT id
+                        FROM ${budget_table}
+                        WHERE "OrganizationId" = ${req.params.organization_id}
+                            AND "year" = '${req.params.year}' AND "half" = '${req.params.half}'
+                    )
+                )
+            ORDER BY "transactionAt" DESC`,
+            {
+                type: QueryTypes.SELECT,
+            },
+        );
+
+        const transaction1page = transactions.slice(startIndex, endIndex);
+        res.json(transaction1page);
     } catch (error) {
         next(error);
     }
