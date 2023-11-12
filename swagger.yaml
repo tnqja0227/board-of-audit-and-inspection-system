@@ -907,6 +907,33 @@ paths:
         get:
             summary: 모든 통장거래내역 조회
             tags: [통장거래내역]
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
             responses:
                 '200':
                     description: Successfully retrieved transactions
