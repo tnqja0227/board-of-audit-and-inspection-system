@@ -111,9 +111,14 @@ router.post('/password', async (req, res, next) => {
             return res.status(400).send('비밀번호는 12자 이하이어야 합니다.');
         }
 
+        const encrypted_password = await bcrypt.hash(
+            password,
+            saltRounds,
+        );
+
         await User.update(
             {
-                password: password,
+                password: encrypted_password,
             },
             {
                 where: {
