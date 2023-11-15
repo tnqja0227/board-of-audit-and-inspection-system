@@ -9,11 +9,6 @@ const router = express.Router();
 
 router.get('/:organization_id/:year/:half', async (req, res, next) => {
     try {
-        const page = parseInt(req.query.page as string);
-        const limit = 20;
-        const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
-
         const schema_name = process.env.NODE_ENV || 'development';
         const transaction_table = schema_name + '."transactions"';
         const income_table = schema_name + '."incomes"';
@@ -53,8 +48,16 @@ router.get('/:organization_id/:year/:half', async (req, res, next) => {
             },
         );
 
-        const transaction1page = transactions.slice(startIndex, endIndex);
-        res.json(transaction1page);
+        if (req.query.page === undefined) {
+            res.json(transactions);
+        } else {
+            const page = parseInt(req.query.page as string);
+            const limit = 20;
+            const startIndex = (page - 1) * limit;
+            const endIndex = page * limit;
+            const transaction1page = transactions.slice(startIndex, endIndex);
+            res.json(transaction1page);
+        }
     } catch (error) {
         next(error);
     }
@@ -62,21 +65,31 @@ router.get('/:organization_id/:year/:half', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     try {
-        // income id와 expense id 중 하나만 존재해야 함
+        if (!req.body.income_id && !req.body.expense_id) {
+            return res
+                .status(400)
+                .send('income_id와 expense_id 중 하나는 존재해야 합니다.');
+        }
+
         if (req.body.income_id && req.body.expense_id) {
-            return res.sendStatus(400);
+            return res
+                .status(400)
+                .send('income_id와 expense_id 중 하나만 존재해야 합니다.');
         }
 
         const transaction = await Transaction.create({
             projectAt: req.body.project_at,
             manager: req.body.manager,
             content: req.body.content,
-            type: req.body.type, // '공금카드', '개인카드', '계좌이체', '현금거래', '사비집행'
+            type: req.body.type,
             amount: req.body.amount,
             transactionAt: req.body.transaction_at,
             accountNumber: req.body.account_number,
             accountBank: req.body.account_bank,
             accountOwner: req.body.account_owner,
+            receivingAccountNumber: req.body.receiving_account_number,
+            receivingAccountBank: req.body.receiving_account_bank,
+            receivingAccountOwner: req.body.receiving_account_owner,
             hasBill: req.body.has_bill,
             note: req.body.note,
             IncomeId: req.body.income_id,
@@ -103,6 +116,12 @@ router.delete('/:transaction_id', async (req, res, next) => {
 
 router.put('/:transaction_id', async (req, res, next) => {
     try {
+        if (req.body.income_id && req.body.expense_id) {
+            return res
+                .status(400)
+                .send('income_id와 expense_id 중 하나만 존재해야 합니다.');
+        }
+
         await Transaction.update(
             {
                 projectAt: req.body.project_at,
@@ -125,6 +144,7 @@ router.put('/:transaction_id', async (req, res, next) => {
                 },
             },
         );
+
         res.sendStatus(200);
     } catch (error) {
         next(error);

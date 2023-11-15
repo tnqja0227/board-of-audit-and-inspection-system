@@ -1221,6 +1221,7 @@ components:
                         - 계좌이체
                         - 현금거래
                         - 사비집행
+                        - 기타
                     description: 결제수단
                     example: 공금카드
                 amount:
@@ -1244,6 +1245,18 @@ components:
                 account_owner:
                     type: string
                     description: 예금주
+                    example: 김넙죽
+                receiving_account_number:
+                    type: string
+                    description: 입금계좌번호
+                    example: 12-12-12-12
+                receiving_account_bank:
+                    type: string
+                    description: 입금은행명
+                    example: 토스뱅크
+                receiving_account_owner:
+                    type: string
+                    description: 입금예금주
                     example: 김넙죽
                 has_bill:
                     type: boolean
