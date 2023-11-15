@@ -17,7 +17,7 @@ router.get('/', async (req, res, next) => {
         const organization_schema = schema_name + '."organizations"';
         const user_schema = schema_name + '."users"';
         const users = await sequelize.query(
-            `SELECT U."id", U."email", O."name" organization_name, U."cardNumber", U."cardBank", U."cardOwner", U."bankbook", U."isDisabled"
+            `SELECT U."id", U."email", O."name" organization_name, U."role", U."cardNumber", U."cardBank", U."cardOwner", U."bankbook", U."isDisabled"
             FROM ${organization_schema} as O
                 INNER JOIN ${user_schema} as U
                 ON O.id = U."OrganizationId"
