@@ -70,6 +70,11 @@ app.use('/transactions', transactions);
 app.use('/documents', documents);
 app.use('/users', users);
 
+app.use(function (err, req, res, next) {
+    logger.error(err);
+    res.sendStatus(500);
+});
+
 app.listen(3000);
 
 export default app;
