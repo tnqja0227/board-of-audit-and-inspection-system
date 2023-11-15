@@ -92,6 +92,10 @@ paths:
                                     type: string
                                     description: 계정 이메일
                                     example: boa2023@kaist.ac.kr
+                                organization_name:
+                                    type: string
+                                    description: 피감기구 이름
+                                    example: 학부총학생회
             responses:
                 '200': # status code
                     content:
