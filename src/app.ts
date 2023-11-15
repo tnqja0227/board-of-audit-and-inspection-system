@@ -70,6 +70,7 @@ app.use('/transactions', transactions);
 app.use('/documents', documents);
 app.use('/users', users);
 
+// @ts-ignore: Unreachable code error
 app.use(function (err, req, res, next) {
     logger.error(err);
     res.sendStatus(500);
