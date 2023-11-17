@@ -1,9 +1,11 @@
 import express from 'express';
-import { Expense } from '../../model';
+import { Expense } from '../../../model';
 import {
     validateAuditPeriodByBudgetId,
     validateAuditPeriodByExpenseId,
-} from '../../middleware';
+} from '../../../middleware/validate_audit_period';
+import errorHandler from '../../../middleware/error_handler';
+import { wrapAsync } from '../../../middleware';
 
 const router = express.Router();
 
@@ -22,7 +24,7 @@ router.get('/:budget_id', async (req, res, next) => {
 
 router.post(
     '/:budget_id',
-    validateAuditPeriodByBudgetId,
+    wrapAsync(validateAuditPeriodByBudgetId),
     async (req, res, next) => {
         try {
             if (req.body.code.length !== 3) {
@@ -62,26 +64,9 @@ router.post(
     },
 );
 
-router.delete(
-    '/:expense_id',
-    validateAuditPeriodByExpenseId,
-    async (req, res, next) => {
-        try {
-            await Expense.destroy({
-                where: {
-                    id: req.params.expense_id,
-                },
-            });
-            res.sendStatus(200);
-        } catch (error) {
-            next(error);
-        }
-    },
-);
-
 router.put(
     '/:expense_id',
-    validateAuditPeriodByExpenseId,
+    wrapAsync(validateAuditPeriodByExpenseId),
     async (req, res, next) => {
         try {
             await Expense.update(
@@ -105,5 +90,24 @@ router.put(
         }
     },
 );
+
+router.delete(
+    '/:expense_id',
+    wrapAsync(validateAuditPeriodByExpenseId),
+    async (req, res, next) => {
+        try {
+            await Expense.destroy({
+                where: {
+                    id: req.params.expense_id,
+                },
+            });
+            res.sendStatus(200);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+router.use(errorHandler);
 
 export const expenses = router;

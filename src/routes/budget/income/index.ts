@@ -1,9 +1,11 @@
 import express from 'express';
-import { Income } from '../../model';
+import { Income } from '../../../model';
 import {
     validateAuditPeriodByBudgetId,
     validateAuditPeriodByIncomeId,
-} from '../../middleware';
+} from '../../../middleware/validate_audit_period';
+import { wrapAsync } from '../../../middleware';
+import errorHandler from '../../../middleware/error_handler';
 
 const router = express.Router();
 
@@ -22,7 +24,7 @@ router.get('/:budget_id', async (req, res, next) => {
 
 router.post(
     '/:budget_id',
-    validateAuditPeriodByBudgetId,
+    wrapAsync(validateAuditPeriodByBudgetId),
     async (req, res, next) => {
         try {
             if (req.body.code.length !== 3) {
@@ -62,26 +64,9 @@ router.post(
     },
 );
 
-router.delete(
-    '/:income_id',
-    validateAuditPeriodByIncomeId,
-    async (req, res, next) => {
-        try {
-            await Income.destroy({
-                where: {
-                    id: req.params.income_id,
-                },
-            });
-            res.sendStatus(200);
-        } catch (error) {
-            next(error);
-        }
-    },
-);
-
 router.put(
     '/:income_id',
-    validateAuditPeriodByIncomeId,
+    wrapAsync(validateAuditPeriodByIncomeId),
     async (req, res, next) => {
         try {
             await Income.update(
@@ -104,5 +89,37 @@ router.put(
         }
     },
 );
+
+router.delete(
+    '/:income_id',
+    wrapAsync(validateAuditPeriodByIncomeId),
+    async (req, res, next) => {
+        try {
+            await Income.destroy({
+                where: {
+                    id: req.params.income_id,
+                },
+            });
+            res.sendStatus(200);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+router.use(function (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+) {
+    let status = 500;
+    if ('code' in err) {
+        status = err.code;
+    }
+    res.status(status).send(err.message);
+});
+
+router.use(errorHandler);
 
 export const incomes = router;

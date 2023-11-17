@@ -1,12 +1,7 @@
 import express from 'express';
 import { redisClient } from './db';
-import {
-    budgets,
-    documents,
-    organizations,
-    transactions,
-    users,
-} from './routes';
+import { documents, organizations, transactions, users } from './routes';
+import budgetsRouter from './routes/budget';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import { config } from 'dotenv';
@@ -16,6 +11,7 @@ import fs from 'fs';
 import YAML from 'yaml';
 import logger from './config/winston';
 import { initDB } from './db/util';
+import errorHandler from './middleware/error_handler';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -64,17 +60,12 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use('/budgets', budgetsRouter);
 app.use('/organizations', organizations);
-app.use('/budgets', budgets);
 app.use('/transactions', transactions);
 app.use('/documents', documents);
 app.use('/users', users);
-
-// @ts-ignore: Unreachable code error
-app.use(function (err, req, res, next) {
-    logger.error(err);
-    res.sendStatus(500);
-});
+app.use(errorHandler);
 
 app.listen(3000);
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { AuditPeriod } from '../../model';
+import { AuditPeriod } from '../../../model';
 
 const router = express.Router();
 
