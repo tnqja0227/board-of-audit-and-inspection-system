@@ -16,6 +16,7 @@ const saltRounds = 10;
 
 const usersRouter = express.Router();
 
+// TODO: admin
 usersRouter.get(
     '/',
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -25,7 +26,6 @@ usersRouter.get(
 );
 
 // 계정 생성 (default password: password)
-// TODO: admin 계정만 가능하도록 수정
 // TODO: email sanitize (kaist email만 가능하도록)
 usersRouter.post(
     '/',
@@ -116,6 +116,7 @@ usersRouter.post(
     }),
 );
 
+// TODO: admin
 // 계정 비활성화
 usersRouter.put(
     '/disable',
@@ -133,6 +134,7 @@ usersRouter.put(
     }),
 );
 
+// TODO: admin
 // 계정 활성화
 usersRouter.put(
     '/enable',
