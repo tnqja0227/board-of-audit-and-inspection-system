@@ -197,6 +197,10 @@ paths:
                                     type: string
                                     description: 계정 비밀번호
                                     example: password
+                                new_password:
+                                    type: string
+                                    description: 새로운 계정 비밀번호
+                                    example: new_password
             responses:
                 '200': # status code
                     description: Password chage success

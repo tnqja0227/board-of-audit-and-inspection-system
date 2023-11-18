@@ -1,7 +1,6 @@
 import express from 'express';
 import { redisClient } from './db';
-import { documents, organizations, transactions, users } from './routes';
-import budgetsRouter from './routes/budget';
+import * as routes from './routes';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import { config } from 'dotenv';
@@ -60,11 +59,11 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use('/budgets', budgetsRouter);
-app.use('/organizations', organizations);
-app.use('/transactions', transactions);
-app.use('/documents', documents);
-app.use('/users', users);
+app.use('/budgets', routes.budgetsRouter);
+app.use('/organizations', routes.organizations);
+app.use('/transactions', routes.transactions);
+app.use('/documents', routes.documents);
+app.use('/users', routes.usersRouter);
 app.use(errorHandler);
 
 app.listen(3000);
