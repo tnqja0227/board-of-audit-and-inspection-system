@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
+const INTERNAL_SERVER_ERROR = 500;
+
 export default async function errorHandler(
     err: any,
     req: Request,
     res: Response,
     next: NextFunction,
 ) {
-    let status = 500;
-    if ('code' in err) {
-        status = err.code;
-    }
+    const status = err.code || INTERNAL_SERVER_ERROR;
     res.status(status).send(err.message);
 }
