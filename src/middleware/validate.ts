@@ -181,7 +181,7 @@ export async function validateOrganization(
     next: NextFunction,
 ) {
     try {
-        const organization = req.session.user!.organization;
+        const organization = req.session.user!.OrganizationId;
         if (organization !== req.params.organization_id) {
             return res
                 .status(403)
