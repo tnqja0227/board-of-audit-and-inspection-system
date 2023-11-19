@@ -35,6 +35,8 @@ if (process.env.NODE_ENV !== 'production') {
                 level: 'error',
             }),
 
+            new winston.transports.Console(),
+
             new winstonDaily({
                 filename: 'trace-%DATE%.log',
                 level: 'info',

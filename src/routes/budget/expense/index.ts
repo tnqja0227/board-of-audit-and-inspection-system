@@ -1,9 +1,11 @@
 import express from 'express';
-import { Expense } from '../../model';
+import { Expense } from '../../../model';
 import {
     validateAuditPeriodByBudgetId,
     validateAuditPeriodByExpenseId,
-} from '../../middleware';
+} from '../../../middleware/validate_audit_period';
+import errorHandler from '../../../middleware/error_handler';
+import { wrapAsync } from '../../../middleware';
 
 const router = express.Router();
 
@@ -22,9 +24,29 @@ router.get('/:budget_id', async (req, res, next) => {
 
 router.post(
     '/:budget_id',
-    validateAuditPeriodByBudgetId,
+    wrapAsync(validateAuditPeriodByBudgetId),
     async (req, res, next) => {
         try {
+            if (req.body.code.length !== 3) {
+                return res.status(400).send('예산 코드는 3자리여야 합니다.');
+            }
+            if (req.body.source === '학생회비' && req.body.code[0] !== '4') {
+                return res
+                    .status(400)
+                    .send('학생회비는 4로 시작하는 예산 코드여야 합니다.');
+            } else if (
+                req.body.source === '본회계' &&
+                req.body.code[0] !== '5'
+            ) {
+                return res
+                    .status(400)
+                    .send('본회계는 5로 시작하는 예산 코드여야 합니다.');
+            } else if (req.body.source === '자치' && req.body.code[0] !== '6') {
+                return res
+                    .status(400)
+                    .send('자치는 6으로 시작하는 예산 코드여야 합니다.');
+            }
+
             const expense = await Expense.create({
                 BudgetId: req.params.budget_id,
                 code: req.body.code,
@@ -42,26 +64,9 @@ router.post(
     },
 );
 
-router.delete(
-    '/:expense_id',
-    validateAuditPeriodByExpenseId,
-    async (req, res, next) => {
-        try {
-            await Expense.destroy({
-                where: {
-                    id: req.params.expense_id,
-                },
-            });
-            res.sendStatus(200);
-        } catch (error) {
-            next(error);
-        }
-    },
-);
-
 router.put(
     '/:expense_id',
-    validateAuditPeriodByExpenseId,
+    wrapAsync(validateAuditPeriodByExpenseId),
     async (req, res, next) => {
         try {
             await Expense.update(
@@ -85,5 +90,24 @@ router.put(
         }
     },
 );
+
+router.delete(
+    '/:expense_id',
+    wrapAsync(validateAuditPeriodByExpenseId),
+    async (req, res, next) => {
+        try {
+            await Expense.destroy({
+                where: {
+                    id: req.params.expense_id,
+                },
+            });
+            res.sendStatus(200);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+router.use(errorHandler);
 
 export const expenses = router;

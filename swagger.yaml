@@ -69,57 +69,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Organization'
-                403:
-                    description: Unauthorized User
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: 'Not admin'
-        delete:
-            description: 피감기구 삭제
-            tags: [피감기구]
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                name:
-                                    type: string
-                                    description: 피감기구 이름
-                                    example: 학부총학생회
-            security:
-                - ApiKeyAuth: []
-            responses:
-                '200': # status code
-                    description: OK
-                '400': # status code
-                    description: Invalid organization name
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                '500': # status code
-                    description: Server error or database error
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                '403':
-                    description: Unauthorized User
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                                example: 'Not admin'
     /users:
         get:
             description: 모든 계정 조회
@@ -168,17 +117,7 @@ paths:
                                     type: string
                                     description: 계정 이메일
                                     example: boa2023@kaist.ac.kr
-                                password:
-                                    type: string
-                                    description: 계정 비밀번호
-                                    example: password
-                                role:
-                                    type: string
-                                    enum: ['admin', 'user']
-                                    description: 관리자 계정과 일반 계정 구분
-                                    example: user
-            security:
-                - ApiKeyAuth: []
+
             responses:
                 '200': # status code
                     content:
@@ -194,14 +133,15 @@ paths:
                                 properties:
                                     message:
                                         type: string
-
-                '403':
-                    description: Unauthorized User
+                '409':
+                    description: User with same organization already exists
                     content:
-                        text/plain:
+                        application/json:
                             schema:
-                                type: string
-                                example: 'Not admin'
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
                 '500': # status code
                     description: Server error or database error
                     content:
@@ -279,6 +219,10 @@ paths:
                                     type: string
                                     description: 계정 비밀번호
                                     example: password
+                                new_password:
+                                    type: string
+                                    description: 새로운 계정 비밀번호
+                                    example: new_password
             responses:
                 '200': # status code
                     description: Password chage success
@@ -1011,8 +955,33 @@ paths:
         get:
             summary: 모든 통장거래내역 조회
             tags: [통장거래내역]
-            security:
-                - ApiKeyAuth: []
+            parameters:
+                - name: organization_id
+                  in: path
+                  description: 피감기구 id
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 1
+                - name: year
+                  in: path
+                  description: 연도
+                  required: true
+                  schema:
+                      type: integer
+                      format: int32
+                      example: 2023
+                - name: half
+                  in: path
+                  description: 반기
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - spring
+                          - fall
+                      example: spring
             responses:
                 '200':
                     description: Successfully retrieved transactions
@@ -1333,6 +1302,7 @@ components:
                         - 계좌이체
                         - 현금거래
                         - 사비집행
+                        - 기타
                     description: 결제수단
                     example: 공금카드
                 amount:
@@ -1356,6 +1326,18 @@ components:
                 account_owner:
                     type: string
                     description: 예금주
+                    example: 김넙죽
+                receiving_account_number:
+                    type: string
+                    description: 입금계좌번호
+                    example: 12-12-12-12
+                receiving_account_bank:
+                    type: string
+                    description: 입금은행명
+                    example: 토스뱅크
+                receiving_account_owner:
+                    type: string
+                    description: 입금예금주
                     example: 김넙죽
                 has_bill:
                     type: boolean

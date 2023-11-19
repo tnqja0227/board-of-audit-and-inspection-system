@@ -1,12 +1,6 @@
 import express from 'express';
 import { redisClient } from './db';
-import {
-    budgets,
-    documents,
-    organizations,
-    transactions,
-    users,
-} from './routes';
+import * as routes from './routes';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import { config } from 'dotenv';
@@ -16,6 +10,7 @@ import fs from 'fs';
 import YAML from 'yaml';
 import logger from './config/winston';
 import { initDB } from './db/util';
+import errorHandler from './middleware/error_handler';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -34,7 +29,7 @@ const redisStore = new RedisStore({
 if (process.env.NODE_ENV !== 'test') {
     initDB()
         .then(() => {
-            logger.debug('Database connected');
+            logger.info('Database connected');
         })
         .catch((err) => {
             logger.debug(err);
@@ -64,11 +59,12 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use('/organizations', organizations);
-app.use('/budgets', budgets);
-app.use('/transactions', transactions);
-app.use('/documents', documents);
-app.use('/users', users);
+app.use('/budgets', routes.budgetsRouter);
+app.use('/organizations', routes.organizations);
+app.use('/transactions', routes.transactions);
+app.use('/documents', routes.documents);
+app.use('/users', routes.usersRouter);
+app.use(errorHandler);
 
 app.listen(3000);
 

@@ -3,7 +3,7 @@
 import express from 'express';
 import multer from 'multer';
 import { uploadFile } from '../s3';
-import { validateOrganization } from '../middleware';
+import { validateOrganization } from '../middleware/auth';
 
 const allowedExtensions = ['jpg', 'jpeg', 'png'];
 

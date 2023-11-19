@@ -1,55 +1,61 @@
 import express from 'express';
+import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import { Organization, User } from '../model';
-import { sequelize } from '../db';
-import { QueryTypes } from 'sequelize';
-import { validateIsAdmin } from '../middleware';
+import { User } from '../model';
+import { wrapAsync } from '../middleware';
+import * as OrganizationService from '../service/organization';
+import * as UserService from '../service/user';
+import {
+    DuplicateError,
+    UnauthorizedError,
+    BadRequestError,
+} from '../utils/errors';
+import errorHandler from '../middleware/error_handler';
+import { validateIsAdmin } from '../middleware/auth';
+
 const saltRounds = 10;
 
-const router = express.Router();
+const usersRouter = express.Router();
 
-router.get('/', validateIsAdmin, async (req, res, next) => {
-    try {
-        const schema_name = process.env.NODE_ENV || 'development';
-        const organization_schema = schema_name + '."organizations"';
-        const user_schema = schema_name + '."users"';
-        const users = await sequelize.query(
-            `SELECT U."id", U."email", O."name" organization_name, U."cardNumber", U."cardBank", U."cardOwner", U."bankbook", U."isDisabled"
-            FROM ${organization_schema} as O
-                INNER JOIN ${user_schema} as U
-                ON O.id = U."OrganizationId"
-            ORDER BY O."name"`,
-            {
-                type: QueryTypes.SELECT,
-            },
-        );
+usersRouter.get(
+    '/',
+    wrapAsync(validateIsAdmin),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const users = await UserService.findAllUsersByOrganization();
         res.json(users);
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
 // 계정 생성 (default password: password)
-// TODO: admin 계정만 가능하도록 수정
 // TODO: email sanitize (kaist email만 가능하도록)
-router.post('/', validateIsAdmin, async (req, res, next) => {
-    try {
-        const organization = await Organization.findOne({
-            where: {
-                name: req.body.organization_name,
-            },
-        });
+usersRouter.post(
+    '/',
+    wrapAsync(validateIsAdmin),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const organization = await OrganizationService.findByName(
+            req.body.organization_name,
+        );
 
-        if (organization === null) {
-            return res.status(404).send('잘못된 피감기구입니다.');
+        const user_with_duplicated_organization =
+            await UserService.findByOrganizationId(organization.id);
+        if (user_with_duplicated_organization) {
+            throw new DuplicateError(
+                '이미 등록된 피감기구의 계정이 존재합니다.',
+            );
         }
 
-        // TODO: 초기 비밀번호 설정
-        let password = 'password';
-        if (req.body.password !== undefined) {
-            password = req.body.password;
+        const user_with_duplicated_email = await UserService.findByEmail(
+            req.body.email,
+        );
+        if (user_with_duplicated_email) {
+            throw new DuplicateError('이미 등록된 이메일이 존재합니다.');
         }
-        const encrypted_password = await bcrypt.hash(password, saltRounds);
+
+        const initial_password = 'password';
+        const encrypted_password = await bcrypt.hash(
+            initial_password,
+            saltRounds,
+        );
 
         const user = await User.create({
             email: req.body.email,
@@ -62,88 +68,92 @@ router.post('/', validateIsAdmin, async (req, res, next) => {
             isDisabled: req.body.is_disabled,
         });
         res.json(user.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
 // 로그인
-router.post('/login', async (req, res, next) => {
-    try {
-        const user = await User.findOne({
-            where: {
-                email: req.body.email,
-            },
-        });
-        if (user === null) {
-            return res.status(404).send('존재하지 않는 계정입니다.');
+usersRouter.post(
+    '/login',
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const user = await UserService.findByEmail(req.body.email);
+        if (!user) {
+            throw new UnauthorizedError(
+                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+            );
         }
 
         if (!(await bcrypt.compare(req.body.password, user.password))) {
-            return res.status(401).send('비밀번호가 일치하지 않습니다.');
+            throw new UnauthorizedError(
+                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+            );
         }
         req.session.user = user.toJSON();
         res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
 // 비밀번호 변경
-router.post('/password', async (req, res, next) => {
-    try {
-        await User.update(
-            {
-                password: req.body.password,
-            },
-            {
-                where: {
-                    email: req.body.email,
-                },
-            },
-        );
+usersRouter.post(
+    '/password',
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const user = await UserService.findByEmail(req.body.email);
+        if (!user) {
+            throw new UnauthorizedError(
+                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+            );
+        }
+
+        const password = req.body.password;
+        if (!UserService.checkPasswordCondition(password)) {
+            throw new BadRequestError(
+                '비밀번호는 8자 이상 12자 이하여야 합니다.',
+            );
+        }
+
+        const new_password = req.body.new_password;
+        const encrypted_password = await bcrypt.hash(new_password, saltRounds);
+        user.password = encrypted_password;
+        await user.save();
         res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
 // 계정 비활성화
-router.put('/disable', validateIsAdmin, async (req, res, next) => {
-    try {
-        await User.update(
-            {
-                isDisabled: true,
-            },
-            {
-                where: {
-                    email: req.body.email,
-                },
-            },
-        );
+usersRouter.put(
+    '/disable',
+    wrapAsync(validateIsAdmin),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const user = await UserService.findByEmail(req.body.email);
+        if (!user) {
+            throw new UnauthorizedError(
+                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+            );
+        }
+
+        user.isDisabled = true;
+        await user.save();
         res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
 // 계정 활성화
-router.put('/enable', validateIsAdmin, async (req, res, next) => {
-    try {
-        await User.update(
-            {
-                isDisabled: false,
-            },
-            {
-                where: {
-                    email: req.body.email,
-                },
-            },
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+usersRouter.put(
+    '/enable',
+    wrapAsync(validateIsAdmin),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+        const user = await UserService.findByEmail(req.body.email);
+        if (!user) {
+            throw new UnauthorizedError(
+                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+            );
+        }
 
-export const users = router;
+        user.isDisabled = false;
+        await user.save();
+        res.sendStatus(200);
+    }),
+);
+
+usersRouter.use(errorHandler);
+
+export default usersRouter;

@@ -1,5 +1,5 @@
 export * from './organization';
-export * from './budget';
+export { default as budgetsRouter } from './budget';
 export * from './transaction';
 export * from './document';
-export * from './user';
+export { default as usersRouter } from './user';
