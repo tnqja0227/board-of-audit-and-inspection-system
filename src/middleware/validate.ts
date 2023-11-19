@@ -174,3 +174,21 @@ export async function validateIsAdmin(
         next(error);
     }
 }
+
+export async function validateOrganization(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const organization = req.session.user!.organization;
+        if (organization !== req.params.organization_id) {
+            return res
+                .status(403)
+                .send("Orgainzation information doesn't match.");
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
