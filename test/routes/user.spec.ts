@@ -3,6 +3,7 @@ import app from '../../src/app';
 import chai, { expect } from 'chai';
 import { initDB } from '../../src/db/util';
 import { Organization, User } from '../../src/model';
+import { requestAsAdmin } from './utils';
 
 chai.use(chaiHttp);
 
@@ -56,12 +57,13 @@ describe('API /users', function () {
                 OrganizationId: organization3.id,
             });
 
-            const res = await chai.request(app).get('/users');
-            expect(res.body.map((user: any) => user.organization_name)).eql([
-                '감사원',
-                '동아리연합회',
-                '학부총학생회',
-            ]);
+            const agent = chai.request.agent(app);
+            requestAsAdmin(agent).then(async () => {
+                const res = await agent.get('/users');
+                expect(res.body.map((user: any) => user.organization_name)).eql(
+                    ['감사원', '동아리연합회', '학부총학생회'],
+                );
+            });
         });
     });
 
@@ -220,17 +222,20 @@ describe('API /users', function () {
                 OrganizationId: organization.id,
             });
 
-            const res = await chai.request(app).put('/users/disable').send({
-                email: mockEmail,
-            });
-            expect(res.status).to.equal(200);
-
-            const disabledUser = await User.findOne({
-                where: {
+            const agent = chai.request.agent(app);
+            requestAsAdmin(agent).then(async () => {
+                const res = await agent.put('/users/disable').send({
                     email: mockEmail,
-                },
+                });
+                expect(res.status).to.equal(200);
+
+                const disabledUser = await User.findOne({
+                    where: {
+                        email: mockEmail,
+                    },
+                });
+                expect(disabledUser?.isDisabled).to.be.true;
             });
-            expect(disabledUser?.isDisabled).to.be.true;
         });
     });
 
@@ -246,17 +251,20 @@ describe('API /users', function () {
                 isDisabled: true,
             });
 
-            const res = await chai.request(app).put('/users/enable').send({
-                email: mockEmail,
-            });
-            expect(res.status).to.equal(200);
-
-            const disabledUser = await User.findOne({
-                where: {
+            const agent = chai.request.agent(app);
+            requestAsAdmin(agent).then(async () => {
+                const res = await agent.put('/users/enable').send({
                     email: mockEmail,
-                },
+                });
+                expect(res.status).to.equal(200);
+
+                const disabledUser = await User.findOne({
+                    where: {
+                        email: mockEmail,
+                    },
+                });
+                expect(disabledUser?.isDisabled).to.be.false;
             });
-            expect(disabledUser?.isDisabled).to.be.false;
         });
     });
 });

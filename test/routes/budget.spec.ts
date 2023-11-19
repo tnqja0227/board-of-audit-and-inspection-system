@@ -11,6 +11,7 @@ import {
 } from '../../src/model';
 import { initDB } from '../../src/db/util';
 import sinon from 'sinon';
+import { requestAsUser } from './utils';
 
 chai.use(chaiHttp);
 
@@ -50,126 +51,136 @@ describe('API /budgets', function () {
             const organization = await Organization.create({
                 name: '학부총학생회',
             });
-
             const budget = await Budget.create({
                 OrganizationId: organization.id,
                 year: 2023,
                 half: 'spring',
                 manager: '김넙죽',
             });
-
             await createDummyBudget(budget.id);
 
-            const res = await chai
-                .request(app)
-                .get(`/budgets/${organization.id}/2023/spring`);
-            expect(res.body).eql({
-                id: budget.id,
-                담당자: '김넙죽',
-                연도: 2023,
-                반기: 'spring',
-                피감기구: '학부총학생회',
-                수입: [
-                    {
-                        재원: '학생회비',
-                        예산총계: 2356094,
-                        items: [
-                            {
-                                예산분류: '중앙회계',
-                                items: [
-                                    {
-                                        항목: '중앙회계 지원금',
-                                        코드: '101',
-                                        예산: 180000,
-                                    },
-                                    {
-                                        항목: '중앙회계 이월금',
-                                        코드: '102',
-                                        예산: 632238,
-                                    },
-                                ],
-                            },
-                            {
-                                예산분류: '격려기금',
-                                items: [
-                                    {
-                                        항목: '격려금',
-                                        코드: '103',
-                                        예산: 1543856,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        재원: '자치',
-                        예산총계: 2000,
-                        items: [
-                            {
-                                예산분류: '예금이자',
-                                items: [
-                                    {
-                                        항목: '예금이자',
-                                        코드: '301',
-                                        예산: 2000,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-                지출: [
-                    {
-                        재원: '학생회비',
-                        예산총계: 1843856,
-                        items: [
-                            {
-                                예산분류: '운영비',
-                                items: [
-                                    {
-                                        사업: '격려기금',
-                                        항목: '격려금',
-                                        코드: '401',
-                                        예산: 1543856,
-                                    },
-                                ],
-                            },
-                            {
-                                예산분류: '정기사업비',
-                                items: [
-                                    {
-                                        사업: '감사원 LT',
-                                        항목: '복리후생비',
-                                        코드: '402',
-                                        예산: 120000,
-                                    },
-                                ],
-                            },
-                            {
-                                예산분류: '회의비',
-                                items: [
-                                    {
-                                        사업: '감사원 회의',
-                                        항목: '회의비',
-                                        코드: '403',
-                                        예산: 120000,
-                                    },
-                                ],
-                            },
-                            {
-                                예산분류: '비정기사업비',
-                                items: [
-                                    {
-                                        사업: '사무소모품 및 유지',
-                                        항목: '복리후생비',
-                                        코드: '404',
-                                        예산: 60000,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
+            const agent = chai.request.agent(app);
+            agent.post('/users/').send({
+                email: 'test@kaist.ac.kr',
+                card_number: '1234567890',
+                card_bank: '우리은행',
+                card_owner: '김넙죽',
+                bankbook: '1234567890',
+                organization_name: organization.name,
+            });
+            requestAsUser(agent, 'test@kaist.ac.kr').then(async () => {
+                const res = await agent.get(
+                    `/budgets/${organization.id}/2023/spring`,
+                );
+                expect(res.status).eql(200);
+                expect(res.body).eql({
+                    id: budget.id,
+                    담당자: '김넙죽',
+                    연도: 2023,
+                    반기: 'spring',
+                    피감기구: '학부총학생회',
+                    수입: [
+                        {
+                            재원: '학생회비',
+                            예산총계: 2356094,
+                            items: [
+                                {
+                                    예산분류: '중앙회계',
+                                    items: [
+                                        {
+                                            항목: '중앙회계 지원금',
+                                            코드: '101',
+                                            예산: 180000,
+                                        },
+                                        {
+                                            항목: '중앙회계 이월금',
+                                            코드: '102',
+                                            예산: 632238,
+                                        },
+                                    ],
+                                },
+                                {
+                                    예산분류: '격려기금',
+                                    items: [
+                                        {
+                                            항목: '격려금',
+                                            코드: '103',
+                                            예산: 1543856,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            재원: '자치',
+                            예산총계: 2000,
+                            items: [
+                                {
+                                    예산분류: '예금이자',
+                                    items: [
+                                        {
+                                            항목: '예금이자',
+                                            코드: '301',
+                                            예산: 2000,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                    지출: [
+                        {
+                            재원: '학생회비',
+                            예산총계: 1843856,
+                            items: [
+                                {
+                                    예산분류: '운영비',
+                                    items: [
+                                        {
+                                            사업: '격려기금',
+                                            항목: '격려금',
+                                            코드: '401',
+                                            예산: 1543856,
+                                        },
+                                    ],
+                                },
+                                {
+                                    예산분류: '정기사업비',
+                                    items: [
+                                        {
+                                            사업: '감사원 LT',
+                                            항목: '복리후생비',
+                                            코드: '402',
+                                            예산: 120000,
+                                        },
+                                    ],
+                                },
+                                {
+                                    예산분류: '회의비',
+                                    items: [
+                                        {
+                                            사업: '감사원 회의',
+                                            항목: '회의비',
+                                            코드: '403',
+                                            예산: 120000,
+                                        },
+                                    ],
+                                },
+                                {
+                                    예산분류: '비정기사업비',
+                                    items: [
+                                        {
+                                            사업: '사무소모품 및 유지',
+                                            항목: '복리후생비',
+                                            코드: '404',
+                                            예산: 60000,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                });
             });
         });
     });

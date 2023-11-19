@@ -30,7 +30,6 @@ usersRouter.get(
 // TODO: email sanitize (kaist email만 가능하도록)
 usersRouter.post(
     '/',
-    wrapAsync(validateIsAdmin),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const organization = await OrganizationService.findByName(
             req.body.organization_name,
