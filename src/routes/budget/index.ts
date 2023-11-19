@@ -8,6 +8,7 @@ import { QueryTypes } from 'sequelize';
 import {
     validateAuditPeriodByYearAndHalf,
     validateIsAdmin,
+    validateOrganization,
 } from '../../middleware';
 
 const router = express.Router();
@@ -50,9 +51,11 @@ router.get('/:year/:half', async (req, res, next) => {
 });
 
 // TODO: organization authentication
+// TODO: Admin일 시 organization id 필요 없이 다 조회할 수 있도록, User일 시에는 organization id 체크하도록 경우를 나눌 필요가 있을 것 같음.
 // prettier-ignore
 router.get(
     '/report/income/:organization_id/:year/:half',
+    validateOrganization,
     async (req, res, next) => {
         try {
             const schema_name = process.env.NODE_ENV || 'development';
@@ -95,9 +98,11 @@ router.get(
     },
 );
 
+// TODO: Admin일 시 organization id 필요 없이 다 조회할 수 있도록, User일 시에는 organization id 체크하도록 경우를 나눌 필요가 있을 것 같음.
 // prettier-ignore
 router.get(
     '/report/expense/:organization_id/:year/:half',
+    validateOrganization,
     async (req, res, next) => {
         try {
             const schema_name = process.env.NODE_ENV || 'development';
@@ -140,9 +145,11 @@ router.get(
     },
 );
 
+// TODO: Admin일 시 organization id 필요 없이 다 조회할 수 있도록, User일 시에는 organization id 체크하도록 경우를 나눌 필요가 있을 것 같음.
 // prettier-ignore
 router.get(
     '/report/total/:organization_id/:year/:half',
+    validateOrganization,
     async (req, res, next) => {
         try {
             const schema_name = process.env.NODE_ENV || 'development';
@@ -206,6 +213,7 @@ router.get(
 // 예산안 생성
 router.post(
     '/:organization_id/:year/:half',
+    validateOrganization,
     validateAuditPeriodByYearAndHalf,
     async (req, res, next) => {
         try {
@@ -225,6 +233,7 @@ router.post(
 // 예산안 삭제
 router.delete(
     '/:organization_id/:year/:half',
+    validateOrganization,
     validateAuditPeriodByYearAndHalf,
     async (req, res, next) => {
         try {
