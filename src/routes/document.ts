@@ -3,6 +3,7 @@
 import express from 'express';
 import multer from 'multer';
 import { uploadFile } from '../s3';
+import { validateOrganization } from '../middleware';
 
 const allowedExtensions = ['jpg', 'jpeg', 'png'];
 
@@ -26,6 +27,7 @@ const router = express.Router();
 // TODO : set filename with user's information or validation
 router.post(
     '/image/:organization_name/:year/:semester',
+    validateOrganization,
     upload.array('image', 10),
     async (req, res, next) => {
         try {
