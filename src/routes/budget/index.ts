@@ -9,6 +9,7 @@ import { QueryTypes } from 'sequelize';
 import { validateAuditPeriodByYearAndHalf } from '../../middleware/validate_audit_period';
 import errorHandler from '../../middleware/error_handler';
 import { wrapAsync } from '../../middleware';
+import * as BudgetService from '../../service/budget';
 
 const budgetsRouter = express.Router();
 
@@ -26,29 +27,20 @@ budgetsRouter.get('/', async (req, res, next) => {
     }
 });
 
+// TODO: admin
+// 피감기관의 예산안 목록
 budgetsRouter.get(
-    '/:year/:half',
+    '/:organization_id/:year/:half',
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-        /*
-    모든 피감기관의 예결산안 목록
-    권한: admin
-    */
-        const schema_name = process.env.NODE_ENV || 'development';
-        const budget_schema = schema_name + '."budgets"';
-        const organization_schema = schema_name + '."organizations"';
-        const budgets = await sequelize.query(
-            `SELECT B."id", O."name" organization_name, "manager", "year", "half"
-        FROM ${budget_schema} as B
-            INNER JOIN ${organization_schema} as O
-            ON B."OrganizationId" = O.id
-        WHERE "year" = ${req.params.year} AND "half" = '${req.params.half}'
-        ORDER BY O."name"`,
-            {
-                type: QueryTypes.SELECT,
-            },
+        const organization_id = req.params.organization_id;
+        const year = req.params.year;
+        const half = req.params.half;
+        const budget = await BudgetService.findByOrganizationAndYearAndHalf(
+            organization_id,
+            year,
+            half,
         );
-
-        res.json(budgets);
+        res.json(budget);
     }),
 );
 

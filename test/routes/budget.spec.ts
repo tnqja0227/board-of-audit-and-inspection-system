@@ -41,54 +41,136 @@ describe('API /budgets', function () {
         await Budget.destroy(options);
         await Organization.destroy(options);
         await AuditPeriod.destroy(options);
+        await Income.destroy(options);
+        await Expense.destroy(options);
     });
 
-    describe('GET /:year/:half', function () {
-        it('should return budgets of all organizations of the given year and half', async function () {
-            const organization1 = await Organization.create({
+    describe('GET /:organization_id/:year/:half', function () {
+        it('해당 분기의 모든 예산안을 조회할 수 있다', async function () {
+            const organization = await Organization.create({
                 name: '학부총학생회',
             });
 
-            const organization2 = await Organization.create({
-                name: '감사원',
-            });
-
-            const organization3 = await Organization.create({
-                name: '동아리연합회',
-            });
-
-            await Budget.create({
-                OrganizationId: organization1.id,
+            const budget = await Budget.create({
+                OrganizationId: organization.id,
                 year: 2023,
                 half: 'spring',
                 manager: '김넙죽',
             });
 
-            await Budget.create({
-                OrganizationId: organization1.id,
-                year: 2022,
-                half: 'fall',
-                manager: '김넙죽',
-            });
+            await createDummyBudget(budget.id);
 
-            await Budget.create({
-                OrganizationId: organization2.id,
-                year: 2023,
-                half: 'spring',
-                manager: '김넙죽',
+            const res = await chai
+                .request(app)
+                .get(`/budgets/${organization.id}/2023/spring`);
+            expect(res.body).eql({
+                id: budget.id,
+                담당자: '김넙죽',
+                연도: 2023,
+                반기: 'spring',
+                피감기구: '학부총학생회',
+                수입: [
+                    {
+                        재원: '학생회비',
+                        예산총계: 2356094,
+                        items: [
+                            {
+                                예산분류: '중앙회계',
+                                items: [
+                                    {
+                                        항목: '중앙회계 지원금',
+                                        코드: '101',
+                                        예산: 180000,
+                                    },
+                                    {
+                                        항목: '중앙회계 이월금',
+                                        코드: '102',
+                                        예산: 632238,
+                                    },
+                                ],
+                            },
+                            {
+                                예산분류: '격려기금',
+                                items: [
+                                    {
+                                        항목: '격려금',
+                                        코드: '103',
+                                        예산: 1543856,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        재원: '자치',
+                        예산총계: 2000,
+                        items: [
+                            {
+                                예산분류: '예금이자',
+                                items: [
+                                    {
+                                        항목: '예금이자',
+                                        코드: '301',
+                                        예산: 2000,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                지출: [
+                    {
+                        재원: '학생회비',
+                        예산총계: 1843856,
+                        items: [
+                            {
+                                예산분류: '운영비',
+                                items: [
+                                    {
+                                        사업: '격려기금',
+                                        항목: '격려금',
+                                        코드: '401',
+                                        예산: 1543856,
+                                    },
+                                ],
+                            },
+                            {
+                                예산분류: '정기사업비',
+                                items: [
+                                    {
+                                        사업: '감사원 LT',
+                                        항목: '복리후생비',
+                                        코드: '402',
+                                        예산: 120000,
+                                    },
+                                ],
+                            },
+                            {
+                                예산분류: '회의비',
+                                items: [
+                                    {
+                                        사업: '감사원 회의',
+                                        항목: '회의비',
+                                        코드: '403',
+                                        예산: 120000,
+                                    },
+                                ],
+                            },
+                            {
+                                예산분류: '비정기사업비',
+                                items: [
+                                    {
+                                        사업: '사무소모품 및 유지',
+                                        항목: '복리후생비',
+                                        코드: '404',
+                                        예산: 60000,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
             });
-
-            await Budget.create({
-                OrganizationId: organization3.id,
-                year: 2023,
-                half: 'spring',
-                manager: '김넙죽',
-            });
-
-            const res = await chai.request(app).get('/budgets/2023/spring');
-            expect(res.body.map((budget: any) => budget.organization_name)).eql(
-                ['감사원', '동아리연합회', '학부총학생회'],
-            );
         });
     });
 
@@ -543,3 +625,81 @@ describe('API /budgets', function () {
         });
     });
 });
+
+async function createDummyBudget(budget_id: string | number) {
+    await Income.create({
+        BudgetId: budget_id,
+        code: '101',
+        source: '학생회비',
+        category: '중앙회계',
+        content: '중앙회계 지원금',
+        amount: 180000,
+    });
+
+    await Income.create({
+        BudgetId: budget_id,
+        code: '102',
+        source: '학생회비',
+        category: '중앙회계',
+        content: '중앙회계 이월금',
+        amount: 632238,
+    });
+
+    await Income.create({
+        BudgetId: budget_id,
+        code: '103',
+        source: '학생회비',
+        category: '격려기금',
+        content: '격려금',
+        amount: 1543856,
+    });
+
+    await Income.create({
+        BudgetId: budget_id,
+        code: '301',
+        source: '자치',
+        category: '예금이자',
+        content: '예금이자',
+        amount: 2000,
+    });
+
+    await Expense.create({
+        BudgetId: budget_id,
+        code: '401',
+        source: '학생회비',
+        category: '운영비',
+        project: '격려기금',
+        content: '격려금',
+        amount: 1543856,
+    });
+
+    await Expense.create({
+        BudgetId: budget_id,
+        code: '402',
+        source: '학생회비',
+        category: '정기사업비',
+        project: '감사원 LT',
+        content: '복리후생비',
+        amount: 120000,
+    });
+
+    await Expense.create({
+        BudgetId: budget_id,
+        code: '403',
+        source: '학생회비',
+        category: '회의비',
+        project: '감사원 회의',
+        content: '회의비',
+        amount: 120000,
+    });
+
+    await Expense.create({
+        BudgetId: budget_id,
+        code: '404',
+        source: '학생회비',
+        category: '비정기사업비',
+        project: '사무소모품 및 유지',
+        content: '복리후생비',
+        amount: 60000,
+    });
+}
