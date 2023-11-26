@@ -3,6 +3,7 @@ import chaiHttp from 'chai-http';
 import sinon from 'sinon';
 import { initDB } from '../../src/db/util';
 import * as auth from '../../src/middleware/auth';
+import * as validate_audit_period from '../../src/middleware/validate_audit_period';
 import * as model from '../../src/model';
 
 chai.use(chaiHttp);
@@ -10,6 +11,7 @@ chai.use(chaiHttp);
 describe('API /transactions', () => {
     let app: Express.Application;
     var stubValidateOrganization: sinon.SinonStub;
+    var stubValidateAuditPeriod: sinon.SinonStub;
 
     before(async function () {
         await initDB();
@@ -19,12 +21,18 @@ describe('API /transactions', () => {
             .callsFake(async (req, res, next) => {
                 return next();
             });
+        stubValidateAuditPeriod = sinon
+            .stub(validate_audit_period, 'validateAuditPeriod')
+            .callsFake(async (req, res, next) => {
+                return next();
+            });
 
         app = require('../../src/app').default;
     });
 
     after(function () {
         stubValidateOrganization.restore();
+        stubValidateAuditPeriod.restore();
     });
 
     describe('GET /:organization_id/:year/:half', () => {

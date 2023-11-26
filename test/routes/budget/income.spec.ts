@@ -22,8 +22,7 @@ describe('API /budgets/income', function () {
     let app: Express.Application;
     var stubValidateOrganization: sinon.SinonStub;
     var stubValidateIsAdmin: sinon.SinonStub;
-    var stubValidateAuditPeriodByBudgetId: sinon.SinonStub;
-    var stubValidateAuditPeriodByIncomeId: sinon.SinonStub;
+    var stubValidateAuditPeriod: sinon.SinonStub;
     var stubValidateCode: sinon.SinonStub;
     var budget: model.Budget;
 
@@ -40,13 +39,8 @@ describe('API /budgets/income', function () {
             .callsFake(async (req, res, next) => {
                 return next();
             });
-        stubValidateAuditPeriodByBudgetId = sinon
-            .stub(validate_audit_period, 'validateAuditPeriodByBudgetId')
-            .callsFake(async (req, res, next) => {
-                return next();
-            });
-        stubValidateAuditPeriodByIncomeId = sinon
-            .stub(validate_audit_period, 'validateAuditPeriodByIncomeId')
+        stubValidateAuditPeriod = sinon
+            .stub(validate_audit_period, 'validateAuditPeriod')
             .callsFake(async (req, res, next) => {
                 return next();
             });
@@ -74,8 +68,7 @@ describe('API /budgets/income', function () {
     after(function () {
         stubValidateOrganization.restore();
         stubValidateIsAdmin.restore();
-        stubValidateAuditPeriodByBudgetId.restore();
-        stubValidateAuditPeriodByIncomeId.restore();
+        stubValidateAuditPeriod.restore();
         stubValidateCode.restore();
     });
 

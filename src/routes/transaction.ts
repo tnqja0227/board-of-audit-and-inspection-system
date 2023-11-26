@@ -3,12 +3,10 @@ import { Request, Response, NextFunction } from 'express';
 import { Transaction } from '../model';
 import { sequelize } from '../db';
 import { QueryTypes } from 'sequelize';
-import { wrapAsync } from '../middleware';
+import { validateAuditPeriod, wrapAsync } from '../middleware';
 import { validateOrganization } from '../middleware/auth';
 
 const router = express.Router();
-
-// TODO: check audit period
 
 // TODO: convert to js code
 router.get(
@@ -70,6 +68,7 @@ router.get(
 // TODO: check organization
 router.post(
     '/',
+    wrapAsync(validateAuditPeriod),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         if (!req.body.income_id && !req.body.expense_id) {
             return res
@@ -107,6 +106,7 @@ router.post(
 
 router.delete(
     '/:transaction_id',
+    wrapAsync(validateAuditPeriod),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         await Transaction.destroy({
             where: {
@@ -119,6 +119,7 @@ router.delete(
 
 router.put(
     '/:transaction_id',
+    wrapAsync(validateAuditPeriod),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         if (req.body.income_id && req.body.expense_id) {
             return res

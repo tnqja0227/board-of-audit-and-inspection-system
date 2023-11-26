@@ -1,13 +1,16 @@
-import chai, { expect } from 'chai';
+import { expect } from 'chai';
 import sinon from 'sinon';
 import { initDB } from '../../src/db/util';
 import * as auth from '../../src/middleware/auth';
-import { Request, Response, NextFunction } from 'express';
-import * as validate_audit_period from '../../src/middleware/validate_audit_period';
+import { Request, Response } from 'express';
 import * as model from '../../src/model';
 import * as errors from '../../src/utils/errors';
 
 describe('Middleware: auth', function () {
+    afterEach(function () {
+        sinon.restore();
+    });
+
     describe('validateIsAdmin', function () {
         it('관리자 계정일경우 next()를 호출한다.', async function () {
             const req = {

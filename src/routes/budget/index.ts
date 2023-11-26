@@ -6,7 +6,7 @@ import { periods } from './period';
 import { Budget } from '../../model';
 import { sequelize } from '../../db';
 import { QueryTypes } from 'sequelize';
-import { validateAuditPeriodByYearAndHalf } from '../../middleware/validate_audit_period';
+import { validateAuditPeriod } from '../../middleware/validate_audit_period';
 import errorHandler from '../../middleware/error_handler';
 import { wrapAsync } from '../../middleware';
 import * as BudgetService from '../../service/budget';
@@ -112,7 +112,7 @@ budgetsRouter.get(
 // 예산안 생성
 budgetsRouter.post(
     '/:organization_id/:year/:half',
-    wrapAsync(validateAuditPeriodByYearAndHalf),
+    wrapAsync(validateAuditPeriod),
     wrapAsync(auth.validateOrganization),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const budget = await Budget.create({
@@ -128,7 +128,7 @@ budgetsRouter.post(
 // 예산안 삭제
 budgetsRouter.delete(
     '/:organization_id/:year/:half',
-    wrapAsync(validateAuditPeriodByYearAndHalf),
+    wrapAsync(validateAuditPeriod),
     wrapAsync(auth.validateOrganization),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         await Budget.destroy({

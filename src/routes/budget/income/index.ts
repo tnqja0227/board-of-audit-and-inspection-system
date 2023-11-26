@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { wrapAsync } from '../../../middleware';
 import { validateCode } from '../../../middleware/budget';
 import errorHandler from '../../../middleware/error_handler';
-import * as validate_audit_period from '../../../middleware/validate_audit_period';
+import { validateAuditPeriod } from '../../../middleware/validate_audit_period';
 import { Income } from '../../../model';
 import { validateOrganization } from '../../../middleware/auth';
 
@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.post(
     '/:budget_id',
-    wrapAsync(validate_audit_period.validateAuditPeriodByBudgetId),
+    wrapAsync(validateAuditPeriod),
     wrapAsync(validateOrganization),
     validateCode,
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -31,7 +31,7 @@ router.post(
 
 router.put(
     '/:income_id',
-    wrapAsync(validate_audit_period.validateAuditPeriodByIncomeId),
+    wrapAsync(validateAuditPeriod),
     wrapAsync(validateOrganization),
     async (req, res, next) => {
         try {
@@ -58,7 +58,7 @@ router.put(
 
 router.delete(
     '/:income_id',
-    wrapAsync(validate_audit_period.validateAuditPeriodByIncomeId),
+    wrapAsync(validateAuditPeriod),
     wrapAsync(validateOrganization),
     async (req, res, next) => {
         try {

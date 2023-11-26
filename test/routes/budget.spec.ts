@@ -12,7 +12,7 @@ describe('API /budgets', function () {
     let app: Express.Application;
     var stubValidateOrganization: sinon.SinonStub;
     var stubValidateIsAdmin: sinon.SinonStub;
-    var stubValidateAuditPeriodByYearAndHalf: sinon.SinonStub;
+    var stubValidateAuditPeriod: sinon.SinonStub;
     var organization: model.Organization;
 
     before(async function () {
@@ -29,8 +29,8 @@ describe('API /budgets', function () {
             .callsFake(async (req, res, next) => {
                 return next();
             });
-        stubValidateAuditPeriodByYearAndHalf = sinon
-            .stub(validate_audit_period, 'validateAuditPeriodByYearAndHalf')
+        stubValidateAuditPeriod = sinon
+            .stub(validate_audit_period, 'validateAuditPeriod')
             .callsFake(async (req, res, next) => {
                 return next();
             });
@@ -47,7 +47,7 @@ describe('API /budgets', function () {
     after(function () {
         stubValidateOrganization.restore();
         stubValidateIsAdmin.restore();
-        stubValidateAuditPeriodByYearAndHalf.restore();
+        stubValidateAuditPeriod.restore();
     });
 
     afterEach(async function () {
