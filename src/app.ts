@@ -11,6 +11,7 @@ import { redisClient } from './db';
 import { initDB } from './db/util';
 import errorHandler from './middleware/error_handler';
 import * as routes from './routes';
+import cors from 'cors';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -34,6 +35,17 @@ if (process.env.NODE_ENV !== 'test') {
         .catch((err) => {
             logger.debug(err);
         });
+}
+
+if (process.env.NODE_ENV !== 'production') {
+    app.use(
+        cors({
+            origin: 'http://localhost:3000',
+            methods: ['GET', 'PUT', 'POST', 'DELETE'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true,
+        }),
+    );
 }
 
 config();
