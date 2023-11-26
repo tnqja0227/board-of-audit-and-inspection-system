@@ -78,6 +78,10 @@ app.use('/documents', routes.documents);
 app.use('/users', routes.usersRouter);
 app.use(errorHandler);
 
+app.get('/test', (req, res) => {
+    res.send('Hello World!');
+});
+
 app.listen(3000);
 
 export default app;
