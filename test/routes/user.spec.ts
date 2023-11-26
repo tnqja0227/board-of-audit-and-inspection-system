@@ -178,7 +178,6 @@ describe('API /users', function () {
                     email: mockEmail,
                     password: mockPassword,
                 });
-            console.log(res.body);
             expect(res.status).to.equal(200);
         });
 

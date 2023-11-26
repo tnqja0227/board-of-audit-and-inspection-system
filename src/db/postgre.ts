@@ -1,15 +1,7 @@
 import { Sequelize } from 'sequelize';
 import logger from '../config/winston';
 
-export let schema_name: string;
-if (process.env.NODE_ENV !== undefined) {
-    schema_name = process.env.NODE_ENV;
-} else {
-    schema_name = 'development';
-}
-
-logger.debug('schema_name: ', schema_name);
-
+export const schema_name = process.env.NODE_ENV || 'test';
 export const sequelize = new Sequelize(
     'postgres',
     process.env.DB_USER || 'postgres',
@@ -24,5 +16,6 @@ export const sequelize = new Sequelize(
 );
 
 sequelize.authenticate().catch((err) => {
-    console.error('Unable to connect to the database:', err);
+    logger.error('Unable to connect to the PostgreSQL database:');
+    throw err;
 });
