@@ -1,10 +1,15 @@
 import express from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuditPeriod } from '../../../model';
+import { validateIsAdmin } from '../../../middleware/auth';
+import { wrapAsync } from '../../../middleware';
 
 const router = express.Router();
 
-router.post('/:year/:half', async (req, res, next) => {
-    try {
+router.post(
+    '/:year/:half',
+    wrapAsync(validateIsAdmin),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const auditPeriod = await AuditPeriod.create({
             year: req.params.year,
             half: req.params.half,
@@ -12,13 +17,14 @@ router.post('/:year/:half', async (req, res, next) => {
             end: req.body.end,
         });
         res.json(auditPeriod.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
-router.put('/:year/:half', async (req, res, next) => {
-    try {
+router.put(
+    '/:year/:half',
+    wrapAsync(validateIsAdmin),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+        // TODO: validate existence of audit period
         await AuditPeriod.update(
             {
                 start: req.body.start,
@@ -32,9 +38,7 @@ router.put('/:year/:half', async (req, res, next) => {
             },
         );
         res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
 export const periods = router;

@@ -1,7 +1,7 @@
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import { User } from '../model';
+import { Organization, User } from '../model';
 import { wrapAsync } from '../middleware';
 import * as OrganizationService from '../service/organization';
 import * as UserService from '../service/user';
@@ -11,6 +11,8 @@ import {
     BadRequestError,
 } from '../utils/errors';
 import errorHandler from '../middleware/error_handler';
+import { validateIsAdmin } from '../middleware/auth';
+import logger from '../config/winston';
 
 const saltRounds = 10;
 
@@ -18,6 +20,7 @@ const usersRouter = express.Router();
 
 usersRouter.get(
     '/',
+    wrapAsync(validateIsAdmin),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const users = await UserService.findAllUsersByOrganization();
         res.json(users);
@@ -25,7 +28,6 @@ usersRouter.get(
 );
 
 // 계정 생성 (default password: password)
-// TODO: admin 계정만 가능하도록 수정
 // TODO: email sanitize (kaist email만 가능하도록)
 usersRouter.post(
     '/',
@@ -75,17 +77,26 @@ usersRouter.post(
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const user = await UserService.findByEmail(req.body.email);
         if (!user) {
+            logger.info(`User with email ${req.body.email} does not exist`);
             throw new UnauthorizedError(
                 '아이디 혹은 비밀번호가 일치하지 않습니다.',
             );
         }
 
         if (!(await bcrypt.compare(req.body.password, user.password))) {
+            logger.info(`User with email ${req.body.email} has wrong password`);
             throw new UnauthorizedError(
                 '아이디 혹은 비밀번호가 일치하지 않습니다.',
             );
         }
-        req.session.user = user.toJSON();
+
+        logger.info(`User with email ${req.body.email} logged in`);
+
+        req.session.user = {
+            id: user.id,
+            role: user.role,
+            OrganizationId: user.OrganizationId,
+        };
         res.sendStatus(200);
     }),
 );
@@ -119,6 +130,7 @@ usersRouter.post(
 // 계정 비활성화
 usersRouter.put(
     '/disable',
+    wrapAsync(validateIsAdmin),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const user = await UserService.findByEmail(req.body.email);
         if (!user) {
@@ -136,6 +148,7 @@ usersRouter.put(
 // 계정 활성화
 usersRouter.put(
     '/enable',
+    wrapAsync(validateIsAdmin),
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const user = await UserService.findByEmail(req.body.email);
         if (!user) {

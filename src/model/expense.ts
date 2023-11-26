@@ -10,6 +10,7 @@ class Expense extends Model {
     declare content: string; // 항목 (세부 항목)
     declare amount: number; // 금액
     declare note: string; // 비고
+    declare BudgetId: number;
 }
 
 Expense.init(

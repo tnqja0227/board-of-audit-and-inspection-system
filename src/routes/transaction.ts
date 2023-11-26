@@ -1,14 +1,18 @@
-// 통장 거래 내역
-
 import express from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Transaction } from '../model';
 import { sequelize } from '../db';
 import { QueryTypes } from 'sequelize';
+import { validateAuditPeriod, wrapAsync } from '../middleware';
+import { validateOrganization } from '../middleware/auth';
 
 const router = express.Router();
 
-router.get('/:organization_id/:year/:half', async (req, res, next) => {
-    try {
+// TODO: convert to js code
+router.get(
+    '/:organization_id/:year/:half',
+    wrapAsync(validateOrganization),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const schema_name = process.env.NODE_ENV || 'development';
         const transaction_table = schema_name + '."transactions"';
         const income_table = schema_name + '."incomes"';
@@ -58,13 +62,14 @@ router.get('/:organization_id/:year/:half', async (req, res, next) => {
             const transaction1page = transactions.slice(startIndex, endIndex);
             res.json(transaction1page);
         }
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
-router.post('/', async (req, res, next) => {
-    try {
+// TODO: check organization
+router.post(
+    '/',
+    wrapAsync(validateAuditPeriod),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         if (!req.body.income_id && !req.body.expense_id) {
             return res
                 .status(400)
@@ -96,26 +101,26 @@ router.post('/', async (req, res, next) => {
             ExpenseId: req.body.expense_id,
         });
         res.json(transaction.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
-router.delete('/:transaction_id', async (req, res, next) => {
-    try {
+router.delete(
+    '/:transaction_id',
+    wrapAsync(validateAuditPeriod),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         await Transaction.destroy({
             where: {
                 id: req.params.transaction_id,
             },
         });
         res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
-router.put('/:transaction_id', async (req, res, next) => {
-    try {
+router.put(
+    '/:transaction_id',
+    wrapAsync(validateAuditPeriod),
+    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         if (req.body.income_id && req.body.expense_id) {
             return res
                 .status(400)
@@ -146,9 +151,7 @@ router.put('/:transaction_id', async (req, res, next) => {
         );
 
         res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+    }),
+);
 
 export const transactions = router;

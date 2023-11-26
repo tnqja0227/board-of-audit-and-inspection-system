@@ -1,34 +1,57 @@
-import chaiHttp from 'chai-http';
-import app from '../../src/app';
 import chai, { expect } from 'chai';
-import { initDB } from '../../src/db/util';
+import chaiHttp from 'chai-http';
 import sinon from 'sinon';
-import { Budget, Income, Organization, Transaction } from '../../src/model';
+import { initDB } from '../../src/db/util';
+import * as auth from '../../src/middleware/auth';
+import * as validate_audit_period from '../../src/middleware/validate_audit_period';
+import * as model from '../../src/model';
 
 chai.use(chaiHttp);
 
-describe('transaction router', () => {
+describe('API /transactions', () => {
+    let app: Express.Application;
+    var stubValidateOrganization: sinon.SinonStub;
+    var stubValidateAuditPeriod: sinon.SinonStub;
+
     before(async function () {
         await initDB();
+
+        stubValidateOrganization = sinon
+            .stub(auth, 'validateOrganization')
+            .callsFake(async (req, res, next) => {
+                return next();
+            });
+        stubValidateAuditPeriod = sinon
+            .stub(validate_audit_period, 'validateAuditPeriod')
+            .callsFake(async (req, res, next) => {
+                return next();
+            });
+
+        app = require('../../src/app').default;
     });
 
-    describe('GET /', () => {
-        let organization: Organization;
+    after(function () {
+        stubValidateOrganization.restore();
+        stubValidateAuditPeriod.restore();
+    });
+
+    describe('GET /:organization_id/:year/:half', () => {
+        let organization: model.Organization;
         let dates: Date[];
 
         beforeEach(async () => {
-            organization = await Organization.create({
+            organization = await model.Organization.create({
                 name: '학부총학생회',
             });
 
-            const budget = await Budget.create({
+            const budget = await model.Budget.create({
                 year: 2021,
                 half: 'spring',
                 manager: '김넙죽',
                 OrganizationId: organization.id,
             });
 
-            const income = await Income.create({
+            const income = await model.Income.create({
                 code: '101',
                 source: '학생회비',
                 category: '중앙회계',
@@ -42,7 +65,7 @@ describe('transaction router', () => {
             for (var i = 0; i < 30; i++) {
                 t.setDate(t.getDate() + 1);
                 dates.push(new Date(t));
-                await Transaction.create({
+                await model.Transaction.create({
                     projectAt: t,
                     manager: '김넙죽',
                     content: '테스트',
@@ -59,19 +82,19 @@ describe('transaction router', () => {
         });
 
         afterEach(async () => {
-            await Organization.destroy({
+            await model.Organization.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Budget.destroy({
+            await model.Budget.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Income.destroy({
+            await model.Income.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Transaction.destroy({
+            await model.Transaction.destroy({
                 truncate: true,
                 cascade: true,
             });
@@ -114,23 +137,23 @@ describe('transaction router', () => {
     });
 
     describe('POST /', () => {
-        let organization: Organization;
-        let budget: Budget;
-        let income: Income;
+        let organization: model.Organization;
+        let budget: model.Budget;
+        let income: model.Income;
 
         beforeEach(async () => {
-            organization = await Organization.create({
+            organization = await model.Organization.create({
                 name: '학부총학생회',
             });
 
-            budget = await Budget.create({
+            budget = await model.Budget.create({
                 year: 2021,
                 half: 'spring',
                 manager: '김넙죽',
                 OrganizationId: organization.id,
             });
 
-            income = await Income.create({
+            income = await model.Income.create({
                 code: '101',
                 source: '학생회비',
                 category: '중앙회계',
@@ -141,19 +164,19 @@ describe('transaction router', () => {
         });
 
         afterEach(async () => {
-            await Organization.destroy({
+            await model.Organization.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Budget.destroy({
+            await model.Budget.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Income.destroy({
+            await model.Income.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Transaction.destroy({
+            await model.Transaction.destroy({
                 truncate: true,
                 cascade: true,
             });
@@ -219,24 +242,24 @@ describe('transaction router', () => {
     });
 
     describe('DELETE /:transaction_id', () => {
-        let organization: Organization;
-        let budget: Budget;
-        let income: Income;
-        let transaction: Transaction;
+        let organization: model.Organization;
+        let budget: model.Budget;
+        let income: model.Income;
+        let transaction: model.Transaction;
 
         beforeEach(async () => {
-            organization = await Organization.create({
+            organization = await model.Organization.create({
                 name: '학부총학생회',
             });
 
-            budget = await Budget.create({
+            budget = await model.Budget.create({
                 year: 2021,
                 half: 'spring',
                 manager: '김넙죽',
                 OrganizationId: organization.id,
             });
 
-            income = await Income.create({
+            income = await model.Income.create({
                 code: '101',
                 source: '학생회비',
                 category: '중앙회계',
@@ -245,7 +268,7 @@ describe('transaction router', () => {
                 BudgetId: budget.id,
             });
 
-            transaction = await Transaction.create({
+            transaction = await model.Transaction.create({
                 projectAt: new Date('2021-01-01:00:00:00'),
                 manager: '김넙죽',
                 content: '테스트',
@@ -260,19 +283,19 @@ describe('transaction router', () => {
         });
 
         afterEach(async () => {
-            await Organization.destroy({
+            await model.Organization.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Budget.destroy({
+            await model.Budget.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Income.destroy({
+            await model.Income.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Transaction.destroy({
+            await model.Transaction.destroy({
                 truncate: true,
                 cascade: true,
             });
@@ -284,7 +307,7 @@ describe('transaction router', () => {
                 .delete(`/transactions/${transaction.id}`);
             expect(res).to.have.status(200);
 
-            const deletedTransaction = await Transaction.findByPk(
+            const deletedTransaction = await model.Transaction.findByPk(
                 transaction.id,
             );
             expect(deletedTransaction).to.be.null;
@@ -292,24 +315,24 @@ describe('transaction router', () => {
     });
 
     describe('PUT /:transaction_id', () => {
-        let organization: Organization;
-        let budget: Budget;
-        let income: Income;
-        let transaction: Transaction;
+        let organization: model.Organization;
+        let budget: model.Budget;
+        let income: model.Income;
+        let transaction: model.Transaction;
 
         beforeEach(async () => {
-            organization = await Organization.create({
+            organization = await model.Organization.create({
                 name: '학부총학생회',
             });
 
-            budget = await Budget.create({
+            budget = await model.Budget.create({
                 year: 2021,
                 half: 'spring',
                 manager: '김넙죽',
                 OrganizationId: organization.id,
             });
 
-            income = await Income.create({
+            income = await model.Income.create({
                 code: '101',
                 source: '학생회비',
                 category: '중앙회계',
@@ -318,7 +341,7 @@ describe('transaction router', () => {
                 BudgetId: budget.id,
             });
 
-            transaction = await Transaction.create({
+            transaction = await model.Transaction.create({
                 projectAt: new Date('2021-01-01:00:00:00'),
                 manager: '김넙죽',
                 content: '테스트',
@@ -333,19 +356,19 @@ describe('transaction router', () => {
         });
 
         afterEach(async () => {
-            await Organization.destroy({
+            await model.Organization.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Budget.destroy({
+            await model.Budget.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Income.destroy({
+            await model.Income.destroy({
                 truncate: true,
                 cascade: true,
             });
-            await Transaction.destroy({
+            await model.Transaction.destroy({
                 truncate: true,
                 cascade: true,
             });
@@ -360,7 +383,7 @@ describe('transaction router', () => {
                 });
             expect(res).to.have.status(200);
 
-            const updatedTransaction = await Transaction.findByPk(
+            const updatedTransaction = await model.Transaction.findByPk(
                 transaction.id,
             );
             expect(updatedTransaction?.content).to.equal('테스트2');

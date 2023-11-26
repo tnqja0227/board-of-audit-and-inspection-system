@@ -20,6 +20,8 @@ paths:
         get:
             description: 모든 피감기구 조회
             tags: [피감기구]
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     content:
@@ -28,6 +30,14 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/Organization'
+                403:
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
+
                 '500': # status code
                     description: Server error or database error
                     content:
@@ -51,6 +61,8 @@ paths:
                                     type: string
                                     description: 피감기구 이름
                                     example: 학부총학생회
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     content:
@@ -61,6 +73,8 @@ paths:
         get:
             description: 모든 계정 조회
             tags: [계정]
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     content:
@@ -78,6 +92,13 @@ paths:
                                 properties:
                                     message:
                                         type: string
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
         post:
             description: 계정 생성
             tags: [계정]
@@ -88,14 +109,15 @@ paths:
                         schema:
                             type: object
                             properties:
-                                email:
-                                    type: string
-                                    description: 계정 이메일
-                                    example: boa2023@kaist.ac.kr
                                 organization_name:
                                     type: string
                                     description: 피감기구 이름
                                     example: 학부총학생회
+                                email:
+                                    type: string
+                                    description: 계정 이메일
+                                    example: boa2023@kaist.ac.kr
+
             responses:
                 '200': # status code
                     content:
@@ -237,9 +259,19 @@ paths:
                                     type: string
                                     description: 계정 이메일
                                     example: test@kaist.ac.kr
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Disable success
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
+
     /users/enable:
         put:
             description: 계정 활성화
@@ -255,15 +287,26 @@ paths:
                                     type: string
                                     description: 계정 이메일
                                     example: test@kaist.ac.kr
+            security:
+                - ApiKeyAuth: []
             responses:
                 '200': # status code
                     description: Enable success
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
 
     /budgets:
         get:
             summary: 모든 예산안 조회
             description: 데이터베이스로부터 주어진 검색 옵션에 맞는 모든 예산안의 array를 가져 옴.
             tags: [예산안]
+            security:
+                - ApiKeyAuth: []
             responses:
                 200:
                     description: Successfully retrieved budgets
@@ -272,7 +315,7 @@ paths:
                             schema:
                                 type: array
                                 items: Budget
-                                $ref: '#/components/schemas/Budget'
+                                $ref: '#/components/schemas/Budget' #TODO: Fix this reference error. There is no Budget schema.
                     example:
                         value:
                             - id: 1
@@ -293,6 +336,13 @@ paths:
                                 properties:
                                     message:
                                         type: string
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
     /budgets/period/{year}/{half}:
         post:
             summary: 감사기간 등록
@@ -334,9 +384,20 @@ paths:
                                     format: date-time
                                     description: 감사 종료일
                                     example: 2020-06-31
+
+            security:
+                - ApiKeyAuth: []
             responses:
                 200:
                     description: Created period
+                403:
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
+
         put:
             summary: 감사기간 수정
             description: 연도, 반기에 해당하는 감사기간을 수정함.
@@ -377,9 +438,18 @@ paths:
                                     format: date-time
                                     description: 감사 종료일
                                     example: 2020-06-31
+            security:
+                - ApiKeyAuth: []
             responses:
                 200:
                     description: Updated period
+                403:
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
 
     /budgets/{organization_id}/{year}/{half}:
         post:
@@ -930,6 +1000,13 @@ paths:
                                 properties:
                                     message:
                                         type: string
+                '403':
+                    description: Unauthorized User
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'Not admin'
         post:
             summary: 통장거래내역 생성
             tags: [통장거래내역]
@@ -1270,3 +1347,8 @@ components:
                     type: string
                     description: 비고
                     example: ''
+    securitySchemes:
+        ApiKeyAuth:
+            type: apiKey
+            in: header
+            name: sessionid

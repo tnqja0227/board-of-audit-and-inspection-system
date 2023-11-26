@@ -27,8 +27,6 @@ export function checkPasswordCondition(password: string) {
 }
 
 export async function findByEmail(email: string) {
-    logger.info(`find user by email: ${email}`);
-
     const user = await User.findOne({
         where: {
             email,

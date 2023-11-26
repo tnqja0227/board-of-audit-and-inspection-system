@@ -12,6 +12,8 @@ import { schema_name, sequelize } from './postgre';
 import logger from '../config/winston';
 
 export async function initDB() {
+    logger.debug('Initializing database...');
+
     // Check if the schema already exists
     const schemaExists = await sequelize.query(
         `SELECT schema_name FROM information_schema.schemata WHERE schema_name = '${schema_name}'`,

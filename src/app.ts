@@ -1,16 +1,16 @@
-import express from 'express';
-import { redisClient } from './db';
-import * as routes from './routes';
 import bodyParser from 'body-parser';
-import session from 'express-session';
-import { config } from 'dotenv';
 import RedisStore from 'connect-redis';
-import swaggerUi from 'swagger-ui-express';
+import { config } from 'dotenv';
+import express from 'express';
+import session from 'express-session';
 import fs from 'fs';
+import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
 import logger from './config/winston';
+import { redisClient } from './db';
 import { initDB } from './db/util';
 import errorHandler from './middleware/error_handler';
+import * as routes from './routes';
 import cors from 'cors';
 
 declare module 'express-session' {
@@ -65,7 +65,7 @@ app.use(
     }),
 );
 app.use(function (req, res, next) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV !== 'production') {
         logger.debug(`${req.method}, ${req.url}`);
     }
     next();
