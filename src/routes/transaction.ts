@@ -8,6 +8,9 @@ import { validateOrganization } from '../middleware/auth';
 
 const router = express.Router();
 
+// TODO: check audit period
+
+// TODO: convert to js code
 router.get(
     '/:organization_id/:year/:half',
     wrapAsync(validateOrganization),

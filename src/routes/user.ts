@@ -1,7 +1,7 @@
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import { User } from '../model';
+import { Organization, User } from '../model';
 import { wrapAsync } from '../middleware';
 import * as OrganizationService from '../service/organization';
 import * as UserService from '../service/user';
@@ -12,6 +12,7 @@ import {
 } from '../utils/errors';
 import errorHandler from '../middleware/error_handler';
 import { validateIsAdmin } from '../middleware/auth';
+import logger from '../config/winston';
 
 const saltRounds = 10;
 
@@ -76,17 +77,26 @@ usersRouter.post(
     wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
         const user = await UserService.findByEmail(req.body.email);
         if (!user) {
+            logger.info(`User with email ${req.body.email} does not exist`);
             throw new UnauthorizedError(
                 '아이디 혹은 비밀번호가 일치하지 않습니다.',
             );
         }
 
         if (!(await bcrypt.compare(req.body.password, user.password))) {
+            logger.info(`User with email ${req.body.email} has wrong password`);
             throw new UnauthorizedError(
                 '아이디 혹은 비밀번호가 일치하지 않습니다.',
             );
         }
-        req.session.user = user.toJSON();
+
+        logger.info(`User with email ${req.body.email} logged in`);
+
+        req.session.user = {
+            id: user.id,
+            role: user.role,
+            OrganizationId: user.OrganizationId,
+        };
         res.sendStatus(200);
     }),
 );

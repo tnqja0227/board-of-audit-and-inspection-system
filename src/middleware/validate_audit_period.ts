@@ -7,6 +7,7 @@ import {
     NotFoundError,
     ValidationError,
 } from '../utils/errors';
+import logger from '../config/winston';
 
 export async function validateAuditPeriodByYearAndHalf(
     req: Request,
@@ -91,6 +92,8 @@ export async function findAuditPeriodAndValidate(
     year: string | number,
     half: string,
 ) {
+    logger.info(`find audit period by year: ${year}, half: ${half}`);
+
     const auditPeriod = await AuditPeriod.findOne({
         where: {
             year: year,
@@ -98,11 +101,13 @@ export async function findAuditPeriodAndValidate(
         },
     });
     if (!auditPeriod) {
+        logger.info(`audit period does not exist`);
         throw new NotFoundError('감사기간이 존재하지 않습니다.');
     }
 
     const today = new Date();
     if (today < auditPeriod.start || today > auditPeriod.end) {
+        logger.info(`today is not in audit period`);
         throw new ValidationError('감사기간이 아닙니다.');
     }
 }

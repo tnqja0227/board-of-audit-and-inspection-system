@@ -11,6 +11,7 @@ class User extends Model {
     declare cardOwner: string; // 공금카드 예금주
     declare bankbook: string; // 통장사본 (url)
     declare isDisabled: boolean; // 계정 비활성화 여부
+    declare OrganizationId: number;
 }
 
 User.init(

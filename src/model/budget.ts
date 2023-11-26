@@ -7,6 +7,7 @@ class Budget extends Model {
     declare year: number; // 예산년도
     declare half: string; // 반기 ('spring', 'fall')
     declare isReadonly: boolean; // 읽기전용 여부
+    declare OrganizationId: number;
 }
 
 Budget.init(

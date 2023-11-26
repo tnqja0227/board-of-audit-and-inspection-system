@@ -9,6 +9,11 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 client.on('error', (err) => logger.error('Redis Client Error', err));
-client.connect().catch(logger.error);
+client
+    .connect()
+    .then(() => {
+        logger.info('Connected to Redis');
+    })
+    .catch(logger.error);
 
 export const redisClient = client;

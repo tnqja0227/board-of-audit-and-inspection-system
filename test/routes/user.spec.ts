@@ -1,9 +1,9 @@
-import chaiHttp from 'chai-http';
-import app from '../../src/app';
 import chai, { expect } from 'chai';
+import chaiHttp from 'chai-http';
+import sinon from 'sinon';
 import { initDB } from '../../src/db/util';
-import { Organization, User } from '../../src/model';
-import { requestAsAdmin } from './utils';
+import * as auth from '../../src/middleware/auth';
+import * as model from '../../src/model';
 
 chai.use(chaiHttp);
 
@@ -16,8 +16,23 @@ const mockCardOwner = '김넙죽';
 const mockBankbook = '1102223333';
 
 describe('API /users', function () {
+    let app: Express.Application;
+    var stubValidateIsAdmin: sinon.SinonStub;
+
     before(async function () {
         await initDB();
+
+        stubValidateIsAdmin = sinon
+            .stub(auth, 'validateIsAdmin')
+            .callsFake(async (req, res, next) => {
+                return next();
+            });
+
+        app = require('../../src/app').default;
+    });
+
+    after(function () {
+        stubValidateIsAdmin.restore();
     });
 
     afterEach(async function () {
@@ -25,51 +40,49 @@ describe('API /users', function () {
             truncate: true,
             cascade: true,
         };
-        await Organization.destroy(options);
-        await User.destroy(options);
+        await model.Organization.destroy(options);
+        await model.User.destroy(options);
     });
 
     describe('GET /', async function () {
         it('피감기구 별로 계정 정보를 조회한다.', async function () {
-            const organization1 = await Organization.create({
+            const organization1 = await model.Organization.create({
                 name: '학부총학생회',
             });
-            const organization2 = await Organization.create({
+            const organization2 = await model.Organization.create({
                 name: '감사원',
             });
-            const organization3 = await Organization.create({
+            const organization3 = await model.Organization.create({
                 name: '동아리연합회',
             });
 
-            await User.create({
+            await model.User.create({
                 email: 'test1@kaist.ac.kr',
                 password: mockPassword,
                 OrganizationId: organization1.id,
             });
-            await User.create({
+            await model.User.create({
                 email: 'test2@kaist.ac.kr',
                 password: mockPassword,
                 OrganizationId: organization2.id,
             });
-            await User.create({
+            await model.User.create({
                 email: 'test3@kaist.ac.kr',
                 password: mockPassword,
                 OrganizationId: organization3.id,
             });
-
-            const agent = chai.request.agent(app);
-            requestAsAdmin(agent).then(async () => {
-                const res = await agent.get('/users');
-                expect(res.body.map((user: any) => user.organization_name)).eql(
-                    ['감사원', '동아리연합회', '학부총학생회'],
-                );
-            });
+            const res = await chai.request(app).get('/users');
+            expect(res.body.map((user: any) => user.organization_name)).eql([
+                '감사원',
+                '동아리연합회',
+                '학부총학생회',
+            ]);
         });
     });
 
     describe('POST /', function () {
         it('새로운 계정을 추가할 수 있다.', async function () {
-            const organization = await Organization.create({
+            const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
 
@@ -91,10 +104,10 @@ describe('API /users', function () {
         });
 
         it('이미 등록된 피감기구의 계정을 추가할 수 없다.', async function () {
-            const organization = await Organization.create({
+            const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
-            await User.create({
+            await model.User.create({
                 email: mockEmail,
                 password: mockPassword,
                 OrganizationId: organization.id,
@@ -112,14 +125,14 @@ describe('API /users', function () {
         });
 
         it('이미 등록된 이메일의 계정을 추가할 수 없다.', async function () {
-            const organization = await Organization.create({
+            const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
-            const organization2 = await Organization.create({
+            const organization2 = await model.Organization.create({
                 name: '감사원',
             });
 
-            await User.create({
+            await model.User.create({
                 email: mockEmail,
                 password: mockPassword,
                 OrganizationId: organization.id,
@@ -138,11 +151,15 @@ describe('API /users', function () {
     });
 
     describe('POST /login', async function () {
-        it('로그인에 성공한다.', async function () {
-            const organization = await Organization.create({
+        var agent: ChaiHttp.Agent;
+
+        beforeEach(async function () {
+            const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
-            await chai.request(app).post('/users').send({
+
+            agent = chai.request.agent(app);
+            await agent.post('/users').send({
                 email: mockEmail,
                 organization_name: organization.name,
                 card_number: mockCardNumber,
@@ -150,24 +167,22 @@ describe('API /users', function () {
                 card_owner: mockCardOwner,
                 bankbook: mockBankbook,
             });
+        });
 
-            const res = await chai.request(app).post('/users/login').send({
-                email: mockEmail,
-                password: mockPassword,
-            });
+        it('로그인에 성공한다.', async function () {
+            const res = await chai
+                .request(app)
+                .post('/users/login')
+                .set('Accept', 'application/json')
+                .send({
+                    email: mockEmail,
+                    password: mockPassword,
+                });
+            console.log(res.body);
             expect(res.status).to.equal(200);
         });
 
         it('비밀번호가 일치하지 않으면 로그인에 실패한다.', async function () {
-            const organization = await Organization.create({
-                name: '학부총학생회',
-            });
-            await User.create({
-                email: mockEmail,
-                password: mockPassword,
-                OrganizationId: organization.id,
-            });
-
             const res = await chai.request(app).post('/users/login').send({
                 email: mockEmail,
                 password: 'wrong_password',
@@ -178,7 +193,7 @@ describe('API /users', function () {
 
     describe('POST /password', async function () {
         it('비밀번호를 변경할 수 있다.', async function () {
-            const organization = await Organization.create({
+            const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
             await chai.request(app).post('/users').send({
@@ -213,58 +228,52 @@ describe('API /users', function () {
 
     describe('PUT /disable', async function () {
         it('계정을 비활성화 할 수 있다.', async function () {
-            const organization = await Organization.create({
+            const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
-            await User.create({
+            await model.User.create({
                 email: mockEmail,
                 password: mockPassword,
                 OrganizationId: organization.id,
             });
 
-            const agent = chai.request.agent(app);
-            requestAsAdmin(agent).then(async () => {
-                const res = await agent.put('/users/disable').send({
-                    email: mockEmail,
-                });
-                expect(res.status).to.equal(200);
-
-                const disabledUser = await User.findOne({
-                    where: {
-                        email: mockEmail,
-                    },
-                });
-                expect(disabledUser?.isDisabled).to.be.true;
+            const res = await chai.request(app).put('/users/disable').send({
+                email: mockEmail,
             });
+            expect(res.status).to.equal(200);
+
+            const disabledUser = await model.User.findOne({
+                where: {
+                    email: mockEmail,
+                },
+            });
+            expect(disabledUser?.isDisabled).to.be.true;
         });
     });
 
     describe('PUT /enable', async function () {
         it('계정을 활성화 할 수 있다.', async function () {
-            const organization = await Organization.create({
+            const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
-            await User.create({
+            await model.User.create({
                 email: mockEmail,
                 password: mockPassword,
                 OrganizationId: organization.id,
                 isDisabled: true,
             });
 
-            const agent = chai.request.agent(app);
-            requestAsAdmin(agent).then(async () => {
-                const res = await agent.put('/users/enable').send({
-                    email: mockEmail,
-                });
-                expect(res.status).to.equal(200);
-
-                const disabledUser = await User.findOne({
-                    where: {
-                        email: mockEmail,
-                    },
-                });
-                expect(disabledUser?.isDisabled).to.be.false;
+            const res = await chai.request(app).put('/users/enable').send({
+                email: mockEmail,
             });
+            expect(res.status).to.equal(200);
+
+            const disabledUser = await model.User.findOne({
+                where: {
+                    email: mockEmail,
+                },
+            });
+            expect(disabledUser?.isDisabled).to.be.false;
         });
     });
 });
