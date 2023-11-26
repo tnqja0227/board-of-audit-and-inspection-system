@@ -62,6 +62,9 @@ app.use(
         secret: (process.env.SESSION_SECRET as string) || 'keyboard cat',
         resave: false,
         saveUninitialized: false,
+        cookie: {
+            httpOnly: false,
+        },
     }),
 );
 app.use(function (req, res, next) {
