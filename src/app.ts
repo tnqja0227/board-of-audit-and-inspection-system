@@ -64,6 +64,8 @@ app.use(
         saveUninitialized: false,
         cookie: {
             httpOnly: false,
+            sameSite: 'none',
+            secure: true,
         },
     }),
 );
