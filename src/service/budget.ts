@@ -1,6 +1,6 @@
 import logger from '../config/winston';
 import { sequelize } from '../db';
-import { Budget, Expense, Income, Transaction } from '../model';
+import { Budget, Expense, Income } from '../model';
 import { NotFoundError } from '../utils/errors';
 import * as OrganizationService from './organization';
 
@@ -149,7 +149,7 @@ export async function getSettlementResult(
         `SELECT I."code", I."source", I."category", I."content", I."amount", I."note", 
             sum(T."amount") AS "settlement"
         FROM ${schema_name}."incomes" AS I 
-            INNER JOIN ${schema_name}."transactions" AS T 
+            LEFT JOIN ${schema_name}."transactions" AS T 
             ON I."id" = T."IncomeId"
         WHERE I."BudgetId" = ${budget.id}
         GROUP BY I."id"`,
@@ -201,7 +201,7 @@ export async function getSettlementResult(
         `SELECT E."code", E."source", E."category", E."content", E."project", 
             E."amount", E."note", sum(T."amount") AS "settlement"
         FROM ${schema_name}."expenses" AS E 
-            INNER JOIN ${schema_name}."transactions" AS T 
+            LEFT JOIN ${schema_name}."transactions" AS T 
             ON E."id" = T."ExpenseId"
         WHERE E."BudgetId" = ${budget.id}
         GROUP BY E."id"`,

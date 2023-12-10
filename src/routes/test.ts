@@ -184,7 +184,18 @@ testRouter.post(
             ...account1,
         });
 
-        res.sendStatus(200);
+        res.json({
+            organizationId: organization.id,
+            budgetId: budget.id,
+            income101Id: income101.id,
+            income102Id: income102.id,
+            income103Id: income103.id,
+            income301Id: income301.id,
+            expense401Id: expense401.id,
+            expense402Id: expense402.id,
+            expense403Id: expense403.id,
+            expense404Id: expense404.id,
+        });
     }),
 );
 

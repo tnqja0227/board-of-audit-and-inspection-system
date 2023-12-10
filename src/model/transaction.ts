@@ -9,6 +9,7 @@ class Transaction extends Model {
     declare type: string; // 거래 형태 ('공금카드', '계좌이체', '현금거래', '사비집행')
     declare amount: number; // 금액
     declare transactionAt: Date; // 거래일자
+    declare balance: number; // 잔액
     declare accountNumber: string; // 계좌번호
     declare accountBank: string; // 은행명
     declare accountOwner: string; // 예금주
@@ -49,6 +50,10 @@ Transaction.init(
             allowNull: true,
         },
         amount: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        balance: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },

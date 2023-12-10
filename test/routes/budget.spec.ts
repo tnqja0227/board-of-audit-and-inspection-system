@@ -164,6 +164,7 @@ async function createDummyBudget(budget_id: string | number) {
             manager: '김넙죽',
             content: content,
             amount: amount,
+            balance: 0,
             transactionAt: new Date('2023-04-01'),
             accountNumber: '1234567890',
             accountBank: '우리은행',
@@ -181,6 +182,7 @@ async function createDummyBudget(budget_id: string | number) {
             manager: '김넙죽',
             content: content,
             amount: amount,
+            balance: 0,
             transactionAt: new Date('2023-04-01'),
             accountNumber: '1234567890',
             accountBank: '우리은행',
@@ -249,7 +251,6 @@ async function createDummyBudget(budget_id: string | number) {
         content: '복리후생비',
         amount: 120000,
     });
-    await createExpenseTransaction('복리후생비', 0, expense402.id);
 
     const expense403 = await model.Expense.create({
         BudgetId: budget_id,
@@ -261,7 +262,6 @@ async function createDummyBudget(budget_id: string | number) {
         amount: 120000,
         note: '내부 문제로 LT 사업 진행하지 않아 미집행',
     });
-    await createExpenseTransaction('회의비', 0, expense403.id);
 
     const expense404 = await model.Expense.create({
         BudgetId: budget_id,
