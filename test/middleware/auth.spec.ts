@@ -16,6 +16,7 @@ describe('Middleware: auth', function () {
             const req = {
                 session: {
                     user: {
+                        id: 1,
                         role: 'admin',
                     },
                 },
@@ -63,6 +64,7 @@ describe('Middleware: auth', function () {
             const req = {
                 session: {
                     user: {
+                        id: 1,
                         role: 'user',
                         OrganizationId: 1,
                     },
@@ -200,10 +202,12 @@ describe('Middleware: auth', function () {
                 params: {
                     organization_id: 1,
                 },
+                body: {},
             } as any as Request;
 
-            const organization_id = await auth.findRequestedOrganization(req);
-            expect(organization_id).to.equal(1);
+            const requestedOrganizationId =
+                await auth.findRequestedOrganization(req);
+            expect(requestedOrganizationId).to.equal(1);
         });
 
         it('요청에 budget_id가 있을 경우 organization_id를 반환한다.', async function () {
@@ -211,10 +215,12 @@ describe('Middleware: auth', function () {
                 params: {
                     budget_id: budget.id,
                 },
+                body: {},
             } as any as Request;
 
-            const organization_id = await auth.findRequestedOrganization(req);
-            expect(organization_id).to.equal(organization.id);
+            const requestedOrganizationId =
+                await auth.findRequestedOrganization(req);
+            expect(requestedOrganizationId).to.equal(organization.id);
         });
 
         it('요청에 income_id가 있을 경우 organization_id를 반환한다.', async function () {
@@ -222,10 +228,12 @@ describe('Middleware: auth', function () {
                 params: {
                     income_id: income.id,
                 },
+                body: {},
             } as any as Request;
 
-            const organization_id = await auth.findRequestedOrganization(req);
-            expect(organization_id).to.equal(organization.id);
+            const requestedOrganizationId =
+                await auth.findRequestedOrganization(req);
+            expect(requestedOrganizationId).to.equal(organization.id);
         });
 
         it('요청에 expense_id가 있을 경우 organization_id를 반환한다.', async function () {
@@ -233,10 +241,13 @@ describe('Middleware: auth', function () {
                 params: {
                     expense_id: expense.id,
                 },
+                body: {},
             } as any as Request;
 
-            const organization_id = await auth.findRequestedOrganization(req);
-            expect(organization_id).to.equal(organization.id);
+            const requestedOrganizationId =
+                await auth.findRequestedOrganization(req);
+            console.log(requestedOrganizationId);
+            expect(requestedOrganizationId).to.equal(organization.id);
         });
     });
 });

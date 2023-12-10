@@ -3,22 +3,32 @@ import { NotFoundError, UnauthorizedError } from '../utils/errors';
 import logger from '../config/winston';
 import { Budget, Expense, Income } from '../model';
 
+const ROLE_ADMIN = 'admin';
+const ROLE_USER = 'user';
+
+function checkSessionAndRole(
+    req: Request,
+    roleCheck: (role: string) => boolean,
+) {
+    if (!req.session.user) {
+        logger.error('Request does not have a session');
+        throw new UnauthorizedError('로그인이 필요합니다.');
+    }
+
+    const role = req.session.user.role;
+    if (!roleCheck(role)) {
+        logger.error(`${req.session.user.id} does not have the required role`);
+        throw new UnauthorizedError('권한이 없습니다.');
+    }
+}
+
 export async function validateIsAdmin(
     req: Request,
     res: Response,
     next: NextFunction,
 ) {
-    if (!req.session.user) {
-        logger.debug('Request does not have a session');
-        throw new UnauthorizedError('로그인이 필요합니다.');
-    }
-
-    const role = req.session.user.role;
-    if (!isAdmin(role)) {
-        logger.debug('Request does not have admin role');
-        throw new UnauthorizedError('권한이 없습니다.');
-    }
-    logger.debug('Admin user is validated');
+    checkSessionAndRole(req, (role) => role === ROLE_ADMIN);
+    logger.info(`User ${req.session.user!.id} is validated as admin`);
     next();
 }
 
@@ -27,84 +37,77 @@ export async function validateOrganization(
     res: Response,
     next: NextFunction,
 ) {
-    if (!req.session.user) {
-        logger.debug('Request does not have a session');
-        throw new UnauthorizedError('로그인이 필요합니다.');
-    }
+    checkSessionAndRole(
+        req,
+        (role) => role === ROLE_ADMIN || role === ROLE_USER,
+    );
 
-    const role = req.session.user.role;
-    if (isAdmin(role)) {
-        logger.debug('Authorization is passed because the user is admin');
-        return next();
-    }
+    // if user is admin, skip the rest of the validation
+    if (req.session.user!.role === ROLE_ADMIN) return next();
 
-    const organization = req.session.user.OrganizationId;
-    if (!organization) {
-        logger.debug('Request does not have a organization ID');
+    const organizationId = req.session.user!.OrganizationId;
+    const requestedOrganizationId = await findRequestedOrganization(req);
+    if (organizationId != requestedOrganizationId) {
+        logger.error(
+            `User ${
+                req.session.user!.id
+            } belongs to organization ${organizationId} and does not have permission to access organization ${requestedOrganizationId}`,
+        );
         throw new UnauthorizedError('권한이 없습니다.');
     }
 
-    const requested_organization = await findRequestedOrganization(req);
-    if (organization != requested_organization) {
-        logger.debug('Request does not have a valid organization');
-        throw new UnauthorizedError('권한이 없습니다.');
-    }
-    logger.debug('Organization is validated');
+    logger.info(
+        `User ${
+            req.session.user!.id
+        } is validated to access organization ${requestedOrganizationId}`,
+    );
     next();
-}
-
-function isAdmin(role: string) {
-    return role === 'admin';
 }
 
 // Request에서 OrganizationId를 찾아 반환한다.
 export async function findRequestedOrganization(req: Request) {
     if (req.params.organization_id) {
-        return req.params.organization_id;
-    }
-
-    if (req.params.budget_id) {
+        return Promise.resolve(req.params.organization_id);
+    } else if (req.params.budget_id) {
         return findOrganizationByBudgetId(req.params.budget_id);
-    }
-
-    if (req.params.income_id) {
+    } else if (req.params.income_id) {
         return findOrganizationByIncomeId(req.params.income_id);
-    }
-
-    if (req.params.expense_id) {
+    } else if (req.body.income_id) {
+        return findOrganizationByIncomeId(req.body.income_id);
+    } else if (req.params.expense_id) {
         return findOrganizationByExpenseId(req.params.expense_id);
+    } else if (req.body.expense_id) {
+        return findOrganizationByExpenseId(req.body.expense_id);
     }
 
+    logger.error('Cannot find OrganizationId in request');
     throw new NotFoundError('요청에서 OrganizationId를 찾을 수 없습니다.');
 }
 
 async function findOrganizationByBudgetId(budget_id: string | number) {
     const budget = await Budget.findByPk(budget_id);
     if (!budget) {
-        logger.debug(`Budget ID ${budget_id} is not found}`);
+        logger.error(`Budget ID ${budget_id} is not found}`);
         throw new NotFoundError('예산 ID가 존재하지 않습니다.');
     }
-    return budget.OrganizationId;
+    logger.info(`Organization ${budget.OrganizationId} is found`);
+    return Promise.resolve(budget.OrganizationId);
 }
 
 async function findOrganizationByIncomeId(income_id: string | number) {
     const income = await Income.findByPk(income_id);
     if (!income) {
-        logger.debug(`Income ID ${income_id} is not found}`);
+        logger.error(`Income ID ${income_id} is not found}`);
         throw new NotFoundError('수입 ID가 존재하지 않습니다.');
     }
-
-    const budget_id = income.BudgetId;
-    return await findOrganizationByBudgetId(budget_id);
+    return findOrganizationByBudgetId(income.BudgetId);
 }
 
 async function findOrganizationByExpenseId(expense_id: string | number) {
     const expense = await Expense.findByPk(expense_id);
     if (!expense) {
-        logger.debug(`Expense ID ${expense_id} is not found}`);
+        logger.error(`Expense ID ${expense_id} is not found}`);
         throw new NotFoundError('지출 ID가 존재하지 않습니다.');
     }
-
-    const budget_id = expense.BudgetId;
-    return await findOrganizationByBudgetId(budget_id);
+    return findOrganizationByBudgetId(expense.BudgetId);
 }
