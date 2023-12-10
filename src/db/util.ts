@@ -1,13 +1,4 @@
 import { QueryTypes } from 'sequelize';
-import {
-    Organization,
-    User,
-    Budget,
-    Income,
-    Expense,
-    Transaction,
-    AuditPeriod,
-} from '../model';
 import { schema_name, sequelize } from './postgre';
 import logger from '../config/winston';
 
@@ -25,20 +16,10 @@ export async function initDB() {
         await sequelize.createSchema(schema_name, {});
     }
 
-    const models = [
-        Organization,
-        User,
-        Budget,
-        Income,
-        Expense,
-        Transaction,
-        AuditPeriod,
-    ];
-    for (const model of models) {
-        if (process.env.NODE_ENV === 'test') {
-            await model.sync({ force: true });
-        } else {
-            await model.sync({ alter: true });
-        }
+    logger.info(`Syncing database with schema: ${schema_name}`);
+    if (process.env.NODE_ENV === 'test') {
+        await sequelize.sync({ force: true, schema: schema_name });
+    } else {
+        await sequelize.sync({ schema: schema_name });
     }
 }

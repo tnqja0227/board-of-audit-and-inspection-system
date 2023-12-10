@@ -79,11 +79,8 @@ app.use('/organizations', routes.organizations);
 app.use('/transactions', routes.transactions);
 app.use('/documents', routes.documents);
 app.use('/users', routes.usersRouter);
+app.use('/test', routes.testRouter);
 app.use(errorHandler);
-
-app.get('/test', (req, res) => {
-    res.send('Hello World!');
-});
 
 app.listen(3000);
 

@@ -3,3 +3,4 @@ export { default as budgetsRouter } from './budget';
 export * from './transaction';
 export * from './document';
 export { default as usersRouter } from './user';
+export { default as testRouter } from './test';
