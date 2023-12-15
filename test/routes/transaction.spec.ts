@@ -1,11 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import sinon from 'sinon';
-import { initDB } from '../../src/db/util';
+import { initDB } from '../../src/db/utils';
 import * as auth from '../../src/middleware/auth';
 import * as validate_audit_period from '../../src/middleware/validate_audit_period';
 import * as model from '../../src/model';
 import { sequelize } from '../../src/db';
+import { createApp } from '../../src/app';
 
 chai.use(chaiHttp);
 
@@ -28,7 +29,7 @@ describe('API /transactions', () => {
                 return next();
             });
 
-        app = require('../../src/app').default;
+        app = createApp();
     });
 
     after(function () {

@@ -1,168 +1,137 @@
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcrypt';
-import { Organization, User } from '../model';
+import { User } from '../model';
 import { wrapAsync } from '../middleware';
 import * as OrganizationService from '../service/organization';
 import * as UserService from '../service/user';
-import {
-    DuplicateError,
-    UnauthorizedError,
-    BadRequestError,
-} from '../utils/errors';
-import errorHandler from '../middleware/error_handler';
 import { validateIsAdmin } from '../middleware/auth';
 import logger from '../config/winston';
+import { QueryTypes } from 'sequelize';
+import { schemaName } from '../utils/common';
+import { sequelize } from '../db';
 
-const saltRounds = 10;
+export function createUsersRouter() {
+    const router = express.Router();
 
-const usersRouter = express.Router();
-
-usersRouter.get(
-    '/',
-    wrapAsync(validateIsAdmin),
-    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const users = await UserService.findAllUsersByOrganization();
-        res.json(users);
-    }),
-);
-
-// 계정 생성 (default password: password)
-// TODO: email sanitize (kaist email만 가능하도록)
-usersRouter.post(
-    '/',
-    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const organization = await OrganizationService.findByName(
-            req.body.organization_name,
-        );
-
-        const user_with_duplicated_organization =
-            await UserService.findByOrganizationId(organization.id);
-        if (user_with_duplicated_organization) {
-            throw new DuplicateError(
-                '이미 등록된 피감기구의 계정이 존재합니다.',
+    router.get(
+        '/',
+        wrapAsync(validateIsAdmin),
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const queryOptions = {
+                type: QueryTypes.SELECT,
+            };
+            const users = await sequelize.query(
+                `SELECT 
+                    U."id", 
+                    U."email", 
+                    O."name" organization_name, 
+                    U."role", 
+                    U."cardNumber", 
+                    U."cardBank", 
+                    U."cardOwner", 
+                    U."bankbook", 
+                    U."isDisabled"
+                FROM ${schemaName}."organizations" as O
+                    INNER JOIN ${schemaName}."users" as U
+                    ON O.id = U."OrganizationId"
+                ORDER BY O."name"`,
+                queryOptions,
             );
-        }
+            res.json(users);
+        }),
+    );
 
-        const user_with_duplicated_email = await UserService.findByEmail(
-            req.body.email,
-        );
-        if (user_with_duplicated_email) {
-            throw new DuplicateError('이미 등록된 이메일이 존재합니다.');
-        }
-
-        const initial_password = 'password';
-        const encrypted_password = await bcrypt.hash(
-            initial_password,
-            saltRounds,
-        );
-
-        const user = await User.create({
-            email: req.body.email,
-            password: encrypted_password,
-            cardNumber: req.body.card_number,
-            cardBank: req.body.card_bank,
-            cardOwner: req.body.card_owner,
-            bankbook: req.body.bankbook,
-            OrganizationId: organization.id,
-            isDisabled: req.body.is_disabled,
-        });
-        res.json(user.toJSON());
-    }),
-);
-
-// 로그인
-usersRouter.post(
-    '/login',
-    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const user = await UserService.findByEmail(req.body.email);
-        if (!user) {
-            logger.info(`User with email ${req.body.email} does not exist`);
-            throw new UnauthorizedError(
-                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+    // 계정 생성 (default password: password)
+    // TODO: email sanitize (kaist email만 가능하도록)
+    router.post(
+        '/',
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const organization = await OrganizationService.findByName(
+                req.body.organization_name,
             );
-        }
 
-        if (!(await bcrypt.compare(req.body.password, user.password))) {
-            logger.info(`User with email ${req.body.email} has wrong password`);
-            throw new UnauthorizedError(
-                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+            await UserService.checkDuplicateUserByOrganizationID(
+                organization.id,
             );
-        }
+            await UserService.checkDuplicateUserByEmail(req.body.email);
 
-        logger.info(`User with email ${req.body.email} logged in`);
-
-        req.session.user = {
-            id: user.id,
-            role: user.role,
-            OrganizationId: user.OrganizationId,
-        };
-        res.sendStatus(200);
-    }),
-);
-
-// 비밀번호 변경
-usersRouter.post(
-    '/password',
-    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const user = await UserService.findByEmail(req.body.email);
-        if (!user) {
-            throw new UnauthorizedError(
-                '아이디 혹은 비밀번호가 일치하지 않습니다.',
+            const initial_password = 'password';
+            const encrypted_password = await UserService.encrypt(
+                initial_password,
             );
-        }
 
-        const password = req.body.password;
-        if (!UserService.checkPasswordCondition(password)) {
-            throw new BadRequestError(
-                '비밀번호는 8자 이상 12자 이하여야 합니다.',
-            );
-        }
+            await User.create({
+                email: req.body.email,
+                password: encrypted_password,
+                cardNumber: req.body.card_number,
+                cardBank: req.body.card_bank,
+                cardOwner: req.body.card_owner,
+                bankbook: req.body.bankbook,
+                OrganizationId: organization.id,
+                isDisabled: req.body.is_disabled,
+            });
+            res.sendStatus(200);
+        }),
+    );
 
-        const new_password = req.body.new_password;
-        const encrypted_password = await bcrypt.hash(new_password, saltRounds);
-        user.password = encrypted_password;
-        await user.save();
-        res.sendStatus(200);
-    }),
-);
+    // 로그인
+    router.post(
+        '/login',
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const user = await UserService.findByEmail(req.body.email);
+            await UserService.checkPassword(req.body.password, user.password);
 
-// 계정 비활성화
-usersRouter.put(
-    '/disable',
-    wrapAsync(validateIsAdmin),
-    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const user = await UserService.findByEmail(req.body.email);
-        if (!user) {
-            throw new UnauthorizedError(
-                '아이디 혹은 비밀번호가 일치하지 않습니다.',
-            );
-        }
+            logger.info(`User: ${req.body.email} logged in`);
 
-        user.isDisabled = true;
-        await user.save();
-        res.sendStatus(200);
-    }),
-);
+            req.session.user = {
+                id: user.id,
+                role: user.role,
+                OrganizationId: user.OrganizationId,
+            };
+            res.sendStatus(200);
+        }),
+    );
 
-// 계정 활성화
-usersRouter.put(
-    '/enable',
-    wrapAsync(validateIsAdmin),
-    wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const user = await UserService.findByEmail(req.body.email);
-        if (!user) {
-            throw new UnauthorizedError(
-                '아이디 혹은 비밀번호가 일치하지 않습니다.',
-            );
-        }
+    // 비밀번호 변경
+    router.post(
+        '/password',
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const user = await UserService.findByEmail(req.body.email);
+            await UserService.checkPassword(req.body.password, user.password);
 
-        user.isDisabled = false;
-        await user.save();
-        res.sendStatus(200);
-    }),
-);
+            const new_password = req.body.new_password;
+            await UserService.checkPasswordCondition(new_password);
 
-usersRouter.use(errorHandler);
+            const encrypted_password = await UserService.encrypt(new_password);
+            user.password = encrypted_password;
+            await user.save();
+            res.sendStatus(200);
+        }),
+    );
 
-export default usersRouter;
+    // 계정 비활성화
+    router.put(
+        '/disable',
+        wrapAsync(validateIsAdmin),
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const user = await UserService.findByEmail(req.body.email);
+            user.isDisabled = true;
+            await user.save();
+            res.sendStatus(200);
+        }),
+    );
+
+    // 계정 활성화
+    router.put(
+        '/enable',
+        wrapAsync(validateIsAdmin),
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const user = await UserService.findByEmail(req.body.email);
+            user.isDisabled = false;
+            await user.save();
+            res.sendStatus(200);
+        }),
+    );
+
+    return router;
+}

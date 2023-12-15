@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { initDB } from '../../src/db/util';
+import { initDB } from '../../src/db/utils';
 import * as auth from '../../src/middleware/auth';
 import { Request, Response } from 'express';
 import * as model from '../../src/model';
@@ -246,7 +246,6 @@ describe('Middleware: auth', function () {
 
             const requestedOrganizationId =
                 await auth.findRequestedOrganization(req);
-            console.log(requestedOrganizationId);
             expect(requestedOrganizationId).to.equal(organization.id);
         });
     });

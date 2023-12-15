@@ -1,20 +1,17 @@
 import express from 'express';
-import { wrapAsync } from '../../../middleware';
-import { validateCode } from '../../../middleware/budget';
-import errorHandler from '../../../middleware/error_handler';
-import { validateAuditPeriod } from '../../../middleware/validate_audit_period';
-import { Expense } from '../../../model';
-import { validateOrganization } from '../../../middleware/auth';
+import { Request, Response, NextFunction } from 'express';
+import { validateAuditPeriod, wrapAsync } from '../../middleware';
+import { validateOrganization } from '../../middleware/auth';
+import { Expense } from '../../model';
+import { validateCode } from '../../middleware/budget';
 
-const router = express.Router();
+export function createExpenseRouter() {
+    const router = express.Router();
+    router.use(wrapAsync(validateAuditPeriod));
+    router.use(wrapAsync(validateOrganization));
 
-router.post(
-    '/:budget_id',
-    wrapAsync(validateAuditPeriod),
-    wrapAsync(validateOrganization),
-    validateCode,
-    async (req, res, next) => {
-        try {
+    router.post('/:budget_id', validateCode, async (req, res, next) => {
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             const expense = await Expense.create({
                 BudgetId: req.params.budget_id,
                 code: req.body.code,
@@ -24,20 +21,14 @@ router.post(
                 content: req.body.content,
                 amount: req.body.amount,
                 note: req.body.note,
+                isReadonly: req.body.is_readonly,
             });
             res.json(expense.toJSON());
-        } catch (error) {
-            next(error);
-        }
-    },
-);
+        });
+    });
 
-router.put(
-    '/:expense_id',
-    wrapAsync(validateAuditPeriod),
-    wrapAsync(validateOrganization),
-    async (req, res, next) => {
-        try {
+    router.put('/:expense_id', async (req, res, next) => {
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             await Expense.update(
                 {
                     source: req.body.source, // '학생회비', '본회계', '자치'
@@ -54,30 +45,19 @@ router.put(
                 },
             );
             res.sendStatus(200);
-        } catch (error) {
-            next(error);
-        }
-    },
-);
+        });
+    });
 
-router.delete(
-    '/:expense_id',
-    wrapAsync(validateAuditPeriod),
-    wrapAsync(validateOrganization),
-    async (req, res, next) => {
-        try {
+    router.delete('/:expense_id', async (req, res, next) => {
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             await Expense.destroy({
                 where: {
                     id: req.params.expense_id,
                 },
             });
             res.sendStatus(200);
-        } catch (error) {
-            next(error);
-        }
-    },
-);
+        });
+    });
 
-router.use(errorHandler);
-
-export const expenses = router;
+    return router;
+}

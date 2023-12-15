@@ -8,7 +8,7 @@ import {
     validateAuditPeriod,
 } from '../../src/middleware/validate_audit_period';
 import * as errors from '../../src/utils/errors';
-import { initDB } from '../../src/db/util';
+import { initDB } from '../../src/db/utils';
 
 chai.use(chaiAsPromised);
 

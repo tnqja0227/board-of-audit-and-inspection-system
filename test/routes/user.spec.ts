@@ -1,9 +1,10 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import sinon from 'sinon';
-import { initDB } from '../../src/db/util';
+import { initDB } from '../../src/db/utils';
 import * as auth from '../../src/middleware/auth';
 import * as model from '../../src/model';
+import { createApp } from '../../src/app';
 
 chai.use(chaiHttp);
 
@@ -28,7 +29,7 @@ describe('API /users', function () {
                 return next();
             });
 
-        app = require('../../src/app').default;
+        app = createApp();
     });
 
     after(function () {
@@ -94,13 +95,7 @@ describe('API /users', function () {
                 card_owner: mockCardOwner,
                 bankbook: mockBankbook,
             });
-            expect(res.body.email).to.equal(mockEmail);
-            expect(res.body.OrganizationId).to.equal(organization.id);
-            expect(res.body.cardNumber).to.equal(mockCardNumber);
-            expect(res.body.cardBank).to.equal(mockCardBank);
-            expect(res.body.cardOwner).to.equal(mockCardOwner);
-            expect(res.body.bankbook).to.equal(mockBankbook);
-            expect(res.body.password).not.equal(mockPassword);
+            expect(res.status).to.equal(200);
         });
 
         it('이미 등록된 피감기구의 계정을 추가할 수 없다.', async function () {

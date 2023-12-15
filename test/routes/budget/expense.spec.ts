@@ -1,11 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import sinon from 'sinon';
-import { initDB } from '../../../src/db/util';
+import { initDB } from '../../../src/db/utils';
 import * as auth from '../../../src/middleware/auth';
 import * as validate_audit_period from '../../../src/middleware/validate_audit_period';
 import * as model from '../../../src/model';
 import * as budgetMiddleware from '../../../src/middleware/budget';
+import { createApp } from '../../../src/app';
 
 chai.use(chaiHttp);
 
@@ -51,7 +52,7 @@ describe('API /budgets/expense', function () {
                 return next();
             });
 
-        app = require('../../../src/app').default;
+        app = createApp();
     });
 
     beforeEach(async function () {

@@ -1,5 +1,4 @@
 import bodyParser from 'body-parser';
-import RedisStore from 'connect-redis';
 import { config } from 'dotenv';
 import express from 'express';
 import session from 'express-session';
@@ -7,11 +6,11 @@ import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
 import logger from './config/winston';
-import { redisClient } from './db';
-import { initDB } from './db/util';
+import { initDB } from './db/utils';
 import errorHandler from './middleware/error_handler';
-import * as routes from './routes';
 import cors from 'cors';
+import { redisStore } from './db';
+import { createRouter } from './routes';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -19,25 +18,46 @@ declare module 'express-session' {
     }
 }
 
-const app = express();
+config();
 
-const redisStore = new RedisStore({
-    client: redisClient,
-    prefix: 'BAI:',
-    ttl: 86400,
+const swaggerFile = fs.readFileSync('swagger.yaml', 'utf8');
+const swaggerDocument = YAML.parse(swaggerFile);
+
+const sessionMiddleware = session({
+    store: redisStore,
+    secret: (process.env.SESSION_SECRET as string) || 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: false,
+        sameSite: 'none',
+        secure: true,
+    },
 });
 
-if (process.env.NODE_ENV !== 'test') {
-    initDB()
-        .then(() => {
-            logger.info('Database connected');
-        })
-        .catch((err) => {
-            logger.debug(err);
-        });
-}
+const requestLogger = function (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+) {
+    logger.info(`${req.method}, ${req.url}`);
+    next();
+};
 
-if (process.env.NODE_ENV !== 'production') {
+export function createApp() {
+    const app = express();
+
+    if (process.env.NODE_ENV !== 'test') {
+        initDB()
+            .then(() => {
+                logger.info('Database connected');
+            })
+            .catch((err) => {
+                logger.error(err);
+                throw err;
+            });
+    }
+
     app.use(
         cors({
             origin: 'http://localhost:3000',
@@ -46,44 +66,16 @@ if (process.env.NODE_ENV !== 'production') {
             credentials: true,
         }),
     );
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    app.use(sessionMiddleware);
+    app.use(requestLogger);
+
+    app.use(createRouter());
+    app.use(errorHandler);
+
+    logger.debug('App created');
+
+    return app;
 }
-
-config();
-
-const file = fs.readFileSync('swagger.yaml', 'utf8');
-const swaggerDocument = YAML.parse(file);
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use(
-    session({
-        store: redisStore,
-        secret: (process.env.SESSION_SECRET as string) || 'keyboard cat',
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            httpOnly: false,
-            sameSite: 'none',
-            secure: true,
-        },
-    }),
-);
-app.use(function (req, res, next) {
-    if (process.env.NODE_ENV !== 'production') {
-        logger.debug(`${req.method}, ${req.url}`);
-    }
-    next();
-});
-
-app.use('/budgets', routes.budgetsRouter);
-app.use('/organizations', routes.organizations);
-app.use('/transactions', routes.transactions);
-app.use('/documents', routes.documents);
-app.use('/users', routes.usersRouter);
-app.use('/test', routes.testRouter);
-app.use(errorHandler);
-
-app.listen(3000);
-
-export default app;
