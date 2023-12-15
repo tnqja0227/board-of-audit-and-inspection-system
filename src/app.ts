@@ -7,7 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
 import logger from './config/winston';
 import { initDB } from './db/utils';
-import errorHandler from './middleware/error_handler';
+import { errorHandler, requestLogger } from './middleware/common';
 import cors from 'cors';
 import { redisStore } from './db';
 import { createRouter } from './routes';
@@ -34,15 +34,6 @@ const sessionMiddleware = session({
         secure: true,
     },
 });
-
-const requestLogger = function (
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction,
-) {
-    logger.info(`${req.method}, ${req.url}`);
-    next();
-};
 
 export function createApp() {
     const app = express();
