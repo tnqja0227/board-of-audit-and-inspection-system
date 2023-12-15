@@ -9,6 +9,7 @@ class Account extends Model {
     declare accountNumber: string; // 계좌번호
     declare accountBank: string; // 은행명
     declare accountOwner: string; // 예금주
+    declare cardNumber: string; // 카드번호
     declare OrganizationId: number;
 }
 
@@ -43,6 +44,10 @@ Account.init(
             allowNull: false,
         },
         accountOwner: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        cardNumber: {
             type: DataTypes.STRING,
             allowNull: false,
         },

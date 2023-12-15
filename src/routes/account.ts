@@ -33,6 +33,7 @@ export function createAccountsRouter() {
                 accountNumber: req.body.accountNumber,
                 accountBank: req.body.accountBank,
                 accountOwner: req.body.accountOwner,
+                cardNumber: req.body.cardNumber,
                 OrganizationId: req.params.organization_id,
             });
             res.sendStatus(200);
@@ -48,6 +49,7 @@ export function createAccountsRouter() {
                     accountNumber: req.body.accountNumber,
                     accountBank: req.body.accountBank,
                     accountOwner: req.body.accountOwner,
+                    cardNumber: req.body.cardNumber,
                 },
                 {
                     where: {

@@ -53,6 +53,7 @@ describe('API /accounts', function () {
             const accountNumber = '1234567890';
             const accountBank = '우리은행';
             const accountOwner = '김넙죽';
+            const cardNumber = '1234567890123456';
 
             await model.Account.create({
                 year: YEAR,
@@ -60,6 +61,7 @@ describe('API /accounts', function () {
                 accountNumber: accountNumber,
                 accountBank: accountBank,
                 accountOwner: accountOwner,
+                cardNumber: cardNumber,
                 OrganizationId: organization.id,
             });
 
@@ -70,6 +72,7 @@ describe('API /accounts', function () {
             expect(res.body[0].accountNumber).to.equal(accountNumber);
             expect(res.body[0].accountBank).to.equal(accountBank);
             expect(res.body[0].accountOwner).to.equal(accountOwner);
+            expect(res.body[0].cardNumber).to.equal(cardNumber);
         });
     });
 
@@ -79,6 +82,7 @@ describe('API /accounts', function () {
             const accountNumber = '1234567890';
             const accountBank = '우리은행';
             const accountOwner = '김넙죽';
+            const cardNumber = '1234567890123456';
 
             const res = await chai
                 .request(app)
@@ -88,6 +92,7 @@ describe('API /accounts', function () {
                     accountNumber: accountNumber,
                     accountBank: accountBank,
                     accountOwner: accountOwner,
+                    cardNumber: cardNumber,
                 });
             expect(res).to.have.status(200);
 
@@ -103,6 +108,7 @@ describe('API /accounts', function () {
             expect(accounts[0].accountNumber).to.equal(accountNumber);
             expect(accounts[0].accountBank).to.equal(accountBank);
             expect(accounts[0].accountOwner).to.equal(accountOwner);
+            expect(accounts[0].cardNumber).to.equal(cardNumber);
         });
     });
 
@@ -112,6 +118,7 @@ describe('API /accounts', function () {
             const accountNumber = '1234567890';
             const accountBank = '우리은행';
             const accountOwner = '김넙죽';
+            const cardNumber = '1234567890123456';
 
             const account = await model.Account.create({
                 year: YEAR,
@@ -119,6 +126,7 @@ describe('API /accounts', function () {
                 accountNumber: accountNumber,
                 accountBank: accountBank,
                 accountOwner: accountOwner,
+                cardNumber: cardNumber,
                 OrganizationId: organization.id,
             });
 
@@ -126,6 +134,7 @@ describe('API /accounts', function () {
             const newAccountNumber = '0987654321';
             const newAccountBank = '국민은행';
             const newAccountOwner = '김죽넙';
+            const newCardNumber = '6543210987654321';
 
             const res = await chai
                 .request(app)
@@ -135,6 +144,7 @@ describe('API /accounts', function () {
                     accountNumber: newAccountNumber,
                     accountBank: newAccountBank,
                     accountOwner: newAccountOwner,
+                    cardNumber: newCardNumber,
                 });
             expect(res).to.have.status(200);
 
@@ -150,6 +160,7 @@ describe('API /accounts', function () {
             expect(accounts[0].accountNumber).to.equal(newAccountNumber);
             expect(accounts[0].accountBank).to.equal(newAccountBank);
             expect(accounts[0].accountOwner).to.equal(newAccountOwner);
+            expect(accounts[0].cardNumber).to.equal(newCardNumber);
         });
     });
 
@@ -158,6 +169,7 @@ describe('API /accounts', function () {
             const accountNumber = '1234567890';
             const accountBank = '우리은행';
             const accountOwner = '김넙죽';
+            const cardNumber = '1234567890123456';
 
             const account = await model.Account.create({
                 year: YEAR,
@@ -165,6 +177,7 @@ describe('API /accounts', function () {
                 accountNumber: accountNumber,
                 accountBank: accountBank,
                 accountOwner: accountOwner,
+                cardNumber: cardNumber,
                 OrganizationId: organization.id,
             });
 
