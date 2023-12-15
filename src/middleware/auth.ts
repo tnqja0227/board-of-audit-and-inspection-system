@@ -11,13 +11,13 @@ function checkSessionAndRole(
     roleCheck: (role: string) => boolean,
 ) {
     if (!req.session.user) {
-        logger.error('Request does not have a session');
+        logger.debug('Request does not have a session');
         throw new UnauthorizedError('로그인이 필요합니다.');
     }
 
     const role = req.session.user.role;
     if (!roleCheck(role)) {
-        logger.error(`${req.session.user.id} does not have the required role`);
+        logger.debug(`${req.session.user.id} does not have the required role`);
         throw new UnauthorizedError('권한이 없습니다.');
     }
 }
@@ -48,7 +48,7 @@ export async function validateOrganization(
     const organizationId = req.session.user!.OrganizationId;
     const requestedOrganizationId = await findRequestedOrganization(req);
     if (organizationId != requestedOrganizationId) {
-        logger.error(
+        logger.debug(
             `User ${
                 req.session.user!.id
             } belongs to organization ${organizationId} and does not have permission to access organization ${requestedOrganizationId}`,
@@ -80,14 +80,14 @@ export async function findRequestedOrganization(req: Request) {
         return findOrganizationByExpenseId(req.body.expense_id);
     }
 
-    logger.error('Cannot find OrganizationId in request');
+    logger.debug('Cannot find OrganizationId in request');
     throw new NotFoundError('요청에서 OrganizationId를 찾을 수 없습니다.');
 }
 
 async function findOrganizationByBudgetId(budget_id: string | number) {
     const budget = await Budget.findByPk(budget_id);
     if (!budget) {
-        logger.error(`Budget ID ${budget_id} is not found}`);
+        logger.debug(`Budget ID ${budget_id} is not found}`);
         throw new NotFoundError('예산 ID가 존재하지 않습니다.');
     }
     logger.info(`Organization ${budget.OrganizationId} is found`);
@@ -97,7 +97,7 @@ async function findOrganizationByBudgetId(budget_id: string | number) {
 async function findOrganizationByIncomeId(income_id: string | number) {
     const income = await Income.findByPk(income_id);
     if (!income) {
-        logger.error(`Income ID ${income_id} is not found}`);
+        logger.debug(`Income ID ${income_id} is not found}`);
         throw new NotFoundError('수입 ID가 존재하지 않습니다.');
     }
     return findOrganizationByBudgetId(income.BudgetId);
@@ -106,7 +106,7 @@ async function findOrganizationByIncomeId(income_id: string | number) {
 async function findOrganizationByExpenseId(expense_id: string | number) {
     const expense = await Expense.findByPk(expense_id);
     if (!expense) {
-        logger.error(`Expense ID ${expense_id} is not found}`);
+        logger.debug(`Expense ID ${expense_id} is not found}`);
         throw new NotFoundError('지출 ID가 존재하지 않습니다.');
     }
     return findOrganizationByBudgetId(expense.BudgetId);
