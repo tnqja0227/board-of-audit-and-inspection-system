@@ -5,6 +5,7 @@ import Income from './income';
 import Expense from './expense';
 import Transaction from './transaction';
 import AuditPeriod from './audit_period';
+import Account from './account';
 
 Organization.hasOne(User, {
     onDelete: 'CASCADE',
@@ -15,6 +16,11 @@ Organization.hasMany(Budget, {
     onDelete: 'CASCADE',
 });
 Budget.belongsTo(Organization);
+
+Organization.hasMany(Account, {
+    onDelete: 'CASCADE',
+});
+Account.belongsTo(Organization);
 
 Budget.hasMany(Income, {
     onDelete: 'CASCADE',
@@ -44,4 +50,5 @@ export {
     Expense,
     Transaction,
     AuditPeriod,
+    Account,
 };
