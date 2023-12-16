@@ -25,11 +25,7 @@ export function createUsersRouter() {
                     U."id", 
                     U."email", 
                     O."name" organization_name, 
-                    U."role", 
-                    U."cardNumber", 
-                    U."cardBank", 
-                    U."cardOwner", 
-                    U."bankbook", 
+                    U."role",
                     U."isDisabled"
                 FROM ${schemaName}."organizations" as O
                     INNER JOIN ${schemaName}."users" as U
@@ -62,12 +58,7 @@ export function createUsersRouter() {
             await User.create({
                 email: req.body.email,
                 password: encrypted_password,
-                cardNumber: req.body.card_number,
-                cardBank: req.body.card_bank,
-                cardOwner: req.body.card_owner,
-                bankbook: req.body.bankbook,
                 OrganizationId: organization.id,
-                isDisabled: req.body.is_disabled,
             });
             res.sendStatus(200);
         }),
@@ -92,6 +83,7 @@ export function createUsersRouter() {
     );
 
     // 비밀번호 변경
+    // TODO: 로그인 상태에서만 호출가능하도록 수정
     router.post(
         '/password',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -99,7 +91,7 @@ export function createUsersRouter() {
             await UserService.checkPassword(req.body.password, user.password);
 
             const new_password = req.body.new_password;
-            await UserService.checkPasswordCondition(new_password);
+            UserService.checkPasswordCondition(new_password);
 
             const encrypted_password = await UserService.encrypt(new_password);
             user.password = encrypted_password;
