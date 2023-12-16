@@ -151,10 +151,11 @@ export async function getSettlementResult(
         FROM ${schema_name}."incomes" AS I 
             LEFT JOIN ${schema_name}."transactions" AS T 
             ON I."id" = T."IncomeId"
-        WHERE I."BudgetId" = ${budget.id}
+        WHERE I."BudgetId" = ?
         GROUP BY I."id"`,
         {
             type: 'SELECT',
+            replacements: [budget.id],
         },
     );
 
@@ -203,10 +204,11 @@ export async function getSettlementResult(
         FROM ${schema_name}."expenses" AS E 
             LEFT JOIN ${schema_name}."transactions" AS T 
             ON E."id" = T."ExpenseId"
-        WHERE E."BudgetId" = ${budget.id}
+        WHERE E."BudgetId" = ?
         GROUP BY E."id"`,
         {
             type: 'SELECT',
+            replacements: [budget.id],
         },
     );
 

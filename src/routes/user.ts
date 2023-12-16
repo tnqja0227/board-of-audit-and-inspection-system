@@ -56,9 +56,8 @@ export function createUsersRouter() {
             await UserService.checkDuplicateUserByEmail(req.body.email);
 
             const initial_password = 'password';
-            const encrypted_password = await UserService.encrypt(
-                initial_password,
-            );
+            const encrypted_password =
+                await UserService.encrypt(initial_password);
 
             await User.create({
                 email: req.body.email,
