@@ -28,7 +28,7 @@ services:
             - 3000:3000
     nginx:
         image: nginx:alpine
-        restart: unless_stopped
+        restart: always
         volumes:
             - /etc/letsencrypt:/etc/letsencrypt
             - $PWD/nginx:/etc/nginx/conf.d
