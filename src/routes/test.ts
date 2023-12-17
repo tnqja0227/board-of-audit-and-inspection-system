@@ -20,6 +20,16 @@ export function createTestRouter() {
         next();
     });
 
+    router.post('/dummy/organization', async (req: Request, res: Response, next: NextFunction) => {
+        logger.info('Create dummy organization');
+
+        const organization = await model.Organization.create({
+            name: '감사원',
+        });
+
+        res.json({ organizationId: organization.id });
+    });
+
     //! it clears all data in database before creating dummy data
     router.post(
         '/dummy',
