@@ -30,6 +30,7 @@ services:
             - postgresql
             - redis
     nginx:
+        image: nginx:alpine
         restart: unless_stopped
         volumes:
             - /etc/letsencrypt:/etc/letsencrypt
