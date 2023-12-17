@@ -2,7 +2,7 @@ paths:
     /organizations:
         get:
             description: 모든 피감기구 조회 (관리자 권한)
-            tags: 
+            tags:
                 - 피감기구
             responses:
                 '200':
@@ -16,7 +16,7 @@ paths:
                     description: UnauthorizedError
         post:
             description: 피감기구 생성 (관리자 권한)
-            tags: 
+            tags:
                 - 피감기구
             requestBody:
                 content:
@@ -38,7 +38,6 @@ paths:
                                 $ref: '#/definitions/Organization'
                 '401':
                     description: UnauthorizedError
-
 
 definitions:
     Organization:

@@ -63,16 +63,16 @@ export function createApp() {
             });
     }
 
-	if (process.env.NODE_ENV === 'production') {
-		app.set('trust proxy', 1);
-	}
+    if (process.env.NODE_ENV === 'production') {
+        app.set('trust proxy', 1);
+    }
     app.use(
         cors({
             origin: [
-				'http://localhost:3000',
-				'http://dev-bai.gdsckaist.com',
-				'https://dev-bai.gdsckaist.com',
-			],
+                'http://localhost:3000',
+                'http://dev-bai.gdsckaist.com',
+                'https://dev-bai.gdsckaist.com',
+            ],
             methods: ['GET', 'PUT', 'POST', 'DELETE'],
             allowedHeaders: ['Content-Type', 'Authorization'],
             credentials: true,

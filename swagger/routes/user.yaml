@@ -2,7 +2,7 @@ paths:
     /users:
         get:
             description: 계정 목록 조회 (관리자만 호출 가능, 피감기관 이름 순 정렬)
-            tags: 
+            tags:
                 - 계정
             responses:
                 '200':
@@ -17,7 +17,7 @@ paths:
                     description: UnauthorizedError. 비밀번호가 일치하지 않습니다.
         post:
             description: 계정 생성. 기본 비밀번호는 'password'로 생성됨.
-            tags: 
+            tags:
                 - 계정
             requestBody:
                 content:
@@ -45,7 +45,7 @@ paths:
     /users/login:
         post:
             description: 로그인. 세션 생성.
-            tags: 
+            tags:
                 - 계정
             requestBody:
                 content:
@@ -74,7 +74,7 @@ paths:
     /users/password:
         post:
             description: 비밀번호 변경
-            tags: 
+            tags:
                 - 계정
             requestBody:
                 content:
@@ -104,7 +104,7 @@ paths:
     /users/disable:
         put:
             description: 계정 비활성화 (관리자만 호출 가능)
-            tags: 
+            tags:
                 - 계정
             requestBody:
                 content:
@@ -124,7 +124,7 @@ paths:
     /users/enable:
         put:
             description: 계정 활성화 (관리자만 호출 가능)
-            tags: 
+            tags:
                 - 계정
             requestBody:
                 content:
@@ -141,7 +141,6 @@ paths:
             responses:
                 '200':
                     description: OK
-
 
 definitions:
     User:

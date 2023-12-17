@@ -2,7 +2,7 @@ paths:
     /transactions/:organization_id/:year/:half:
         get:
             description: 피감기구의 모든 거래내역 조회 (자신의 피감기구만 호출 가능).
-            tags: 
+            tags:
                 - 통장거래내역
             responses:
                 '200':
@@ -17,7 +17,7 @@ paths:
     /transactions:
         post:
             description: 피감기구의 거래내역 생성 (자신의 피감기구만 호출 가능)
-            tags: 
+            tags:
                 - 통장거래내역
             requestBody:
                 content:
@@ -39,7 +39,7 @@ paths:
     /transactions/:transaction_id:
         delete:
             description: 피감기구의 거래내역 삭제 (자신의 피감기구만 호출 가능)
-            tags: 
+            tags:
                 - 통장거래내역
             responses:
                 '200':
@@ -52,7 +52,7 @@ paths:
                     description: NotFoundError. 감사기간이 존재하지 않습니다.
         put:
             description: 피감기구의 거래내역 수정 (자신의 피감기구만 호출 가능)
-            tags: 
+            tags:
                 - 통장거래내역
             requestBody:
                 content:
@@ -68,7 +68,6 @@ paths:
                     description: ValidationError. 감사기간이 아닙니다.
                 '404':
                     description: NotFoundError. 감사기간이 존재하지 않습니다.
-
 
 definitions:
     TransactionRequest:
@@ -228,4 +227,3 @@ definitions:
         - hasBill
         - created_at
         - updated_at
-
