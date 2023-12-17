@@ -12,14 +12,6 @@ export function createTestRouter() {
         res.send('Hello World!');
     });
 
-    router.use(function (req, res, next) {
-        if (process.env.NODE_ENV === 'production') {
-            logger.error('Cannot create dummy data in production');
-            return res.sendStatus(400);
-        }
-        next();
-    });
-
     router.post('/dummy/organization', async (req: Request, res: Response, next: NextFunction) => {
         logger.info('Create dummy organization');
 
@@ -28,6 +20,14 @@ export function createTestRouter() {
         });
 
         res.json({ organizationId: organization.id });
+    });
+
+    router.use(function (req, res, next) {
+        if (process.env.NODE_ENV === 'production') {
+            logger.error('Cannot create dummy data in production');
+            return res.sendStatus(400);
+        }
+        next();
     });
 
     //! it clears all data in database before creating dummy data
