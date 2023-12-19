@@ -21,7 +21,6 @@ export function createExpenseRouter() {
                 content: req.body.content,
                 amount: req.body.amount,
                 note: req.body.note,
-                isReadonly: req.body.is_readonly,
             });
             res.json(expense.toJSON());
         });

@@ -22,7 +22,6 @@ export function createIncomeRouter() {
                 content: req.body.content,
                 amount: req.body.amount,
                 note: req.body.note,
-                isReadonly: req.body.is_readonly,
             });
             res.json(income.toJSON());
         }),
