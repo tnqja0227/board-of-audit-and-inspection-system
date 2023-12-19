@@ -6,10 +6,6 @@ class User extends Model {
     declare email: string;
     declare password: string;
     declare role: string;
-    declare cardNumber: string; // 공금카드 번호
-    declare cardBank: string; // 공금카드 은행명
-    declare cardOwner: string; // 공금카드 예금주
-    declare bankbook: string; // 통장사본 (url)
     declare isDisabled: boolean; // 계정 비활성화 여부
     declare OrganizationId: number;
 }
@@ -37,22 +33,6 @@ User.init(
             type: DataTypes.ENUM('admin', 'user'),
             allowNull: false,
             defaultValue: 'user',
-        },
-        cardNumber: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
-        cardBank: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
-        cardOwner: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
-        bankbook: {
-            type: DataTypes.STRING,
-            allowNull: true,
         },
         isDisabled: {
             type: DataTypes.BOOLEAN,

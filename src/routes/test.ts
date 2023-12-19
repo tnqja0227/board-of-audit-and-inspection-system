@@ -12,6 +12,19 @@ export function createTestRouter() {
         res.send('Hello World!');
     });
 
+    router.post(
+        '/dummy/organization',
+        async (req: Request, res: Response, next: NextFunction) => {
+            logger.info('Create dummy organization');
+
+            const organization = await model.Organization.create({
+                name: '감사원',
+            });
+
+            res.json({ organizationId: organization.id });
+        },
+    );
+
     router.use(function (req, res, next) {
         if (process.env.NODE_ENV === 'production') {
             logger.error('Cannot create dummy data in production');

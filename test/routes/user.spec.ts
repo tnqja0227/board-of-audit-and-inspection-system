@@ -90,10 +90,6 @@ describe('API /users', function () {
             const res = await chai.request(app).post('/users').send({
                 email: mockEmail,
                 organization_name: organization.name,
-                card_number: mockCardNumber,
-                card_bank: mockCardBank,
-                card_owner: mockCardOwner,
-                bankbook: mockBankbook,
             });
             expect(res.status).to.equal(200);
         });
@@ -111,10 +107,6 @@ describe('API /users', function () {
             const res = await chai.request(app).post('/users').send({
                 email: mockEmail2,
                 organization_name: organization.name,
-                card_number: mockCardNumber,
-                card_bank: mockCardBank,
-                card_owner: mockCardOwner,
-                bankbook: mockBankbook,
             });
             expect(res.status).to.equal(409);
         });
@@ -136,10 +128,6 @@ describe('API /users', function () {
             const res = await chai.request(app).post('/users').send({
                 email: mockEmail,
                 organization_name: organization2.name,
-                card_number: mockCardNumber,
-                card_bank: mockCardBank,
-                card_owner: mockCardOwner,
-                bankbook: mockBankbook,
             });
             expect(res.status).to.equal(409);
         });
@@ -157,11 +145,17 @@ describe('API /users', function () {
             await agent.post('/users').send({
                 email: mockEmail,
                 organization_name: organization.name,
-                card_number: mockCardNumber,
-                card_bank: mockCardBank,
-                card_owner: mockCardOwner,
-                bankbook: mockBankbook,
             });
+        });
+
+        afterEach(function () {
+            const options = {
+                truncate: true,
+                cascade: true,
+            };
+            model.User.destroy(options);
+            model.Organization.destroy(options);
+            agent.close();
         });
 
         it('로그인에 성공한다.', async function () {
@@ -193,10 +187,6 @@ describe('API /users', function () {
             await chai.request(app).post('/users').send({
                 email: mockEmail,
                 organization_name: organization.name,
-                card_number: mockCardNumber,
-                card_bank: mockCardBank,
-                card_owner: mockCardOwner,
-                bankbook: mockBankbook,
             });
 
             let res = await chai.request(app).post('/users/password').send({
