@@ -39,6 +39,7 @@ export function createUsersRouter() {
 
     // 계정 생성 (default password: password)
     // TODO: email sanitize (kaist email만 가능하도록)
+    // TODO: 유저 정보 반환
     router.post(
         '/',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -78,7 +79,17 @@ export function createUsersRouter() {
                 role: user.role,
                 OrganizationId: user.OrganizationId,
             };
-            res.sendStatus(200);
+
+            const organization = await OrganizationService.findById(
+                user.OrganizationId,
+            );
+            res.send({
+                id: user.id,
+                email: user.email,
+                role: user.role,
+                is_disabled: user.isDisabled,
+                organization_name: organization.name,
+            });
         }),
     );
 

@@ -168,6 +168,10 @@ describe('API /users', function () {
                     password: mockPassword,
                 });
             expect(res.status).to.equal(200);
+            expect(res.body.email).to.equal(mockEmail);
+            expect(res.body.role).to.equal('user');
+            expect(res.body.is_disabled).to.be.false;
+            expect(res.body.organization_name).to.equal('학부총학생회');
         });
 
         it('비밀번호가 일치하지 않으면 로그인에 실패한다.', async function () {
