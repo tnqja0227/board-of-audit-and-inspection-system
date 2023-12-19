@@ -2,13 +2,19 @@
 
 KAIST board of audit and inspection system backend
 
-## Dependency
+## Usage
 
--   `Node.js` and `Express.js`
--   `postgreSQL`
--   `Redis`
--   `sequelize` as a ORM
+```
+docker compose up
+```
+
+For development
+
+```
+docker compose -f compose-dev.yaml up
+npm run dev
+```
 
 ## API Document
 
-[API document](dev-bai.gdsckaist.com/api-docs)
+[API document](https://dev-bai.gdsckaist.com/api-docs)
