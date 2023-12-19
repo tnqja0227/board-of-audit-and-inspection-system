@@ -1,0 +1,671 @@
+paths:
+    /budgets/:organization_id/:year/:half:
+        get:
+            description: 피감기구의 모든 예산 조회 (자신의 피감기구만 호출 가능).
+            tags:
+                - 예산
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/BudgetResponse'
+                '401':
+                    description: UnauthorizedError
+    /budgets/report/:organization_id/:year/:half:
+        get:
+            description: 피감기구의 결산 조회 (자신의 피감기구만 호출 가능).
+            tags:
+                - 예산
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/SettlementResponse'
+                '401':
+                    description: UnauthorizedError
+    /report/total/:organization_id/:year/:half:
+        get:
+            description: 피감기구의 총계 조회 (자신의 피감기구만 호출 가능).
+            tags:
+                - 예산
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/TotalResponse'
+                '401':
+                    description: UnauthorizedError
+    /:organization_id/:year/:half:
+        post:
+            description: 피감기구의 예산 생성 (자신의 피감기구만 호출 가능)
+            tags:
+                - 예산
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                manager:
+                                    type: string
+                                    description: 예산 담당자
+                                    example: 김넙죽
+                            required:
+                                - manager
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/Budget'
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+        delete:
+            description: 피감기구의 예산 삭제 (자신의 피감기구만 호출 가능)
+            tags:
+                - 예산
+            responses:
+                '200':
+                    description: OK
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+
+definitions:
+    Budget:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 예산 ID
+            manager:
+                type: string
+                description: 예산 담당자
+                example: 김넙죽
+            year:
+                type: integer
+                description: 회계 연도
+                example: 2023
+            half:
+                type: string
+                description: 회계 반기
+                example: spring
+            isReadonly:
+                type: boolean
+                description: 읽기 전용 여부
+                example: false
+            organizationId:
+                type: integer
+                description: 피감기구 ID
+            created_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+            updated_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+        required:
+            - manager
+            - year
+            - half
+            - isReadonly
+            - organizationId
+            - created_at
+            - updated_at
+    BudgetResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 예산 ID
+            담당자:
+                type: string
+                description: 예산 담당자
+                example: 김넙죽
+            연도:
+                type: integer
+                description: 회계 연도
+                example: 2023
+            반기:
+                type: string
+                description: 회계 반기
+                example: spring
+            피감기구:
+                type: string
+                description: 피감기구 이름
+                example: 학부총학생회
+            수입총계:
+                type: object
+                description: 수입 총계
+                properties:
+                    예산:
+                        type: integer
+                        description: 예산
+                        example: 2358094
+            지출총계:
+                type: object
+                description: 지출 총계
+                properties:
+                    예산:
+                        type: integer
+                        description: 예산
+                        example: 1843856
+            수입:
+                type: array
+                description: 수입
+                items:
+                    type: object
+                    properties:
+                        재원:
+                            type: string
+                            description: 재원
+                            example: 학생회비
+                        수입소계:
+                            type: object
+                            description: 수입 소계
+                            properties:
+                                예산:
+                                    type: integer
+                                    description: 예산
+                                    example: 2356094
+                        items:
+                            type: array
+                            description: 예산 분류
+                            items:
+                                type: object
+                                properties:
+                                    예산분류:
+                                        type: string
+                                        description: 예산 분류
+                                        example: 중앙회계
+                                    items:
+                                        type: array
+                                        description: 예산 항목
+                                        items:
+                                            type: object
+                                            properties:
+                                                항목:
+                                                    type: string
+                                                    description: 항목
+                                                    example: 중앙회계 지원금
+                                                코드:
+                                                    type: string
+                                                    description: 코드
+                                                    example: 101
+                                                예산:
+                                                    type: integer
+                                                    description: 예산
+                                                    example: 180000
+                                                비고:
+                                                    type: string
+                                                    description: 비고
+                                                    example: ''
+            지출:
+                type: array
+                description: 지출
+                items:
+                    type: object
+                    properties:
+                        재원:
+                            type: string
+                            description: 재원
+                            example: 학생회비
+                        지출소계:
+                            type: object
+                            description: 지출 소계
+                            properties:
+                                예산:
+                                    type: integer
+                                    description: 예산
+                                    example: 1843856
+                        items:
+                            type: array
+                            description: 예산 분류
+                            items:
+                                type: object
+                                properties:
+                                    예산분류:
+                                        type: string
+                                        description: 예산 분류
+                                        example: 운영비
+                                    items:
+                                        type: array
+                                        description: 예산 항목
+                                        items:
+                                            type: object
+                                            properties:
+                                                사업:
+                                                    type: string
+                                                    description: 사업
+                                                    example: 격려기금
+                                                항목:
+                                                    type: string
+                                                    description: 항목
+                                                    example: 격려금
+                                                코드:
+                                                    type: string
+                                                    description: 코드
+                                                    example: 401
+                                                예산:
+                                                    type: integer
+                                                    description: 예산
+                                                    example: 1543856
+                                                비고:
+                                                    type: string
+                                                    description: 비고
+                                                    example: ''
+
+    SettlementResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 예산 ID
+            담당자:
+                type: string
+                description: 예산 담당자
+                example: 김넙죽
+            연도:
+                type: integer
+                description: 회계 연도
+                example: 2023
+            반기:
+                type: string
+                description: 회계 반기
+                example: spring
+            피감기구:
+                type: string
+                description: 피감기구 이름
+                example: 학부총학생회
+            수입총계:
+                type: object
+                description: 수입 총계
+                properties:
+                    예산:
+                        type: integer
+                        description: 예산
+                        example: 2358094
+                    결산:
+                        type: integer
+                        description: 결산
+                        example: 869392
+                    비율:
+                        type: float
+                        description: 비율
+                        example: 0.3687
+            지출총계:
+                type: object
+                description: 지출 총계
+                properties:
+                    예산:
+                        type: integer
+                        description: 예산
+                        example: 1843856
+                    결산:
+                        type: integer
+                        description: 결산
+                        example: 247811
+                    비율:
+                        type: float
+                        description: 비율
+                        example: 0.1344
+            수입:
+                type: array
+                description: 수입
+                items:
+                    type: object
+                    properties:
+                        재원:
+                            type: string
+                            description: 재원
+                            example: 학생회비
+                        수입소계:
+                            type: object
+                            description: 수입 소계
+                            properties:
+                                예산:
+                                    type: integer
+                                    description: 예산
+                                    example: 2356094
+                                결산:
+                                    type: integer
+                                    description: 결산
+                                    example: 869131
+                                비율:
+                                    type: float
+                                    description: 비율
+                                    example: 0.3689
+                        items:
+                            type: array
+                            description: 예산 분류
+                            items:
+                                type: object
+                                properties:
+                                    예산분류:
+                                        type: string
+                                        description: 예산 분류
+                                        example: 중앙회계
+                                    items:
+                                        type: array
+                                        description: 예산 항목
+                                        items:
+                                            type: object
+                                            properties:
+                                                항목:
+                                                    type: string
+                                                    description: 항목
+                                                    example: 중앙회계 지원금
+                                                코드:
+                                                    type: string
+                                                    description: 코드
+                                                    example: 101
+                                                예산:
+                                                    type: integer
+                                                    description: 예산
+                                                    example: 180000
+                                                결산:
+                                                    type: integer
+                                                    description: 결산
+                                                    example: 180000
+                                                비율:
+                                                    type: float
+                                                    description: 비율
+                                                    example: 1.0
+                                                비고:
+                                                    type: string
+                                                    description: 비고
+                                                    example: ''
+            지출:
+                type: array
+                description: 지출
+                items:
+                    type: object
+                    properties:
+                        재원:
+                            type: string
+                            description: 재원
+                            example: 학생회비
+                        지출소계:
+                            type: object
+                            description: 지출 소계
+                            properties:
+                                예산:
+                                    type: integer
+                                    description: 예산
+                                    example: 1843856
+                                결산:
+                                    type: integer
+                                    description: 결산
+                                    example: 247811
+                                비율:
+                                    type: float
+                                    description: 비율
+                                    example: 0.1344
+                        items:
+                            type: array
+                            description: 예산 분류
+                            items:
+                                type: object
+                                properties:
+                                    예산분류:
+                                        type: string
+                                        description: 예산 분류
+                                        example: 운영비
+                                    items:
+                                        type: array
+                                        description: 예산 항목
+                                        items:
+                                            type: object
+                                            properties:
+                                                사업:
+                                                    type: string
+                                                    description: 사업
+                                                    example: 격려기금
+                                                항목:
+                                                    type: string
+                                                    description: 항목
+                                                    example: 격려금
+                                                코드:
+                                                    type: string
+                                                    description: 코드
+                                                    example: 401
+                                                예산:
+                                                    type: integer
+                                                    description: 예산
+                                                    example: 1543856
+                                                결산:
+                                                    type: integer
+                                                    description: 결산
+                                                    example: 186441
+                                                비율:
+                                                    type: float
+                                                    description: 비율
+                                                    example: 0.1208
+                                                비고:
+                                                    type: string
+                                                    description: 비고
+                                                    example: ''
+
+    TotalResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 예산 ID
+            담당자:
+                type: string
+                description: 예산 담당자
+                example: 김넙죽
+            연도:
+                type: integer
+                description: 회계 연도
+                example: 2023
+            반기:
+                type: string
+                description: 회계 반기
+                example: spring
+            피감기구:
+                type: string
+                description: 피감기구 이름
+                example: 학부총학생회
+            총계:
+                type: object
+                description: 총계
+                properties:
+                    수입:
+                        type: object
+                        description: 수입
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 2358094
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 869392
+                            비율:
+                                type: float
+                                description: 비율
+                                example: 0.3687
+                    지출:
+                        type: object
+                        description: 지출
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 1843856
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 247811
+                            비율:
+                                type: float
+                                description: 비율
+                                example: 0.1344
+                    잔액:
+                        type: object
+                        description: 잔액
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 514238
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 621581
+            학생회비:
+                type: object
+                description: 학생회비
+                properties:
+                    수입:
+                        type: object
+                        description: 수입
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 2356094
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 869131
+                            비율:
+                                type: float
+                                description: 비율
+                                example: 0.3689
+                    지출:
+                        type: object
+                        description: 지출
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 1843856
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 247811
+                            비율:
+                                type: float
+                                description: 비율
+                                example: 0.1344
+                    잔액:
+                        type: object
+                        description: 잔액
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 512238
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 621320
+            본회계:
+                type: object
+                description: 본회계
+                properties:
+                    수입:
+                        type: object
+                        description: 수입
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 0
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 0
+                            비율:
+                                type: string
+                                description: 비율
+                                example: '-'
+                    지출:
+                        type: object
+                        description: 지출
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 0
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 0
+                            비율:
+                                type: string
+                                description: 비율
+                                example: '-'
+                    잔액:
+                        type: object
+                        description: 잔액
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 0
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 0
+            자치:
+                type: object
+                description: 자치
+                properties:
+                    수입:
+                        type: object
+                        description: 수입
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 2000
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 261
+                            비율:
+                                type: float
+                                description: 비율
+                                example: 0.1305
+                    지출:
+                        type: object
+                        description: 지출
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 0
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 0
+                            비율:
+                                type: string
+                                description: 비율
+                                example: '-'
+                    잔액:
+                        type: object
+                        description: 잔액
+                        properties:
+                            예산:
+                                type: integer
+                                description: 예산
+                                example: 2000
+                            결산:
+                                type: integer
+                                description: 결산
+                                example: 261

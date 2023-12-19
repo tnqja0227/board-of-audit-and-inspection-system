@@ -1,0 +1,75 @@
+paths:
+    /budgets/period/:year/:half:
+        post:
+            description: 회계기간 생성 (관리자만 호출 가능).
+            tags:
+                - 회계기간
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                start:
+                                    type: string
+                                    description: 회계기간 시작일
+                                    example: 2023-01-01
+                                end:
+                                    type: string
+                                    description: 회계기간 종료일
+                                    example: 2023-06-30
+                            required:
+                                - start
+                                - end
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/AuditPeriod'
+                '401':
+                    description: UnauthorizedError
+        put:
+            description: 회계기간 수정 (관리자만 호출 가능).
+            tags:
+                - 회계기간
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                start:
+                                    type: string
+                                    description: 회계기간 시작일
+                                    example: 2023-01-01
+                                end:
+                                    type: string
+                                    description: 회계기간 종료일
+                                    example: 2023-06-30
+            responses:
+                '200':
+                    description: OK
+                '401':
+                    description: UnauthorizedError
+
+definitions:
+    AuditPeriod:
+        type: object
+        properties:
+            year:
+                type: integer
+                description: 회계연도
+                example: 2023
+            half:
+                type: string
+                description: 반기
+                example: spring
+            start:
+                type: string
+                description: 회계기간 시작일
+                example: 2023-01-01
+            end:
+                type: string
+                description: 회계기간 종료일
+                example: 2023-06-30

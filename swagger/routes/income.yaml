@@ -1,0 +1,162 @@
+paths:
+    /budgets/income/:budget_id:
+        post:
+            description: 수입항목 생성 (자신의 피감기구만 호출 가능).
+            tags:
+                - 수입항목
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                code:
+                                    type: string
+                                    description: 예산 코드
+                                    example: 101
+                                source:
+                                    type: string
+                                    description: 재원 (학생회비, 본회계, 자치)
+                                    example: 학생회비
+                                category:
+                                    type: string
+                                    description: 예산 분류 (e.g. 중앙회계, 학교지원금)
+                                    example: 중앙회계
+                                content:
+                                    type: string
+                                    description: 항목 (세부 항목)
+                                    example: 중앙회계 지원금
+                                amount:
+                                    type: integer
+                                    description: 금액
+                                    example: 100000
+                                note:
+                                    type: string
+                                    description: 비고
+                                    example: ''
+                            required:
+                                - code
+                                - source
+                                - category
+                                - content
+                                - amount
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/Income'
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+        put:
+            description: 수입항목 수정 (자신의 피감기구만 호출 가능).
+            tags:
+                - 수입항목
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                source:
+                                    type: string
+                                    description: 재원 (학생회비, 본회계, 자치)
+                                    example: 학생회비
+                                category:
+                                    type: string
+                                    description: 예산 분류 (e.g. 중앙회계, 학교지원금)
+                                    example: 중앙회계
+                                content:
+                                    type: string
+                                    description: 항목 (세부 항목)
+                                    example: 중앙회계 지원금
+                                amount:
+                                    type: integer
+                                    description: 금액
+                                    example: 100000
+                                note:
+                                    type: string
+                                    description: 비고
+                                    example: ''
+                            required:
+                                - source
+                                - category
+                                - content
+                                - amount
+            responses:
+                '200':
+                    description: OK
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+        delete:
+            description: 수입항목 삭제 (자신의 피감기구만 호출 가능).
+            tags:
+                - 수입항목
+            responses:
+                '200':
+                    description: OK
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+
+definitions:
+    Income:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 수입항목 ID
+            code:
+                type: string
+                description: 예산 코드
+                example: 101
+            source:
+                type: string
+                description: 재원 (학생회비, 본회계, 자치)
+                example: 학생회비
+            category:
+                type: string
+                description: 예산 분류 (e.g. 중앙회계, 학교지원금)
+                example: 중앙회계
+            content:
+                type: string
+                description: 항목 (세부 항목)
+                example: 중앙회계 지원금
+            amount:
+                type: integer
+                description: 금액
+                example: 100000
+            note:
+                type: string
+                description: 비고
+                example: ''
+            BudgetId:
+                type: integer
+                description: 예산 ID
+                example: 1
+            created_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+            updated_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+        required:
+            - code
+            - source
+            - category
+            - content
+            - amount
+            - BudgetId
+            - created_at
+            - updated_at
