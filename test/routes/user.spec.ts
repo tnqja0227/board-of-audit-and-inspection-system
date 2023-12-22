@@ -10,15 +10,12 @@ chai.use(chaiHttp);
 
 const mockEmail = 'test@kaist.ac.kr';
 const mockEmail2 = 'test2@kaist.ac.kr';
-const mockPassword = 'password';
-const mockCardNumber = '1234567890123456';
-const mockCardBank = '신한은행';
-const mockCardOwner = '김넙죽';
-const mockBankbook = '1102223333';
+const mockPassword = 'abcdefghjk!@';
 
 describe('API /users', function () {
     let app: Express.Application;
     var stubValidateIsAdmin: sinon.SinonStub;
+    let stubGeneratedRandomPassword: sinon.SinonStub;
 
     before(async function () {
         await initDB();
@@ -29,11 +26,17 @@ describe('API /users', function () {
                 return next();
             });
 
+        const UserService = require('../../src/service/user');
+        stubGeneratedRandomPassword = sinon.stub(UserService, 'generateRandomPassword').returns(
+            mockPassword
+        )
+
         app = createApp();
     });
 
     after(function () {
         stubValidateIsAdmin.restore();
+        stubGeneratedRandomPassword.restore();
     });
 
     afterEach(async function () {
@@ -92,6 +95,11 @@ describe('API /users', function () {
                 organization_name: organization.name,
             });
             expect(res.status).to.equal(200);
+            expect(res.body.email).to.equal(mockEmail);
+            expect(res.body.password).to.equal(mockPassword);
+            expect(res.body.role).to.equal('user');
+            expect(res.body.is_disabled).to.be.false;
+            expect(res.body.organization_id).to.equal(organization.id);
         });
 
         it('이미 등록된 피감기구의 계정을 추가할 수 없다.', async function () {
@@ -134,15 +142,12 @@ describe('API /users', function () {
     });
 
     describe('POST /login', async function () {
-        var agent: ChaiHttp.Agent;
-
         beforeEach(async function () {
             const organization = await model.Organization.create({
                 name: '학부총학생회',
             });
-
-            agent = chai.request.agent(app);
-            await agent.post('/users').send({
+            
+            await chai.request(app).post('/users').send({
                 email: mockEmail,
                 organization_name: organization.name,
             });
@@ -155,7 +160,6 @@ describe('API /users', function () {
             };
             model.User.destroy(options);
             model.Organization.destroy(options);
-            agent.close();
         });
 
         it('로그인에 성공한다.', async function () {

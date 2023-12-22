@@ -37,9 +37,8 @@ export function createUsersRouter() {
         }),
     );
 
-    // 계정 생성 (default password: password)
+    // 계정 생성
     // TODO: email sanitize (kaist email만 가능하도록)
-    // TODO: 유저 정보 반환
     router.post(
         '/',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -52,16 +51,22 @@ export function createUsersRouter() {
             );
             await UserService.checkDuplicateUserByEmail(req.body.email);
 
-            const initial_password = 'password';
+            const initial_password = UserService.generateRandomPassword();
             const encrypted_password =
                 await UserService.encrypt(initial_password);
 
-            await User.create({
+            const user = await User.create({
                 email: req.body.email,
                 password: encrypted_password,
                 OrganizationId: organization.id,
             });
-            res.sendStatus(200);
+            res.json({
+                email: req.body.email,
+                password: initial_password,
+                role: user.role,
+                is_disabled: user.isDisabled,
+                organization_id: organization.id,
+            })
         }),
     );
 

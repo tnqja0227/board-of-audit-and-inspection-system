@@ -6,7 +6,6 @@ paths:
                 - 계정
             responses:
                 '200':
-                    description: OK
                     content:
                         application/json:
                             schema:
@@ -16,7 +15,7 @@ paths:
                 '401':
                     description: UnauthorizedError. 비밀번호가 일치하지 않습니다.
         post:
-            description: 계정 생성. 기본 비밀번호는 'password'로 생성됨.
+            description: 계정 생성
             tags:
                 - 계정
             requestBody:
@@ -37,7 +36,37 @@ paths:
                                 - email
             responses:
                 '200':
-                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    email:
+                                        type: string
+                                        description: 이메일
+                                        example: example@kaist.ac.kr
+                                    password:
+                                        type: string
+                                        description: 비밀번호
+                                        example: abcdeABCDE!@
+                                    role:
+                                        type: string
+                                        description: 권한
+                                        example: user
+                                    is_disabled:
+                                        type: boolean
+                                        description: 계정 비활성화 여부
+                                        example: false
+                                    organization_id:
+                                        type: integer
+                                        description: 피감기관 id
+                                        example: 1
+                                required:
+                                    - email
+                                    - password
+                                    - role
+                                    - is_disabled
+                                    - organization_id
                 '400':
                     description: BadRequestError. 비밀번호는 8자 이상 12자 이하여야 합니다.
                 '409':
