@@ -9,6 +9,7 @@ import logger from '../config/winston';
 import { QueryTypes } from 'sequelize';
 import { schemaName } from '../utils/common';
 import { sequelize } from '../db';
+import { compare } from 'bcrypt';
 
 export function createUsersRouter() {
     const router = express.Router();
@@ -24,7 +25,9 @@ export function createUsersRouter() {
                 `SELECT 
                     U."id", 
                     U."email", 
-                    O."name" organization_name, 
+                    O."name" organization_name,
+                    U."password",
+                    U."initialPassword",
                     U."role",
                     U."isDisabled"
                 FROM ${schemaName}."organizations" as O
@@ -33,13 +36,24 @@ export function createUsersRouter() {
                 ORDER BY O."name"`,
                 queryOptions,
             );
-            res.json(users);
+
+            const userReponse = [];
+            let user: any;
+            for (user of users) {
+                if (await compare(user.initialPassword, user.password)) {
+                    user.password = user.initialPassword;
+                } else {
+                    user.password = null;
+                }
+                delete user.initialPassword;
+                userReponse.push(user);
+            }
+            res.json(userReponse);
         }),
     );
 
-    // 계정 생성 (default password: password)
+    // 계정 생성
     // TODO: email sanitize (kaist email만 가능하도록)
-    // TODO: 유저 정보 반환
     router.post(
         '/',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -52,16 +66,23 @@ export function createUsersRouter() {
             );
             await UserService.checkDuplicateUserByEmail(req.body.email);
 
-            const initial_password = 'password';
+            const initial_password = UserService.generateRandomPassword();
             const encrypted_password =
                 await UserService.encrypt(initial_password);
 
-            await User.create({
+            const user = await User.create({
                 email: req.body.email,
                 password: encrypted_password,
+                initialPassword: initial_password,
                 OrganizationId: organization.id,
             });
-            res.sendStatus(200);
+            res.json({
+                email: req.body.email,
+                password: initial_password,
+                role: user.role,
+                is_disabled: user.isDisabled,
+                organization_id: organization.id,
+            });
         }),
     );
 
@@ -103,9 +124,14 @@ export function createUsersRouter() {
 
             const new_password = req.body.new_password;
             UserService.checkPasswordCondition(new_password);
+            UserService.checkNewPasswordNotChanged(
+                new_password,
+                req.body.password,
+            );
 
             const encrypted_password = await UserService.encrypt(new_password);
             user.password = encrypted_password;
+
             await user.save();
             res.sendStatus(200);
         }),
