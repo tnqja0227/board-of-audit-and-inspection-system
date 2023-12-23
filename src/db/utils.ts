@@ -43,7 +43,8 @@ export async function initDB() {
         } else if (process.env.NODE_ENV === 'development') {
             await model.sync({ alter: true });
         } else {
-            await model.sync();
+            // ! It drops columns that are not in the model
+            await model.sync({ alter: true });
         }
     }
 }
