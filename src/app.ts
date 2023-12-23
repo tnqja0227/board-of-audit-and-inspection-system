@@ -52,7 +52,7 @@ const sessionMiddleware = session({
 export function createApp() {
     const app = express();
 
-    if (process.env.NODE_ENV !== 'test') {
+    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== undefined) {
         initDB()
             .then(() => {
                 logger.info('Database connected');
