@@ -32,7 +32,7 @@ User.init(
         },
         initialPassword: {
             type: DataTypes.STRING(64),
-            allowNull: false,
+            allowNull: true,
         },
         role: {
             type: DataTypes.ENUM('admin', 'user'),
