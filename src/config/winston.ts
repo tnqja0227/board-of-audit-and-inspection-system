@@ -48,6 +48,6 @@ if (process.env.NODE_ENV !== 'production') {
         ],
     });
 }
-logger.info("logger initialized")
+logger.info('logger initialized');
 
 export default logger;
