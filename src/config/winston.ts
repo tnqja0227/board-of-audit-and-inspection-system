@@ -1,5 +1,6 @@
 import winston from 'winston';
-import winstonDaily from 'winston-daily-rotate-file';
+import DailyRotateFile from 'winston-daily-rotate-file';
+import path from 'path';
 
 let logger: winston.Logger;
 
@@ -22,25 +23,24 @@ if (process.env.NODE_ENV !== 'production') {
 } else {
     logger = winston.createLogger({
         level: 'info',
-        format: winston.format.json(),
-        defaultMeta: { service: 'user-service' },
-        transports: [
-            //
-            // - Write all logs with importance level of `error` or less to `error.log`
-            // - Write all logs with importance level of `info` or less to `combined.log`
-            //
-            new winston.transports.File({
-                dirname: 'logs',
-                filename: 'error.log',
-                level: 'error',
+        format: winston.format.combine(
+            winston.format.timestamp({
+                format: 'YYYY-MM-DD HH:mm:ss',
             }),
-
-            new winston.transports.Console(),
-
-            new winstonDaily({
+            winston.format.json(),
+        ),
+        defaultMeta: { service: 'bai' },
+        transports: [
+            new winston.transports.Console({
+                format: winston.format.combine(
+                    winston.format.colorize(),
+                    consoleFormat,
+                ),
+            }),
+            new DailyRotateFile({
                 filename: 'trace-%DATE%.log',
                 level: 'info',
-                dirname: 'logs',
+                dirname: path.join(__dirname, '../../logs'),
                 datePattern: 'YYYY-MM-DD-HH',
                 maxSize: '20m',
                 maxFiles: '30d',
@@ -48,5 +48,6 @@ if (process.env.NODE_ENV !== 'production') {
         ],
     });
 }
+logger.info("logger initialized")
 
 export default logger;
