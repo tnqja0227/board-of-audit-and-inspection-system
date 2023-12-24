@@ -24,6 +24,8 @@ services:
                 - DB_PORT=5432
                 - DB_USER=postgres
                 - DB_PASSWORD=password
+        volumes:
+            - $PWD/logs:/app/logs
         ports:
             - 3000:3000
     nginx:
