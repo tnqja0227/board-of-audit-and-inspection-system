@@ -2,6 +2,8 @@ paths:
     /expense_records/:transaction_id:
         post:
             description: 지출내역 증빙 자료 생성 (자신의 피감기구만 호출 가능).
+            tags:
+                - 지출내역 증빙 자료
             requestBody:
                 content:
                     application/json:
@@ -31,52 +33,56 @@ paths:
                 404:
                     description: NotFoundError
 
-        /expense_records/:expense_record_id:
-            put:
-                description: 지출내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
-                requestBody:
+    /expense_records/:expense_record_id:
+        put:
+            description: 지출내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
+            tags:
+                - 지출내역 증빙 자료
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                url:
+                                    type: string
+                                    description: 증빙 자료 URL
+                                    example: https://example.com/expense_record.pdf
+                                memo:
+                                    type: string
+                                    description: 메모
+                                    example: 'memo'
+                            required:
+                                - url
+            responses:
+                200:
                     content:
                         application/json:
                             schema:
-                                type: object
-                                properties:
-                                    url:
-                                        type: string
-                                        description: 증빙 자료 URL
-                                        example: https://example.com/expense_record.pdf
-                                    memo:
-                                        type: string
-                                        description: 메모
-                                        example: 'memo'
-                                required:
-                                    - url
-                responses:
-                    200:
-                        content:
-                            application/json:
-                                schema:
-                                    $ref: '#/definitions/ExpenseRecord'
-                    401:
-                        description: UnauthorizedError
-                    403:
-                        description: ValidationError
-                    404:
-                        description: NotFoundError
+                                $ref: '#/definitions/ExpenseRecord'
+                401:
+                    description: UnauthorizedError
+                403:
+                    description: ValidationError
+                404:
+                    description: NotFoundError
 
-            delete:
-                description: 지출내역 증빙 자료 삭제 (자신의 피감기구만 호출 가능).
-                responses:
-                    200:
-                        content:
-                            application/json:
-                                schema:
-                                    $ref: '#/definitions/ExpenseRecord'
-                    401:
-                        description: UnauthorizedError
-                    403:
-                        description: ValidationError
-                    404:
-                        description: NotFoundError
+        delete:
+            description: 지출내역 증빙 자료 삭제 (자신의 피감기구만 호출 가능).
+            tags:
+                - 지출내역 증빙 자료
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/ExpenseRecord'
+                401:
+                    description: UnauthorizedError
+                403:
+                    description: ValidationError
+                404:
+                    description: NotFoundError
 
 definitions:
     ExpenseRecord:
