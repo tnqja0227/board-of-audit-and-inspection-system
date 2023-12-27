@@ -4,11 +4,28 @@ import { validateAuditPeriod, wrapAsync } from '../../middleware';
 import { validateOrganization } from '../../middleware/auth';
 import { Income } from '../../model';
 import { validateCode } from '../../middleware/budget';
+import * as BudgetService from '../../service/budget';
 
 export function createIncomeRouter() {
     const router = express.Router();
-    router.use(wrapAsync(validateAuditPeriod));
     router.use(wrapAsync(validateOrganization));
+
+    router.get(
+        '/:organization_id/:year/:half',
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const organization_id = req.params.organization_id;
+            const year = req.params.year;
+            const half = req.params.half;
+            const budget = await BudgetService.getIncomeBudget(
+                organization_id,
+                year,
+                half,
+            );
+            res.json(budget);
+        }),
+    );
+
+    router.use(wrapAsync(validateAuditPeriod));
 
     router.post(
         '/:budget_id',

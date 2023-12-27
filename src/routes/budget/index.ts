@@ -18,39 +18,8 @@ export function createBudgetsRouter() {
 
     router.use(wrapAsync(validateOrganization));
 
-    // 피감기관의 예산안 목록
     router.get(
-        '/:organization_id/:year/:half',
-        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            const organization_id = req.params.organization_id;
-            const year = req.params.year;
-            const half = req.params.half;
-            const budget = await BudgetService.getBudgetResult(
-                organization_id,
-                year,
-                half,
-            );
-            res.json(budget);
-        }),
-    );
-
-    router.get(
-        '/report/:organization_id/:year/:half',
-        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            const organization_id = req.params.organization_id;
-            const year = req.params.year;
-            const half = req.params.half;
-            const report = await BudgetService.getSettlementResult(
-                organization_id,
-                year,
-                half,
-            );
-            res.json(report);
-        }),
-    );
-
-    router.get(
-        '/report/total/:organization_id/:year/:half',
+        '/total/:organization_id/:year/:half',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             const organization_id = req.params.organization_id;
             const year = req.params.year;

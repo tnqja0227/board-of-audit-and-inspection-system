@@ -1,6 +1,6 @@
 import logger from '../config/winston';
 import { sequelize } from '../db';
-import { Budget, Expense, Income } from '../model';
+import { Budget } from '../model';
 import { NotFoundError } from '../utils/errors';
 import * as OrganizationService from './organization';
 
@@ -24,110 +24,7 @@ export async function findByOrganizationAndYearAndHalf(
     return budget;
 }
 
-export async function getBudgetResult(
-    organization_id: string | number,
-    year: string | number,
-    half: string,
-) {
-    logger.info(
-        `get budgets by organization: ${organization_id}, year: ${year}, half: ${half}`,
-    );
-
-    const organization = await OrganizationService.findById(organization_id);
-
-    const budget = await findByOrganizationAndYearAndHalf(
-        organization_id,
-        year,
-        half,
-    );
-
-    const incomes = await Income.findAll({
-        where: {
-            BudgetId: budget.id,
-        },
-    });
-
-    const incomeResult = groupBy(incomes, 'source').map((groupedItem) => {
-        const categorizedItems = groupBy(groupedItem.items, 'category');
-
-        return {
-            재원: groupedItem.source as string,
-            수입소계: {
-                예산: categorizedItems.reduce((acc, cur) => {
-                    return acc + sumByKey(cur.items, 'amount');
-                }, 0),
-            },
-            items: categorizedItems.map((item) => {
-                return {
-                    예산분류: item.category as string,
-                    items: item.items.map((income) => {
-                        return {
-                            항목: income.content as string,
-                            코드: income.code as string,
-                            예산: Number(income.amount) as number,
-                            비고: (income.note || '') as string,
-                        };
-                    }),
-                };
-            }),
-        };
-    });
-
-    const expenses = await Expense.findAll({
-        where: {
-            BudgetId: budget.id,
-        },
-    });
-
-    const expenseResult = groupBy(expenses, 'source').map((groupedItem) => {
-        const categorizedItems = groupBy(groupedItem.items, 'category');
-
-        return {
-            재원: groupedItem.source,
-            지출소계: {
-                예산: categorizedItems.reduce((acc, cur) => {
-                    return acc + sumByKey(cur.items, 'amount');
-                }, 0),
-            },
-            items: groupBy(groupedItem.items, 'category').map((item) => {
-                return {
-                    예산분류: item.category,
-                    items: item.items.map((expense) => {
-                        return {
-                            사업: expense.project,
-                            항목: expense.content,
-                            코드: expense.code,
-                            예산: expense.amount,
-                            비고: expense.note || '',
-                        };
-                    }),
-                };
-            }),
-        };
-    });
-
-    return {
-        id: budget.id,
-        담당자: budget.manager,
-        연도: budget.year,
-        반기: budget.half,
-        피감기구: organization.name,
-        수입총계: {
-            예산: incomeResult.reduce((acc, cur) => {
-                return acc + cur.수입소계.예산;
-            }, 0),
-        },
-        지출총계: {
-            예산: expenseResult.reduce((acc, cur) => {
-                return acc + cur.지출소계.예산;
-            }, 0),
-        },
-        수입: incomeResult,
-        지출: expenseResult,
-    };
-}
-
-export async function getSettlementResult(
+export async function getIncomeBudget(
     organization_id: string | number,
     year: string | number,
     half: string,
@@ -198,6 +95,45 @@ export async function getSettlementResult(
         };
     });
 
+    const incomeBudgetSum = incomeResult.reduce((acc, cur) => {
+        return acc + cur.수입소계.예산;
+    }, 0);
+    const incomeSettlementSum = incomeResult.reduce((acc, cur) => {
+        return acc + cur.수입소계.결산;
+    }, 0);
+    return {
+        id: budget.id,
+        담당자: budget.manager,
+        연도: budget.year,
+        반기: budget.half,
+        피감기구: organization.name,
+        수입총계: {
+            예산: incomeBudgetSum,
+            결산: incomeSettlementSum,
+            비율: Number((incomeSettlementSum / incomeBudgetSum).toFixed(4)),
+        },
+        수입: incomeResult,
+    };
+}
+
+export async function getExpenseBudget(
+    organization_id: string | number,
+    year: string | number,
+    half: string,
+) {
+    logger.info(
+        `get settlement by organization: ${organization_id}, year: ${year}, half: ${half}`,
+    );
+
+    const organization = await OrganizationService.findById(organization_id);
+    const budget = await findByOrganizationAndYearAndHalf(
+        organization_id,
+        year,
+        half,
+    );
+
+    const schema_name = process.env.NODE_ENV || 'development';
+
     const expenses = await sequelize.query(
         `SELECT E."code", E."source", E."category", E."content", E."project", 
             E."amount", E."note", sum(T."amount") AS "settlement"
@@ -250,12 +186,7 @@ export async function getSettlementResult(
             }),
         };
     });
-    const incomeBudgetSum = incomeResult.reduce((acc, cur) => {
-        return acc + cur.수입소계.예산;
-    }, 0);
-    const incomeSettlementSum = incomeResult.reduce((acc, cur) => {
-        return acc + cur.수입소계.결산;
-    }, 0);
+
     const expenseBudgetSum = expenseResult.reduce((acc, cur) => {
         return acc + cur.지출소계.예산;
     }, 0);
@@ -268,17 +199,11 @@ export async function getSettlementResult(
         연도: budget.year,
         반기: budget.half,
         피감기구: organization.name,
-        수입총계: {
-            예산: incomeBudgetSum,
-            결산: incomeSettlementSum,
-            비율: Number((incomeSettlementSum / incomeBudgetSum).toFixed(4)),
-        },
         지출총계: {
             예산: expenseBudgetSum,
             결산: expenseSettlementSum,
             비율: Number((expenseSettlementSum / expenseBudgetSum).toFixed(4)),
         },
-        수입: incomeResult,
         지출: expenseResult,
     };
 }
@@ -288,7 +213,8 @@ export async function getTotalResult(
     year: string | number,
     half: string,
 ) {
-    const settlement = await getSettlementResult(organization_id, year, half);
+    const incomeBudget = await getIncomeBudget(organization_id, year, half);
+    const expenseBudget = await getExpenseBudget(organization_id, year, half);
 
     const ratio = (numerator: number, denominator: number) => {
         if (denominator === 0) {
@@ -298,10 +224,10 @@ export async function getTotalResult(
     };
 
     const getTotalBySource = (source: string) => {
-        const incomeBySource = settlement.수입.filter((item) => {
+        const incomeBySource = incomeBudget.수입.filter((item) => {
             return item.재원 === source;
         });
-        const expenseBySource = settlement.지출.filter((item) => {
+        const expenseBySource = expenseBudget.지출.filter((item) => {
             return item.재원 === source;
         });
 
@@ -337,25 +263,31 @@ export async function getTotalResult(
     };
 
     return {
-        id: settlement.id,
-        담당자: settlement.담당자,
-        연도: settlement.연도,
-        반기: settlement.반기,
-        피감기구: settlement.피감기구,
+        id: incomeBudget.id,
+        담당자: incomeBudget.담당자,
+        연도: incomeBudget.연도,
+        반기: incomeBudget.반기,
+        피감기구: incomeBudget.피감기구,
         총계: {
             수입: {
-                예산: settlement.수입총계.예산,
-                결산: settlement.수입총계.결산,
-                비율: ratio(settlement.수입총계.결산, settlement.수입총계.예산),
+                예산: incomeBudget.수입총계.예산,
+                결산: incomeBudget.수입총계.결산,
+                비율: ratio(
+                    incomeBudget.수입총계.결산,
+                    incomeBudget.수입총계.예산,
+                ),
             },
             지출: {
-                예산: settlement.지출총계.예산,
-                결산: settlement.지출총계.결산,
-                비율: ratio(settlement.지출총계.결산, settlement.지출총계.예산),
+                예산: expenseBudget.지출총계.예산,
+                결산: expenseBudget.지출총계.결산,
+                비율: ratio(
+                    expenseBudget.지출총계.결산,
+                    expenseBudget.지출총계.예산,
+                ),
             },
             잔액: {
-                예산: settlement.수입총계.예산 - settlement.지출총계.예산,
-                결산: settlement.수입총계.결산 - settlement.지출총계.결산,
+                예산: incomeBudget.수입총계.예산 - expenseBudget.지출총계.예산,
+                결산: incomeBudget.수입총계.결산 - expenseBudget.지출총계.결산,
             },
         },
         학생회비: getTotalBySource('학생회비'),
