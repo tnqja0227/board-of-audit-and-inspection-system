@@ -4,22 +4,29 @@ paths:
             description: 지출내역 증빙 자료 생성 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
+            parameters:
+                - in: path
+                  name: transaction_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 통장거래내역 transaction object ID.
             requestBody:
+                required: true
                 content:
-                    application/json:
+                    multipart/form-data:
                         schema:
                             type: object
                             properties:
-                                url:
-                                    type: string
-                                    description: 증빙 자료 URL
-                                    example: https://example.com/expense_record.pdf
                                 memo:
                                     type: string
-                                    description: 메모
-                                    example: 'memo'
+                                    description: Optional memo for the expense record.
+                                file:
+                                    type: string
+                                    format: binary
+                                    description: The image or PDF file of the receipt.
                             required:
-                                - url
+                                - file
             responses:
                 200:
                     content:
@@ -32,28 +39,37 @@ paths:
                     description: ValidationError
                 404:
                     description: NotFoundError
+                400:
+                    description: BadRequestError. Invalid input.
 
     /expense_records/:expense_record_id:
         put:
             description: 지출내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
+            parameters:
+                - in: path
+                  name: expense_record_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 지출내역 증빙 자료 object ID.
             requestBody:
+                required: true
                 content:
-                    application/json:
+                    multipart/form-data:
                         schema:
                             type: object
                             properties:
-                                url:
-                                    type: string
-                                    description: 증빙 자료 URL
-                                    example: https://example.com/expense_record.pdf
                                 memo:
                                     type: string
-                                    description: 메모
-                                    example: 'memo'
+                                    description: Optional memo for the expense record.
+                                file:
+                                    type: string
+                                    format: binary
+                                    description: The image or PDF file of the receipt.
                             required:
-                                - url
+                                - file
             responses:
                 200:
                     content:
@@ -66,11 +82,20 @@ paths:
                     description: ValidationError
                 404:
                     description: NotFoundError
+                400:
+                    description: BadRequestError. Invalid input.
 
         delete:
             description: 지출내역 증빙 자료 삭제 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
+            parameters:
+                - in: path
+                  name: expense_record_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 지출내역 증빙 자료 object ID.
             responses:
                 200:
                     content:
