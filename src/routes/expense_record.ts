@@ -120,4 +120,38 @@ export function createExpenseRecordsRouter() {
             );
         },
     );
+
+    router.delete(
+        '/:expense_record_id',
+        validateOrganization,
+        async (req, res, next) => {
+            wrapAsync(
+                async (req: Request, res: Response, next: NextFunction) => {
+                    const URL = await ExpenseRecord.findOne({
+                        where: {
+                            id: req.params.expense_record_id,
+                        },
+                    }).then((expenseRecord) => {
+                        return expenseRecord?.URL;
+                    });
+                    if (!URL) {
+                        throw new BadRequestError('Failed to find URL');
+                    } // TODO: error handling properly.
+
+                    const deleteResponse = await deleteFileFromS3(URL);
+                    if (deleteResponse.statusCode !== 200) {
+                        throw new BadRequestError(
+                            'Failed to delete file from S3',
+                        ); // TODO: Error handling properly.
+                    }
+                    await ExpenseRecord.destroy({
+                        where: {
+                            id: req.params.expense_record_id,
+                        },
+                    });
+                    res.sendStatus(200);
+                },
+            );
+        },
+    );
 }
