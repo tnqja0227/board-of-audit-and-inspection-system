@@ -68,8 +68,7 @@ paths:
                                     type: string
                                     format: binary
                                     description: The image or PDF file of the receipt.
-                            required:
-                                - file
+
             responses:
                 200:
                     content:
