@@ -60,5 +60,4 @@ export async function deleteFileFromS3(url: string) {
         logger.error(error);
         throw error; // TODO: Error handling
     }
-    return; // return status code
 }
