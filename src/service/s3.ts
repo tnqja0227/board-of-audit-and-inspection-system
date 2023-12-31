@@ -4,8 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import fileType from 'file-type';
 
-const aws_s3_api_url = 'https://s3.ap-northeast-2.amazonaws.com/...';
-
 export async function uploadFileToS3(filePath: any) {
     // file: local temp file path. After invoking this function successfully, delete the temp file.
     logger.info('Uploading file to S3...');
@@ -24,7 +22,7 @@ export async function uploadFileToS3(filePath: any) {
         logger.warn('fileTypeResult is null. Defaulting to text/plain');
     }
 
-    const apiGatewayFullURL = `${aws_s3_api_url}/${fileName}`;
+    const apiGatewayFullURL = `${process.env.AWS_S3_API_GATEWAY_URL}/${fileName}`;
 
     try {
         const response = await axios.put(apiGatewayFullURL, fileContent, {
