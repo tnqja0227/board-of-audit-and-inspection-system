@@ -49,9 +49,75 @@ export function createExpenseRecordsRouter() {
         },
     );
 
-    router.put('/:expense_record_id', async (req, res, next) => {
-        wrapAsync(
-            async (req: Request, res: Response, next: NextFunction) => {},
-        );
-    });
+    router.put(
+        '/:expense_record_id',
+        validateOrganization,
+        upload.single('file'),
+        async (req, res, next) => {
+            wrapAsync(
+                async (req: Request, res: Response, next: NextFunction) => {
+                    if (req.file) {
+                        const uploadResponse = await uploadFileToS3(
+                            req.file.path,
+                        );
+                        if (uploadResponse.statusCode !== 200) {
+                            throw new BadRequestError(
+                                'Failed to upload file to S3',
+                            );
+                        }
+                        fs.unlinkSync(req.file.path);
+                        const URL = uploadResponse.url;
+                        const originalURL = await ExpenseRecord.findOne({
+                            where: {
+                                id: req.params.expense_record_id,
+                            },
+                        }).then((expenseRecord) => {
+                            return expenseRecord?.URL;
+                        });
+                        if (!originalURL) {
+                            throw new BadRequestError(
+                                'Failed to find original URL',
+                            );
+                        } // TODO: error handling properly.
+
+                        await ExpenseRecord.update(
+                            {
+                                URL: URL,
+                                note: req.body.memo,
+                            },
+                            {
+                                where: {
+                                    id: req.params.expense_record_id,
+                                },
+                            },
+                        );
+
+                        const deleteResponse = await deleteFileFromS3(
+                            originalURL,
+                        );
+                        if (deleteResponse.statusCode !== 200) {
+                            throw new BadRequestError(
+                                'Failed to delete file from S3',
+                            );
+                        } // TODO: Error handling properly.
+
+                        res.sendStatus(200);
+                    }
+
+                    // No file was uploaded. Only update the memo.
+                    await ExpenseRecord.update(
+                        {
+                            note: req.body.memo,
+                        },
+                        {
+                            where: {
+                                id: req.params.expense_record_id,
+                            },
+                        },
+                    );
+                    res.sendStatus(200);
+                },
+            );
+        },
+    );
 }
