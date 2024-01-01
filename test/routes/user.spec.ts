@@ -23,9 +23,10 @@ describe('API /users', function () {
                 return next();
             });
 
-        const UserService = require('../../src/service/user');
+        const CreateUserDto =
+            require('../../src/dto/user.request').CreateUserDto;
         stubGeneratedRandomPassword = sinon
-            .stub(UserService, 'generateRandomPassword')
+            .stub(CreateUserDto.prototype, 'generateRandomPassword')
             .returns(Mock.mockPassword);
 
         app = createApp();

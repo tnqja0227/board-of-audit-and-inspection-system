@@ -25,6 +25,17 @@ class OrganizationRepository {
         }
         return organization;
     }
+
+    async findAll() {
+        return Organization.findAll();
+    }
+
+    async createOrganization(organization_name: string) {
+        const organization = await Organization.create({
+            name: organization_name,
+        });
+        return organization;
+    }
 }
 
 export { OrganizationRepository };

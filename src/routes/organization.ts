@@ -3,30 +3,17 @@ import { Request, Response, NextFunction } from 'express';
 import { Organization } from '../model';
 import { validateIsAdmin } from '../middleware/auth';
 import { wrapAsync } from '../middleware';
+import { OrganizationController } from '../controller';
 
 export function createOrganizationsRouter() {
     const router = express.Router();
+    const organizationController = new OrganizationController();
+
     router.use(wrapAsync(validateIsAdmin));
 
-    router.get(
-        '/',
-        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            const organizations = await Organization.findAll();
-            res.json(
-                organizations.map((organization) => organization.toJSON()),
-            );
-        }),
-    );
+    router.get('/', wrapAsync(organizationController.findAll));
 
-    router.post(
-        '/',
-        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            const organization = await Organization.create({
-                name: req.body.name,
-            });
-            res.json(organization.toJSON());
-        }),
-    );
+    router.post('/', wrapAsync(organizationController.createOrganization));
 
     return router;
 }
