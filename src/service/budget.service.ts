@@ -42,9 +42,8 @@ class BudgetService {
 
         const budget = await this.findBudget(dto);
 
-        const incomeWithSettlement = await this.budgetRepository.findIncomeWithSettlement(
-            budget.id,
-        );
+        const incomeWithSettlement =
+            await this.budgetRepository.findIncomeWithSettlement(budget.id);
         const formattedIncome = this.groupBy(
             incomeWithSettlement,
             'source',
@@ -129,9 +128,8 @@ class BudgetService {
 
         const budget = await this.findBudget(dto);
 
-        const expenseWithSettlement = await this.budgetRepository.findExpenseWithSettlement(
-            budget.id,
-        );
+        const expenseWithSettlement =
+            await this.budgetRepository.findExpenseWithSettlement(budget.id);
         const formattedExpense = this.groupBy(
             expenseWithSettlement,
             'source',

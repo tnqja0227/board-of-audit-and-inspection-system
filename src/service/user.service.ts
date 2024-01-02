@@ -78,7 +78,7 @@ class UserService {
     }
 
     private async checkDuplicate(dto: CreateUserDto) {
-        logger.info(`Check duplication for email ${dto.email}`)
+        logger.info(`Check duplication for email ${dto.email}`);
 
         const organization = await this.findOrganizationByNameOrThrow(
             dto.organizationName,
@@ -89,9 +89,10 @@ class UserService {
     }
 
     private async checkDuplicatedOrganization(organizationId: number) {
-        logger.info(`Check duplication for organization ${organizationId}`)
+        logger.info(`Check duplication for organization ${organizationId}`);
 
-        const user = await this.userRepository.findByOrganizationId(organizationId);
+        const user =
+            await this.userRepository.findByOrganizationId(organizationId);
         if (user) {
             throw new DuplicateError(
                 '이미 등록된 피감기구의 계정이 존재합니다.',
@@ -100,7 +101,7 @@ class UserService {
     }
 
     private async checkDuplicatedEmail(email: string) {
-        logger.info(`Check duplication for email ${email}`)
+        logger.info(`Check duplication for email ${email}`);
 
         const user = await this.userRepository.findByEmail(email);
         if (user) {
@@ -110,12 +111,14 @@ class UserService {
 
     async login(dto: LoginDto) {
         const user = await this.findUserByEmailOrThrow(dto.email);
-        
+
         await this.matchPassword(dto.password, user.password);
 
         logger.info(`User: ${dto.email} logged in`);
-        
-        const organization = await this.findOrganizationByIdOrThrow(user.OrganizationId)
+
+        const organization = await this.findOrganizationByIdOrThrow(
+            user.OrganizationId,
+        );
         return {
             id: user.id,
             email: user.email,
@@ -140,9 +143,14 @@ class UserService {
         await this.matchPassword(dto.oldPassword, user.password);
 
         this.passwordService.validatePasswordLength(dto.newPassword);
-        this.passwordService.validatePasswordNotChanged(dto.newPassword, dto.oldPassword);
+        this.passwordService.validatePasswordNotChanged(
+            dto.newPassword,
+            dto.oldPassword,
+        );
 
-        const encryptedPassword = await this.passwordService.encrypt(dto.newPassword);
+        const encryptedPassword = await this.passwordService.encrypt(
+            dto.newPassword,
+        );
         user.password = encryptedPassword;
         await user.save();
     }
@@ -172,21 +180,15 @@ class UserService {
     private async findOrganizationByIdOrThrow(id: string | number) {
         const organization = await this.organizationRepository.findById(id);
         if (!organization) {
-            throw new NotFoundError(
-                `피감기관 ${id}을 찾을 수 없습니다.`,
-            );
+            throw new NotFoundError(`피감기관 ${id}을 찾을 수 없습니다.`);
         }
         return organization;
     }
 
     private async findOrganizationByNameOrThrow(name: string) {
-        const organization = await this.organizationRepository.findByName(
-            name,
-        );
+        const organization = await this.organizationRepository.findByName(name);
         if (!organization) {
-            throw new NotFoundError(
-                `피감기구 ${name}을 찾을 수 없습니다.`,
-            );
+            throw new NotFoundError(`피감기구 ${name}을 찾을 수 없습니다.`);
         }
         return organization;
     }
