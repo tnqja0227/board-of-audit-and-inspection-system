@@ -54,7 +54,7 @@ paths:
                     description: OK
                 '401':
                     description: UnauthorizedError
-    /accounts/:id:
+    /accounts/:account_id:
         put:
             description: 계좌 수정 (자신의 피감기구만 호출 가능)
             tags:
