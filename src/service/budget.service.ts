@@ -2,6 +2,7 @@ import logger from '../config/winston';
 import { sequelize } from '../db';
 import { BudgetRepository, OrganizationRepository } from '../repository';
 import { BudgetRequestDto } from '../dto';
+import { NotFoundError } from '../utils/errors';
 
 class BudgetService {
     private organizationRepository: OrganizationRepository =
@@ -9,7 +10,13 @@ class BudgetService {
     private budgetRepository: BudgetRepository = new BudgetRepository();
 
     async findBudget(dto: BudgetRequestDto) {
-        return this.budgetRepository.findBudget(dto);
+        const budget = await this.budgetRepository.findBudget(dto);
+        if (!budget) {
+            throw new NotFoundError(
+                `${dto.organizationId}의 ${dto.year}년 ${dto.half} 예산안이 존재하지 않습니다`,
+            );
+        }
+        return budget;
     }
 
     async createBudget(dto: BudgetRequestDto, manager: string) {
@@ -28,7 +35,13 @@ class BudgetService {
         const organization = await this.organizationRepository.findById(
             dto.organizationId,
         );
-        const budget = await this.budgetRepository.findBudget(dto);
+        if (!organization) {
+            throw new NotFoundError(
+                `${dto.organizationId} 피감기관이 존재하지 않습니다`,
+            );
+        }
+
+        const budget = await this.findBudget(dto);
 
         const incomeWithSettlement = await this.getIncomeWithSettlement(
             budget.id,
@@ -109,7 +122,13 @@ class BudgetService {
         const organization = await this.organizationRepository.findById(
             dto.organizationId,
         );
-        const budget = await this.budgetRepository.findBudget(dto);
+        if (!organization) {
+            throw new NotFoundError(
+                `${dto.organizationId} 피감기관이 존재하지 않습니다`,
+            );
+        }
+        
+        const budget = await this.findBudget(dto);
 
         const expenseWithSettlement = await this.getExpenseWithSettlement(
             budget.id,

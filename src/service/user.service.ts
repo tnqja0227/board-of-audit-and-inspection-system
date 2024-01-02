@@ -9,11 +9,36 @@ import {
 } from '../utils/errors';
 import { compare, hash } from 'bcrypt';
 
-const SALT = 10;
+class PasswordService {
+    private SALT = 10;
+
+    async encrypt(password: string) {
+        return hash(password, this.SALT);
+    }
+
+    async compare(plain: string, cipher: string) {
+        return compare(plain, cipher);
+    }
+
+    validatePasswordLength(password: string) {
+        if (password.length < 8 || password.length > 12) {
+            throw new BadRequestError('비밀번호는 8자 이상 12자 이하입니다.');
+        }
+    }
+
+    validatePasswordNotChanged(newPassword: string, oldPassword: string) {
+        if (newPassword == oldPassword) {
+            throw new BadRequestError(
+                '새로운 비밀번호가 기존 비밀번호와 동일합니다.',
+            );
+        }
+    }
+}
 
 class UserService {
     private userRepository = new UserRepository();
     private organizationRepository = new OrganizationRepository();
+    private passwordService = new PasswordService();
 
     async findAll() {
         const users = await this.userRepository.findAll();
@@ -35,10 +60,14 @@ class UserService {
     }
 
     async create(dto: CreateUserDto) {
-        await this.validateCreation(dto);
-        dto.password = await this.encrypt(dto.initialPassword);
+        await this.checkDuplicate(dto);
 
-        const user = await this.userRepository.create(dto);
+        dto.password = await this.passwordService.encrypt(dto.initialPassword);
+
+        const organization = await this.findOrganizationByNameOrThrow(
+            dto.organizationName,
+        );
+        const user = await this.userRepository.create(dto, organization.id);
         return {
             email: user.email,
             password: dto.initialPassword,
@@ -48,56 +77,45 @@ class UserService {
         };
     }
 
-    async encrypt(password: string) {
-        return hash(password, SALT);
-    }
+    private async checkDuplicate(dto: CreateUserDto) {
+        logger.info(`Check duplication for email ${dto.email}`)
 
-    private async validateCreation(dto: CreateUserDto) {
-        const organization = await this.organizationRepository.findByName(
+        const organization = await this.findOrganizationByNameOrThrow(
             dto.organizationName,
         );
-        logger.info(
-            `Validate creation for email ${dto.email} and organization ${organization.name}`,
-        );
 
-        if (await this.duplicatedOrganization(organization.id)) {
+        await this.checkDuplicatedOrganization(organization.id);
+        await this.checkDuplicatedEmail(dto.email);
+    }
+
+    private async checkDuplicatedOrganization(organizationId: number) {
+        logger.info(`Check duplication for organization ${organizationId}`)
+
+        const user = await this.userRepository.findByOrganizationId(organizationId);
+        if (user) {
             throw new DuplicateError(
                 '이미 등록된 피감기구의 계정이 존재합니다.',
             );
         }
-        if (await this.duplicatedEmail(dto.email)) {
+    }
+
+    private async checkDuplicatedEmail(email: string) {
+        logger.info(`Check duplication for email ${email}`)
+
+        const user = await this.userRepository.findByEmail(email);
+        if (user) {
             throw new DuplicateError('이미 등록된 이메일이 존재합니다.');
-        }
-        logger.info(`${dto.email} passed duplicate check for creation`);
-    }
-
-    private async duplicatedOrganization(organizationId: number) {
-        try {
-            await this.userRepository.findByOrganizationId(organizationId);
-            return true;
-        } catch (e) {
-            if (e instanceof NotFoundError) return false;
-        }
-    }
-
-    private async duplicatedEmail(email: string) {
-        try {
-            await this.userRepository.findByEmail(email);
-            return true;
-        } catch (e) {
-            if (e instanceof NotFoundError) return false;
         }
     }
 
     async login(dto: LoginDto) {
-        const user = await this.userRepository.findByEmail(dto.email);
-        await this.checkPassword(dto.password, user.password);
+        const user = await this.findUserByEmailOrThrow(dto.email);
+        
+        await this.matchPassword(dto.password, user.password);
 
         logger.info(`User: ${dto.email} logged in`);
-        const organization = await this.organizationRepository.findById(
-            user.OrganizationId,
-        );
-
+        
+        const organization = await this.findOrganizationByIdOrThrow(user.OrganizationId)
         return {
             id: user.id,
             email: user.email,
@@ -108,52 +126,69 @@ class UserService {
         };
     }
 
-    private async checkPassword(plain: string, cipher: string) {
-        const match = await compare(plain, cipher);
+    private async matchPassword(plain: string, cipher: string) {
+        const match = await this.passwordService.compare(plain, cipher);
         if (!match) {
             throw new UnauthorizedError('비밀번호가 일치하지 않습니다.');
         }
-        logger.info(`password matched`);
+        logger.info('Password matched');
     }
 
     async changePassword(dto: ChangePasswordDto) {
-        const user = await this.userRepository.findByEmail(dto.email);
-        await this.checkPassword(dto.oldPassword, user.password);
-        this.checkPasswordCondition(dto.newPassword);
-        this.checkNewPasswordNotChanged(dto.newPassword, dto.oldPassword);
+        const user = await this.findUserByEmailOrThrow(dto.email);
 
-        const encryptedPassword = await this.encrypt(dto.newPassword);
+        await this.matchPassword(dto.oldPassword, user.password);
+
+        this.passwordService.validatePasswordLength(dto.newPassword);
+        this.passwordService.validatePasswordNotChanged(dto.newPassword, dto.oldPassword);
+
+        const encryptedPassword = await this.passwordService.encrypt(dto.newPassword);
         user.password = encryptedPassword;
         await user.save();
     }
 
-    private checkPasswordCondition(password: string) {
-        if (password.length < 8 || password.length > 12) {
-            throw new BadRequestError('비밀번호는 8자 이상 12자 이하입니다.');
-        }
-    }
-
-    private checkNewPasswordNotChanged(
-        newPassword: string,
-        oldPassword: string,
-    ) {
-        if (newPassword == oldPassword) {
-            throw new BadRequestError(
-                '새로운 비밀번호가 기존 비밀번호와 동일합니다.',
-            );
-        }
-    }
-
     async disable(email: string) {
-        const user = await this.userRepository.findByEmail(email);
+        const user = await this.findUserByEmailOrThrow(email);
         user.isDisabled = true;
         await user.save();
     }
 
     async enable(email: string) {
-        const user = await this.userRepository.findByEmail(email);
+        const user = await this.findUserByEmailOrThrow(email);
         user.isDisabled = false;
         await user.save();
+    }
+
+    private async findUserByEmailOrThrow(email: string) {
+        const user = await this.userRepository.findByEmail(email);
+        if (!user) {
+            throw new NotFoundError(
+                `이메일 ${email}에 대한 유저를 찾을 수 없습니다.`,
+            );
+        }
+        return user;
+    }
+
+    private async findOrganizationByIdOrThrow(id: string | number) {
+        const organization = await this.organizationRepository.findById(id);
+        if (!organization) {
+            throw new NotFoundError(
+                `피감기관 ${id}을 찾을 수 없습니다.`,
+            );
+        }
+        return organization;
+    }
+
+    private async findOrganizationByNameOrThrow(name: string) {
+        const organization = await this.organizationRepository.findByName(
+            name,
+        );
+        if (!organization) {
+            throw new NotFoundError(
+                `피감기구 ${name}을 찾을 수 없습니다.`,
+            );
+        }
+        return organization;
     }
 }
 
