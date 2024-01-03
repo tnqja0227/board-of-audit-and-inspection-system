@@ -142,88 +142,90 @@ definitions:
             - accountOwner
 
     Transaction:
-        id:
-            type: integer
-            description: 통장거래내역 ID
-        projectAt:
-            type: timestamp
-            description: 사업일자
-            example: 2020-01-01 00:00:00
-        manager:
-            type: string
-            description: 담당자
-            example: 김넙죽
-        content:
-            type: string
-            description: 집행 내용
-            example: 회의비
-        type:
-            type: string
-            enum: ['공금카드', '계좌이체', '현금거래', '사비집행']
-            description: 거래 형태
-            example: 공금카드
-        amount:
-            type: integer
-            description: 금액
-            example: 100000
-        transactionAt:
-            type: timestamp
-            description: 거래일자
-            example: 2020-01-01 00:00:00
-        balance:
-            type: integer
-            description: 잔액
-            example: 100000
-        accountNumber:
-            type: string
-            description: 계좌번호
-            example: 123456789
-        accountBank:
-            type: string
-            description: 은행명
-            example: 우리은행
-        accountOwner:
-            type: string
-            description: 예금주
-            example: 김넙죽
-        receivingAccountNumber:
-            type: string
-            description: 입금계좌번호
-            example: 123456789
-        receivingAccountBank:
-            type: string
-            description: 입금은행명
-            example: 우리은행
-        receivingAccountOwner:
-            type: string
-            description: 입금예금주
-            example: 김넙죽
-        hasBill:
-            type: boolean
-            description: 영수증 여부
-            example: true
-        note:
-            type: string
-            description: 비고
-            example: 증빙자료 누락
-        created_at:
-            type: timestamp
-            example: 2020-01-01 00:00:00
-        updated_at:
-            type: timestamp
-            example: 2020-01-01 00:00:00
-    required:
-        - id
-        - projectAt
-        - manager
-        - content
-        - type
-        - amount
-        - transactionAt
-        - balance
-        - accountNumber
-        - accountBank
-        - accountOwner
-        - hasBill
-        - created_at
-        - updated_at
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 통장거래내역 ID
+            projectAt:
+                type: timestamp
+                description: 사업일자
+                example: 2020-01-01 00:00:00
+            manager:
+                type: string
+                description: 담당자
+                example: 김넙죽
+            content:
+                type: string
+                description: 집행 내용
+                example: 회의비
+            type:
+                type: string
+                enum: ['공금카드', '계좌이체', '현금거래', '사비집행']
+                description: 거래 형태
+                example: 공금카드
+            amount:
+                type: integer
+                description: 금액
+                example: 100000
+            transactionAt:
+                type: timestamp
+                description: 거래일자
+                example: 2020-01-01 00:00:00
+            balance:
+                type: integer
+                description: 잔액
+                example: 100000
+            accountNumber:
+                type: string
+                description: 계좌번호
+                example: 123456789
+            accountBank:
+                type: string
+                description: 은행명
+                example: 우리은행
+            accountOwner:
+                type: string
+                description: 예금주
+                example: 김넙죽
+            receivingAccountNumber:
+                type: string
+                description: 입금계좌번호
+                example: 123456789
+            receivingAccountBank:
+                type: string
+                description: 입금은행명
+                example: 우리은행
+            receivingAccountOwner:
+                type: string
+                description: 입금예금주
+                example: 김넙죽
+            hasBill:
+                type: boolean
+                description: 영수증 여부
+                example: true
+            note:
+                type: string
+                description: 비고
+                example: 증빙자료 누락
+            created_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+            updated_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+        required:
+            - id
+            - projectAt
+            - manager
+            - content
+            - type
+            - amount
+            - transactionAt
+            - balance
+            - accountNumber
+            - accountBank
+            - accountOwner
+            - hasBill
+            - created_at
+            - updated_at
