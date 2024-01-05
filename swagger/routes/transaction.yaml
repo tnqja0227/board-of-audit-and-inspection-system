@@ -145,6 +145,10 @@ definitions:
         id:
             type: integer
             description: 통장거래내역 ID
+        code:
+            type: string
+            description: 예산/지출 코드
+            example: 101
         projectAt:
             type: timestamp
             description: 사업일자
