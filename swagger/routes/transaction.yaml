@@ -1,7 +1,7 @@
 paths:
     /transactions/:organization_id/:year/:half:
         get:
-            description: 피감기구의 모든 거래내역 조회 (자신의 피감기구만 호출 가능).
+            description: 피감기구의 모든 거래내역 조회 (자신의 피감기구만 호출 가능). 거래 시기 기준으로 내림차순 정렬되어 있다. 지출일 경우 amount가 음수이다.
             tags:
                 - 통장거래내역
             responses:

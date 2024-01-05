@@ -17,7 +17,22 @@ class TransactionService {
     }
 
     async getFormattedTransactions(dto: GetTransactionDto) {
-        return this.transactionRepository.findAndFormat(dto);
+        const transactions = await this.transactionRepository.findAndFormat(dto);
+        for (var i = 0; i < transactions.length; i++) {
+            transactions[i].contents.sort(
+                (a: any, b: any) => {
+                    const at = new Date(a.transactionAt);
+                    const bt = new Date(b.transactionAt);
+                    if (at.getTime() === bt.getTime()) {
+                        const aut = new Date(a.updatedAt);
+                        const but = new Date(b.updatedAt);
+                        return but.getTime() - aut.getTime();
+                    }
+                    return bt.getTime() - at.getTime();
+                },
+            );
+        }
+        return transactions;
     }
 
     async create(dto: CreateTransactionDto) {

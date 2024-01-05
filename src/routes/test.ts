@@ -159,6 +159,26 @@ export function createTestRouter() {
                 ...account1,
             });
 
+            const expense404 = await model.Expense.create({
+                BudgetId: budget_id,
+                code: '404',
+                source: '학생회비',
+                category: '비정기사업비',
+                project: '사무소모품 및 유지',
+                content: '복리후생비',
+                amount: 60000,
+            });
+            await model.Transaction.create({
+                projectAt: new Date('2023-05-30'),
+                manager: '김넙죽',
+                content: '복리후생비',
+                amount: 61370,
+                balance: 621320,
+                transactionAt: new Date('2023-05-30'),
+                ExpenseId: expense404.id,
+                ...account1,
+            });
+
             const expense402 = await model.Expense.create({
                 BudgetId: budget_id,
                 code: '402',
@@ -178,26 +198,6 @@ export function createTestRouter() {
                 content: '회의비',
                 amount: 120000,
                 note: '내부 문제로 LT 사업 진행하지 않아 미집행',
-            });
-
-            const expense404 = await model.Expense.create({
-                BudgetId: budget_id,
-                code: '404',
-                source: '학생회비',
-                category: '비정기사업비',
-                project: '사무소모품 및 유지',
-                content: '복리후생비',
-                amount: 60000,
-            });
-            await model.Transaction.create({
-                projectAt: new Date('2023-05-30'),
-                manager: '김넙죽',
-                content: '복리후생비',
-                amount: 61370,
-                balance: 621320,
-                transactionAt: new Date('2023-05-30'),
-                ExpenseId: expense404.id,
-                ...account1,
             });
 
             res.json({

@@ -133,7 +133,7 @@ FROM
     UNION ALL
     (
         SELECT T."id", E."code", T."projectAt", T."transactionAt", T."updatedAt", 
-            T."manager", T."content", T."amount", T."balance", T."accountNumber", T."accountBank", T."accountOwner", 
+            T."manager", T."content", T."amount" * -1, T."balance", T."accountNumber", T."accountBank", T."accountOwner", 
             T."receivingAccountNumber", T."receivingAccountBank", T."receivingAccountOwner", 
             T."hasBill", T."note", T."IncomeId", T."ExpenseId"
         FROM ${schemaName}."expenses" AS E
