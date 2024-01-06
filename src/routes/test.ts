@@ -39,8 +39,6 @@ export function createTestRouter() {
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('Create dummy data');
 
-            await sequelize.truncate({ cascade: true });
-
             const account1 = {
                 accountNumber: '1234567890',
                 accountBank: '우리은행',
@@ -53,7 +51,7 @@ export function createTestRouter() {
             };
 
             const organization = await model.Organization.create({
-                name: '감사원',
+                name: '테스트',
             });
             const budget = await model.Budget.create({
                 year: 2023,
