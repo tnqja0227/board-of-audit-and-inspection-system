@@ -7,6 +7,10 @@ import {
 import { Transaction } from '../model';
 
 class TransactionRepository {
+    async findById(transactionId: number | string) {
+        return Transaction.findByPk(transactionId);
+    }
+
     async find(dto: GetTransactionDto) {
         return sequelize.query(findAllTransactionsQuery, {
             replacements: {
@@ -71,6 +75,7 @@ class TransactionRepository {
                 content: dto.content,
                 type: dto.type,
                 amount: dto.amount,
+                balance: dto.balance,
                 transactionAt: dto.transactionAt,
                 accountNumber: dto.accountNumber,
                 accountBank: dto.accountBank,

@@ -1,3 +1,16 @@
+const year = 2023;
+const half = 'spring';
+const manager = '김넙죽';
+
+export function createMockBudget(organizationId: string | number) {
+    return {
+        year: year,
+        half: half,
+        manager: manager,
+        OrganizationId: organizationId,
+    };
+}
+
 export function expectedIncomeBudget(budget_id: string | number) {
     return {
         id: budget_id,

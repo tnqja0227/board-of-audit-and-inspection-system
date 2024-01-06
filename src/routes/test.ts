@@ -72,12 +72,12 @@ export function createTestRouter() {
                 amount: 180000,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-01'),
+                projectAt: new Date('2023-03-01 07:00:00'),
                 manager: '김넙죽',
                 content: '중앙회계 지원금',
                 amount: 180000,
                 balance: 180000,
-                transactionAt: new Date('2023-03-01'),
+                transactionAt: new Date('2023-03-01 07:00:00'),
                 IncomeId: income101.id,
                 ...account1,
             });
@@ -91,12 +91,12 @@ export function createTestRouter() {
                 amount: 632238,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-01'),
+                projectAt: new Date('2023-03-01 13:00:00'),
                 manager: '김넙죽',
                 content: '중앙회계 이월금',
                 amount: 502690,
                 balance: 682690,
-                transactionAt: new Date('2023-03-01'),
+                transactionAt: new Date('2023-03-01 13:00:00'),
                 IncomeId: income102.id,
                 ...account1,
             });
@@ -110,12 +110,12 @@ export function createTestRouter() {
                 amount: 1543856,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-15'),
+                projectAt: new Date('2023-03-15 09:00:00'),
                 manager: '김넙죽',
                 content: '격려금',
                 amount: 186441,
                 balance: 869131,
-                transactionAt: new Date('2023-03-15'),
+                transactionAt: new Date('2023-03-15 09:00:00'),
                 IncomeId: income103.id,
                 ...account1,
             });
@@ -129,12 +129,12 @@ export function createTestRouter() {
                 amount: 2000,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-01'),
+                projectAt: new Date('2023-03-01 09:00:00'),
                 manager: '김넙죽',
                 content: '예금이자',
                 amount: 261,
                 balance: 261,
-                transactionAt: new Date('2023-05-01'),
+                transactionAt: new Date('2023-05-01 09:00:00'),
                 IncomeId: income301.id,
                 ...account2,
             });
@@ -149,12 +149,12 @@ export function createTestRouter() {
                 amount: 1543856,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-05-30'),
+                projectAt: new Date('2023-05-30 09:00:00'),
                 manager: '김넙죽',
                 content: '격려금',
                 amount: 186441,
                 balance: 682690,
-                transactionAt: new Date('2023-05-30'),
+                transactionAt: new Date('2023-05-30 09:00:00'),
                 ExpenseId: expense401.id,
                 ...account1,
             });
@@ -169,12 +169,12 @@ export function createTestRouter() {
                 amount: 60000,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-05-30'),
+                projectAt: new Date('2023-05-30 12:00:00'),
                 manager: '김넙죽',
                 content: '복리후생비',
                 amount: 61370,
                 balance: 621320,
-                transactionAt: new Date('2023-05-30'),
+                transactionAt: new Date('2023-05-30 12:00:00'),
                 ExpenseId: expense404.id,
                 ...account1,
             });

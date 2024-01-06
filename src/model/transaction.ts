@@ -18,6 +18,8 @@ class Transaction extends Model {
     declare receivingAccountOwner: string; // 입금예금주
     declare hasBill: boolean; // 영수증 여부
     declare note: string; // 비고
+    declare IncomeId: number | null;
+    declare ExpenseId: number | null;
 }
 
 Transaction.init(

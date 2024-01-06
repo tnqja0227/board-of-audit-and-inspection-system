@@ -77,6 +77,7 @@ export class UpdateTransactionDto {
     content: string;
     type: string;
     amount: number;
+    balance: number = 0;
     transactionAt: Date;
     accountNumber: string;
     accountBank: string;
@@ -86,8 +87,8 @@ export class UpdateTransactionDto {
     receivingAccountOwner: string;
     hasBill: boolean;
     note: string | undefined;
-    incomeId: number | undefined;
-    expenseId: number | undefined;
+    incomeId: number | null = null;
+    expenseId: number | null = null;
 
     constructor(
         transactionId: number | string,
@@ -105,8 +106,8 @@ export class UpdateTransactionDto {
         receivingAccountOwner: string,
         hasBill: boolean,
         note: string | undefined,
-        incomeId: number | undefined,
-        expenseId: number | undefined,
+        incomeId: number | null,
+        expenseId: number | null,
     ) {
         this.transactionId = transactionId;
         this.projectAt = projectAt;
@@ -125,5 +126,8 @@ export class UpdateTransactionDto {
         this.note = note;
         this.incomeId = incomeId;
         this.expenseId = expenseId;
+
+        if (incomeId) this.expenseId = null;
+        if (expenseId) this.incomeId = null;
     }
 }
