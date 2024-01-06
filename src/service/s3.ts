@@ -10,6 +10,7 @@ export async function uploadFileToS3(filePath: any) {
     logger.info(filePath);
 
     // 10MB: AWS API Gateway limit
+    // TODO: fileName을 organizationID + timestamp + filename 으로 해서 중복 방지
     if (
         !fs.existsSync(filePath) ||
         fs.statSync(filePath).size > 10 * 1024 * 1024
