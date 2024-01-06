@@ -4,7 +4,7 @@ import { sequelize } from '../db';
 class ExpenseRecord extends Model {
     declare id: number;
     declare transaction_id: number;
-    declare URL: string;
+    declare URI: string;
     declare note: string;
 }
 
