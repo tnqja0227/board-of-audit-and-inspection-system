@@ -13,8 +13,6 @@ export function createExpenseRecordsRouter() {
     const router = express.Router();
     router.use(wrapAsync(validateOrganization));
 
-    // TODO: GET Method 구현
-
     router.post(
         '/:transaction_id',
         validateOrganization,
@@ -37,10 +35,10 @@ export function createExpenseRecordsRouter() {
                         ); // TODO: error handling
                     }
                     fs.unlinkSync(req.file.path);
-                    const URL = uploadResponse.url;
+                    const URI = uploadResponse.uri;
                     const expenseRecord = await ExpenseRecord.create({
                         TransactionId: req.params.transaction_id,
-                        URL: URL,
+                        URI: URI,
                         note: req.body.memo,
                     });
                     res.sendStatus(200);
@@ -66,23 +64,23 @@ export function createExpenseRecordsRouter() {
                             );
                         }
                         fs.unlinkSync(req.file.path);
-                        const URL = uploadResponse.url;
-                        const originalURL = await ExpenseRecord.findOne({
+                        const URI = uploadResponse.uri;
+                        const originalURI = await ExpenseRecord.findOne({
                             where: {
                                 id: req.params.expense_record_id,
                             },
                         }).then((expenseRecord) => {
-                            return expenseRecord?.URL;
+                            return expenseRecord?.URI;
                         });
-                        if (!originalURL) {
+                        if (!originalURI) {
                             throw new BadRequestError(
-                                'Failed to find original URL',
+                                'Failed to find original object',
                             );
                         } // TODO: error handling properly.
 
                         await ExpenseRecord.update(
                             {
-                                URL: URL,
+                                URI: URI,
                                 note: req.body.memo,
                             },
                             {
@@ -93,7 +91,7 @@ export function createExpenseRecordsRouter() {
                         );
 
                         const deleteResponse = await deleteFileFromS3(
-                            originalURL,
+                            originalURI,
                         );
                         if (deleteResponse.statusCode !== 200) {
                             throw new BadRequestError(
@@ -127,18 +125,18 @@ export function createExpenseRecordsRouter() {
         async (req, res, next) => {
             wrapAsync(
                 async (req: Request, res: Response, next: NextFunction) => {
-                    const URL = await ExpenseRecord.findOne({
+                    const URI = await ExpenseRecord.findOne({
                         where: {
                             id: req.params.expense_record_id,
                         },
                     }).then((expenseRecord) => {
-                        return expenseRecord?.URL;
+                        return expenseRecord?.URI;
                     });
-                    if (!URL) {
+                    if (!URI) {
                         throw new BadRequestError('Failed to find URL');
                     } // TODO: error handling properly.
 
-                    const deleteResponse = await deleteFileFromS3(URL);
+                    const deleteResponse = await deleteFileFromS3(URI);
                     if (deleteResponse.statusCode !== 200) {
                         throw new BadRequestError(
                             'Failed to delete file from S3',
