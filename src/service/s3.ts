@@ -49,7 +49,7 @@ export async function uploadFileToS3(filePath: any) {
         logger.info('File uploaded to S3');
         logger.info(AWSresponse);
         const ret = {
-            url: apiGatewayFullURL,
+            uri: `${process.env.AWS_S3_BUCKET_NAME}/${fileName}`,
             statusCode: AWSresponse.status,
         };
         return ret;
@@ -59,14 +59,13 @@ export async function uploadFileToS3(filePath: any) {
     }
 }
 
-export async function deleteFileFromS3(url: string) {
+export async function deleteFileFromS3(uri: string) {
     logger.info('Deleting file from S3...');
-    logger.info(url);
-    logger.info('File deleted from S3');
-    // delete file from s3
+    logger.info(uri);
 
+    const apiGatewayFullURL = `${process.env.AWS_S3_API_GATEWAY_URL}/${uri}`;
     try {
-        const response = await axios.delete(url);
+        const response = await axios.delete(apiGatewayFullURL);
         logger.info(response);
         const ret = {
             statusCode: response.status,
