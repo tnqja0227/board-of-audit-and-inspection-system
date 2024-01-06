@@ -23,7 +23,7 @@ ExpenseRecord.init(
                 key: 'id',
             },
         },
-        URL: {
+        URI: {
             type: DataTypes.STRING,
             allowNull: false,
         },
