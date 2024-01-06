@@ -120,9 +120,9 @@ definitions:
                 type: integer
                 description: 통장거래내역 ID
                 example: 200
-            url:
+            uri:
                 type: string
-                description: 증빙 자료 URL
+                description: 증빙 자료의 URI
                 example: https://example.com/expense_record.pdf
             memo:
                 type: string
