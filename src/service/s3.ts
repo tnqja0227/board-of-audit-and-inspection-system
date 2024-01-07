@@ -2,7 +2,9 @@ import logger from '../config/winston';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import fileType from 'file-type';
+
+// Dynamically import 'file-type'
+const fileType = () => import('file-type');
 
 export async function uploadFileToS3(filePath: any) {
     // file: local temp file path. After invoking this function successfully, delete the temp file.
@@ -21,7 +23,9 @@ export async function uploadFileToS3(filePath: any) {
     // upload file to s3 and return the url and status code
     const fileContent = fs.readFileSync(filePath);
     const fileName = path.basename(filePath);
-    const fileTypeResult = await fileType.fileTypeFromBuffer(fileContent);
+
+    const fileTypeModule = await fileType();
+    const fileTypeResult = await fileTypeModule.fileTypeFromBuffer(fileContent);
 
     const allowedFileTypes = [
         'image/jpeg',
