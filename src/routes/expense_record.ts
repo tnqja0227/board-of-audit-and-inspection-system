@@ -152,4 +152,6 @@ export function createExpenseRecordsRouter() {
             );
         },
     );
+
+    return router;
 }
