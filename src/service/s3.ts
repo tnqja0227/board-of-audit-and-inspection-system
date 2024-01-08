@@ -6,7 +6,11 @@ import path from 'path';
 // Dynamically import 'file-type'
 const fileType = () => import('file-type');
 
-export async function uploadFileToS3(filePath: any) {
+export async function uploadFileToS3(
+    filePath: any,
+    bucket: string,
+    key: string,
+) {
     // file: local temp file path. After invoking this function successfully, delete the temp file.
     logger.info('Uploading file to S3...');
     logger.info(filePath);
@@ -22,7 +26,6 @@ export async function uploadFileToS3(filePath: any) {
 
     // upload file to s3 and return the url and status code
     const fileContent = fs.readFileSync(filePath);
-    const fileName = path.basename(filePath);
 
     const fileTypeModule = await fileType();
     const fileTypeResult = await fileTypeModule.fileTypeFromBuffer(fileContent);
@@ -42,7 +45,7 @@ export async function uploadFileToS3(filePath: any) {
         logger.warn('fileTypeResult is null. Defaulting to text/plain');
     }
 
-    const apiGatewayFullURL = `${process.env.AWS_S3_API_GATEWAY_URL}/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
+    const apiGatewayFullURL = `${process.env.AWS_S3_API_GATEWAY_URL}/${process.env.AWS_S3_BUCKET_NAME}/${key}`;
 
     try {
         const AWSresponse = await axios.put(apiGatewayFullURL, fileContent, {
@@ -54,7 +57,7 @@ export async function uploadFileToS3(filePath: any) {
         logger.info('File uploaded to S3');
         logger.info(AWSresponse);
         const ret = {
-            uri: `${process.env.AWS_S3_BUCKET_NAME}/${fileName}`,
+            uri: `${process.env.AWS_S3_BUCKET_NAME}/${key}`,
             statusCode: AWSresponse.status,
         };
         return ret;
