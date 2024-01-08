@@ -6,11 +6,7 @@ import path from 'path';
 // Dynamically import 'file-type'
 const fileType = () => import('file-type');
 
-export async function uploadFileToS3(
-    filePath: any,
-    bucket: string,
-    key: string,
-) {
+export async function uploadFileToS3(filePath: any, key: string) {
     // file: local temp file path. After invoking this function successfully, delete the temp file.
     logger.info('Uploading file to S3...');
     logger.info(filePath);
