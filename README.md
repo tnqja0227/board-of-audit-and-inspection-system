@@ -121,12 +121,14 @@ flowchart TB
 
     request --> nginx
     subgraph EC2
-    direction RL
-    nginx <--> api_server
-    api_server <--> postgres
-    api_server <--> redis
-    postgres_backup_manager --> |dump|postgres
-    volume -. mount .-> postgres_backup_manager
+        subgraph Docker Compose
+            direction RL
+            nginx <--> api_server
+            api_server <--> postgres
+            api_server <--> redis
+            postgres_backup_manager --> |dump|postgres
+        end
+        volume -. mount .-> postgres_backup_manager
     end
 
     subgraph S3
