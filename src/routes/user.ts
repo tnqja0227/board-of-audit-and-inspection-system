@@ -13,6 +13,13 @@ export function createUsersRouter() {
         wrapAsync(userController.findAll),
     );
 
+    // 관리자 계정 생성
+    router.post(
+        '/admin',
+        wrapAsync(validateIsAdmin),
+        wrapAsync(userController.createAdmin),
+    );
+
     // 계정 생성
     // TODO: email sanitize (kaist email만 가능하도록)
     router.post('/', wrapAsync(userController.createUser));

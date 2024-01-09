@@ -50,6 +50,14 @@ class UserRepository {
             OrganizationId: organizationId,
         });
     }
+
+    async createAdmin(email: string, password: string) {
+        return User.create({
+            email,
+            password,
+            role: 'admin',
+        });
+    }
 }
 
 export { UserRepository };

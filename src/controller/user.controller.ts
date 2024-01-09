@@ -13,6 +13,15 @@ class UserController {
         res.json(users);
     };
 
+    createAdmin = async (req: Request, res: Response, next: NextFunction) => {
+        logger.info('UserController: createAdmin called');
+
+        const email = req.body.email;
+        const password = req.body.password;
+        const user = await this.userService.createAdmin(email, password);
+        res.json(user);
+    };
+
     createUser = async (req: Request, res: Response, next: NextFunction) => {
         logger.info('UserController: createUser called');
 

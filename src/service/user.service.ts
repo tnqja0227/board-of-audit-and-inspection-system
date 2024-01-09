@@ -59,6 +59,24 @@ class UserService {
         return userReponse;
     }
 
+    async createAdmin(email: string, password: string) {
+        const user = await this.userRepository.findByEmail(email);
+        if (user) {
+            throw new DuplicateError('이미 등록된 이메일이 존재합니다.');
+        }
+
+        const encryptedPassword = await this.passwordService.encrypt(password);
+        const admin = await this.userRepository.createAdmin(
+            email,
+            encryptedPassword,
+        );
+        logger.info(`Admin: ${email} created`);
+        return {
+            email: admin.email,
+            role: admin.role,
+        };
+    }
+
     async create(dto: CreateUserDto) {
         await this.checkDuplicate(dto);
 
@@ -111,11 +129,21 @@ class UserService {
 
     async login(dto: LoginDto) {
         const user = await this.findUserByEmailOrThrow(dto.email);
+        if (user.isDisabled) {
+            throw new UnauthorizedError('비활성화된 계정입니다.');
+        }
 
         await this.matchPassword(dto.password, user.password);
 
         logger.info(`User: ${dto.email} logged in`);
 
+        if (user.role === 'admin') {
+            return {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            };
+        }
         const organization = await this.findOrganizationByIdOrThrow(
             user.OrganizationId,
         );

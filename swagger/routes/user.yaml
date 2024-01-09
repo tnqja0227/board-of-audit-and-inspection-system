@@ -71,6 +71,45 @@ paths:
                     description: BadRequestError. 비밀번호는 8자 이상 12자 이하여야 합니다.
                 '409':
                     description: ValidationError. 이미 존재하는 이메일입니다.
+    /users/admin:
+        post:
+            description: 관리자 계정 생성 (관리자만 호출 가능)
+            tags:
+                - 계정
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 이메일
+                                    example: admin@kaist.ac.kr
+                                password:
+                                    type: string
+                                    description: 비밀번호
+                                    example: password
+                            required:
+                                - email
+                                - password
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    email:
+                                        type: string
+                                        description: 이메일
+                                        example: admin@kaist.ac.kr
+                                    role:
+                                        type: string
+                                        description: 권한
+                                        example: admin
+                '409':
+                    description: DuplicateError. 이미 존재하는 이메일입니다.
     /users/login:
         post:
             description: 로그인. 세션 생성.
