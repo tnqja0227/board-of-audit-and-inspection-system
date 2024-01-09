@@ -24,7 +24,7 @@ npm run dev
 ### ERD
 
 ```mermaid
-%%{init: {'theme': 'forest' } }%%
+%%{init: {'theme': 'default' } }%%
 erDiagram
     organizations {
         int id PK
@@ -104,4 +104,36 @@ erDiagram
         string accountOwner
         string cardNumber
     }
+```
+
+### Deployment
+
+```mermaid
+%%{init: {'theme': 'default' } }%%
+flowchart TB
+    %%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
+    api_server
+    nginx
+    postgres[(postgres)]
+    postgres_backup_manager
+    redis[(redis)]
+    volume
+
+    request --> nginx
+    subgraph EC2
+    direction RL
+    nginx <--> api_server
+    api_server <--> postgres
+    api_server <--> redis
+    postgres_backup_manager --> |dump|postgres
+    volume --- postgres_backup_manager
+    end
+
+    subgraph S3
+    bucket
+    end
+
+    %% S3 -. mount .-> EC2
+    bucket -. mount .-> volume
+    api_server <--> bucket
 ```
