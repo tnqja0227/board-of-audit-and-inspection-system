@@ -11,7 +11,7 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/definitions/Transaction'
+                                    $ref: '#/definitions/FormattedTransaction'
                 '401':
                     description: UnauthorizedError
     /transactions:
@@ -229,3 +229,15 @@ definitions:
             - hasBill
             - created_at
             - updated_at
+
+    FormattedTransaction:
+        type: object
+        properties:
+            accountNumber:
+                type: string
+                description: 계좌번호
+                example: 123456789
+            contents:
+                type: array
+                items:
+                    $ref: '#/definitions/Transaction'
