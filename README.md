@@ -1,4 +1,4 @@
-# board-of-audit-and-inspection-system
+# KAIST 감사원 시스템
 
 KAIST board of audit and inspection system backend
 
