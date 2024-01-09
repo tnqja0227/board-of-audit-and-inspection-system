@@ -126,14 +126,13 @@ flowchart TB
     api_server <--> postgres
     api_server <--> redis
     postgres_backup_manager --> |dump|postgres
-    volume --- postgres_backup_manager
+    volume -. mount .-> postgres_backup_manager
     end
 
     subgraph S3
     bucket
     end
 
-    %% S3 -. mount .-> EC2
     bucket -. mount .-> volume
     api_server <--> bucket
 ```
