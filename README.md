@@ -21,6 +21,8 @@ npm run dev
 
 ## Documentation
 
+-   [Architecture](docs/architecture.md)
+
 ### ERD
 
 ```mermaid
