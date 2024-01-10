@@ -8,6 +8,7 @@ import { uploadFileToS3, deleteFileFromS3 } from '../service/s3';
 import multer from 'multer';
 const upload = multer({ dest: 'uploads/' });
 import fs from 'fs';
+import { findRequestedOrganization } from '../middleware/auth';
 
 export function createExpenseRecordsRouter() {
     const router = express.Router();
@@ -27,18 +28,27 @@ export function createExpenseRecordsRouter() {
                         };
                         return ret;
                     }
-
-                    const uploadResponse = await uploadFileToS3(req.file.path);
+                    // TODO: transaction_id validation
+                    const organization = await findRequestedOrganization(req);
+                    const audit_year = '2024'; // TODO: get audit year dynamically
+                    const audit_half_period = 'Spring'; // TODO: get audit half period dynamically
+                    const fileKey = `${organization}%2F${audit_year}%2F${audit_half_period}%2Fexpense_records%2F${req.params.transaction_id}%2F${req.file.filename}`;
+                    // TODO: 중복 확인
+                    const uploadResponse = await uploadFileToS3(
+                        req.file.path,
+                        fileKey,
+                    );
                     if (uploadResponse.statusCode !== 200) {
                         throw new BadRequestError(
                             'Failed to upload file to S3',
                         ); // TODO: error handling
                     }
+
                     fs.unlinkSync(req.file.path);
                     const URI = uploadResponse.uri;
                     const expenseRecord = await ExpenseRecord.create({
-                        TransactionId: req.params.transaction_id,
-                        URI: URI,
+                        transactionId: req.params.transaction_id,
+                        key: fileKey,
                         note: req.body.memo,
                     });
                     res.sendStatus(200);
@@ -55,8 +65,16 @@ export function createExpenseRecordsRouter() {
             wrapAsync(
                 async (req: Request, res: Response, next: NextFunction) => {
                     if (req.file) {
+                        const organization = await findRequestedOrganization(
+                            req,
+                        );
+                        const audit_year = '2024'; // TODO: get audit year dynamically
+                        const audit_half_period = 'Spring'; // TODO: get audit half period dynamically
+                        const fileKey = `${organization}%2F${audit_year}%2F${audit_half_period}%2Fexpense_records%2F${req.params.transaction_id}%2F${req.file.filename}`;
+                        // TODO: 중복 확인
                         const uploadResponse = await uploadFileToS3(
                             req.file.path,
+                            fileKey,
                         );
                         if (uploadResponse.statusCode !== 200) {
                             throw new BadRequestError(
@@ -65,14 +83,14 @@ export function createExpenseRecordsRouter() {
                         }
                         fs.unlinkSync(req.file.path);
                         const URI = uploadResponse.uri;
-                        const originalURI = await ExpenseRecord.findOne({
+                        const originalKey = await ExpenseRecord.findOne({
                             where: {
                                 id: req.params.expense_record_id,
                             },
                         }).then((expenseRecord) => {
-                            return expenseRecord?.URI;
+                            return expenseRecord?.key;
                         });
-                        if (!originalURI) {
+                        if (!originalKey) {
                             throw new BadRequestError(
                                 'Failed to find original object',
                             );
@@ -80,7 +98,7 @@ export function createExpenseRecordsRouter() {
 
                         await ExpenseRecord.update(
                             {
-                                URI: URI,
+                                key: fileKey,
                                 note: req.body.memo,
                             },
                             {
@@ -91,7 +109,7 @@ export function createExpenseRecordsRouter() {
                         );
 
                         const deleteResponse = await deleteFileFromS3(
-                            originalURI,
+                            originalKey,
                         );
                         if (deleteResponse.statusCode !== 200) {
                             throw new BadRequestError(
@@ -130,7 +148,7 @@ export function createExpenseRecordsRouter() {
                             id: req.params.expense_record_id,
                         },
                     }).then((expenseRecord) => {
-                        return expenseRecord?.URI;
+                        return expenseRecord?.key;
                     });
                     if (!URI) {
                         throw new BadRequestError('Failed to find URL');
