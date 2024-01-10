@@ -3,8 +3,8 @@ import { sequelize } from '../db';
 
 class ExpenseRecord extends Model {
     declare id: number;
-    declare transaction_id: number;
-    declare URI: string;
+    declare transactionId: number;
+    declare key: string;
     declare note: string;
 }
 
@@ -15,7 +15,7 @@ ExpenseRecord.init(
             autoIncrement: true,
             primaryKey: true,
         },
-        transaction_id: {
+        transactionId: {
             type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
             references: {
@@ -23,7 +23,7 @@ ExpenseRecord.init(
                 key: 'id',
             },
         },
-        URI: {
+        key: {
             type: DataTypes.STRING,
             allowNull: false,
         },

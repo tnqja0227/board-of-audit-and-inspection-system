@@ -63,11 +63,11 @@ export async function uploadFileToS3(filePath: any, key: string) {
     }
 }
 
-export async function deleteFileFromS3(uri: string) {
+export async function deleteFileFromS3(key: string) {
     logger.info('Deleting file from S3...');
-    logger.info(uri);
+    logger.info(key);
 
-    const apiGatewayFullURL = `${process.env.AWS_S3_API_GATEWAY_URL}/${uri}`;
+    const apiGatewayFullURL = `${process.env.AWS_S3_API_GATEWAY_URL}/${process.env.AWS_S3_BUCKET_NAME}/${key}`;
     try {
         const response = await axios.delete(apiGatewayFullURL);
         logger.info(response);
