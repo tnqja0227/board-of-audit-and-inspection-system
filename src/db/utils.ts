@@ -10,6 +10,7 @@ import {
     Organization,
     Transaction,
     User,
+    ExpenseRecord,
 } from '../model';
 
 export async function initDB() {
@@ -30,6 +31,7 @@ export async function initDB() {
         Transaction,
         AuditPeriod,
         Account,
+        ExpenseRecord,
     ];
 
     for (const model of models) {
