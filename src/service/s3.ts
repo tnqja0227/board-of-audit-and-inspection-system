@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Dynamically import 'file-type'
-const fileType = () => import('file-type');
+// const fileType = () => import('file-type');
 
 export async function uploadFileToS3(filePath: any, key: string) {
     // file: local temp file path. After invoking this function successfully, delete the temp file.
@@ -23,9 +23,9 @@ export async function uploadFileToS3(filePath: any, key: string) {
     // upload file to s3 and return the url and status code
     const fileContent = fs.readFileSync(filePath);
 
-    const fileTypeModule = await fileType();
-    const fileTypeResult = await fileTypeModule.fileTypeFromBuffer(fileContent);
-
+    // const fileTypeModule = await fileType();
+    // const fileTypeResult = await fileTypeModule.fileTypeFromBuffer(fileContent);
+    const fileType = 'image/png';
     const allowedFileTypes = [
         'image/jpeg',
         'image/png',
@@ -33,13 +33,13 @@ export async function uploadFileToS3(filePath: any, key: string) {
         'image/webp',
         'application/pdf',
     ];
-    let contentType = 'text/plain';
-    if (fileTypeResult && allowedFileTypes.includes(fileTypeResult.mime)) {
-        const contentType = fileTypeResult.mime;
-    } else {
-        const contentType = 'text/plain';
-        logger.warn('fileTypeResult is null. Defaulting to text/plain');
-    }
+    let contentType = 'image/png';
+    // if (fileTypeResult && allowedFileTypes.includes(fileTypeResult.mime)) {
+    //     const contentType = fileTypeResult.mime;
+    // } else {
+    //     const contentType = 'text/plain';
+    //     logger.warn('fileTypeResult is null. Defaulting to text/plain');
+    // }
 
     const apiGatewayFullURL = `${process.env.AWS_S3_API_GATEWAY_URL}/${process.env.AWS_S3_BUCKET_NAME}/${key}`;
 
