@@ -35,6 +35,7 @@ erDiagram
     users ||--o| organizations : belongs
     users {
         int id PK
+        int OrganizationId FK
         string email UK
         string password
         string initialPassword
@@ -44,6 +45,7 @@ erDiagram
     organizations ||--o{ budgets: has
     budgets {
         int id PK
+        int OrganizationId FK
         string manager
         int year
         string half
@@ -52,6 +54,7 @@ erDiagram
     budgets ||--o{ incomes: has
     incomes {
         int id PK
+        int BudgetId FK
         string code
         enum source
         string category
@@ -60,8 +63,19 @@ erDiagram
         string note
     }
     budgets ||--o{ expenses: has
+    budgets ||--o{ specification: has
+    specification {
+        int id PK
+        int BudgetId FK
+        string accountNumber
+        string accountBank
+        string accountOwner
+        string URI
+        string note
+    }
     expenses {
         int id PK
+        int BudgetId FK
         string code
         enum source
         string category
@@ -74,6 +88,8 @@ erDiagram
     expenses ||--o{ transactions: has
     transactions {
         int id PK
+        int IncomeId FK
+        int ExpenseId FK
         date projectAt
         string manager
         string content
@@ -89,6 +105,13 @@ erDiagram
         string receivingAccountOwner
         boolean hasBill
     }
+    transactions ||--o{ transactions_evidences: has
+    transactions_evidences {
+        int id PK
+        int TransactionId FK
+        string URI
+        string note
+    }
     audit_periods {
         int year PK
         string half PK
@@ -98,6 +121,7 @@ erDiagram
     organizations ||--o{ accounts : has
     accounts {
         int id PK
+        int OrganizationId FK
         int year
         string half
         string name
@@ -105,6 +129,7 @@ erDiagram
         string accountBank
         string accountOwner
         string cardNumber
+        string URI
     }
 ```
 
