@@ -2,7 +2,11 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ master ]
+  workflow_run:
+    workflows: [Automatic Testing]
+    types:
+      - completed
 
 jobs:
   deploy:
