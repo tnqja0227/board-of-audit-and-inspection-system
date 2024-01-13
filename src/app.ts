@@ -72,6 +72,7 @@ export function createApp() {
                 'http://localhost:3000',
                 'http://dev-bai.gdsckaist.com',
                 'https://dev-bai.gdsckaist.com',
+                'https://gdsc-front-dev.vercel.app',
             ],
             methods: ['GET', 'PUT', 'POST', 'DELETE'],
             allowedHeaders: ['Content-Type', 'Authorization'],

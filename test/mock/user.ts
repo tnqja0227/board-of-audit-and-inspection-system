@@ -30,3 +30,11 @@ export function createMockUser3(organizationId: number | string) {
         OrganizationId: organizationId,
     };
 }
+
+export function createMockAdmin() {
+    return {
+        email: 'admin@kaist.ac.kr',
+        password: mockPassword,
+        role: 'admin',
+    };
+}

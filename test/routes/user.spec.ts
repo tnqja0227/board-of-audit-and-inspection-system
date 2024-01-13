@@ -23,9 +23,10 @@ describe('API /users', function () {
                 return next();
             });
 
-        const UserService = require('../../src/service/user');
+        const CreateUserDto =
+            require('../../src/dto/user.request').CreateUserDto;
         stubGeneratedRandomPassword = sinon
-            .stub(UserService, 'generateRandomPassword')
+            .stub(CreateUserDto.prototype, 'generateRandomPassword')
             .returns(Mock.mockPassword);
 
         app = createApp();
@@ -139,6 +140,22 @@ describe('API /users', function () {
             expect(res.body.role).to.equal('user');
             expect(res.body.is_disabled).to.be.false;
             expect(res.body.organization_id).to.equal(organization.id);
+        });
+
+        it('새로운 관리자 계정을 추가할 수 있다.', async function () {
+            let res = await chai.request(app).post('/users/admin').send({
+                email: Mock.mockEmail1,
+                password: Mock.mockPassword,
+            });
+            expect(res.status).to.equal(200);
+            expect(res.body.email).to.equal(Mock.mockEmail1);
+            expect(res.body.role).to.equal('admin');
+
+            res = await chai.request(app).post('/users/login').send({
+                email: Mock.mockEmail1,
+                password: Mock.mockPassword,
+            });
+            expect(res.status).to.equal(200);
         });
 
         it('이미 등록된 피감기구의 계정을 추가할 수 없다.', async function () {

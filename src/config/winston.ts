@@ -41,7 +41,7 @@ if (process.env.NODE_ENV !== 'production') {
                 filename: 'trace-%DATE%.log',
                 level: 'info',
                 dirname: path.join(__dirname, '../../logs'),
-                datePattern: 'YYYY-MM-DD-HH',
+                datePattern: 'YYYY-MM-DD',
                 maxSize: '20m',
                 maxFiles: '30d',
             }),

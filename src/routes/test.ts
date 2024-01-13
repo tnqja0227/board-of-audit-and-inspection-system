@@ -39,8 +39,6 @@ export function createTestRouter() {
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('Create dummy data');
 
-            await sequelize.truncate({ cascade: true });
-
             const account1 = {
                 accountNumber: '1234567890',
                 accountBank: '우리은행',
@@ -53,7 +51,7 @@ export function createTestRouter() {
             };
 
             const organization = await model.Organization.create({
-                name: '감사원',
+                name: '테스트',
             });
             const budget = await model.Budget.create({
                 year: 2023,
@@ -72,12 +70,12 @@ export function createTestRouter() {
                 amount: 180000,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-01'),
+                projectAt: new Date('2023-03-01 07:00:00'),
                 manager: '김넙죽',
                 content: '중앙회계 지원금',
                 amount: 180000,
                 balance: 180000,
-                transactionAt: new Date('2023-03-01'),
+                transactionAt: new Date('2023-03-01 07:00:00'),
                 IncomeId: income101.id,
                 ...account1,
             });
@@ -91,12 +89,12 @@ export function createTestRouter() {
                 amount: 632238,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-01'),
+                projectAt: new Date('2023-03-01 13:00:00'),
                 manager: '김넙죽',
                 content: '중앙회계 이월금',
                 amount: 502690,
                 balance: 682690,
-                transactionAt: new Date('2023-03-01'),
+                transactionAt: new Date('2023-03-01 13:00:00'),
                 IncomeId: income102.id,
                 ...account1,
             });
@@ -110,12 +108,12 @@ export function createTestRouter() {
                 amount: 1543856,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-15'),
+                projectAt: new Date('2023-03-15 09:00:00'),
                 manager: '김넙죽',
                 content: '격려금',
                 amount: 186441,
                 balance: 869131,
-                transactionAt: new Date('2023-03-15'),
+                transactionAt: new Date('2023-03-15 09:00:00'),
                 IncomeId: income103.id,
                 ...account1,
             });
@@ -129,12 +127,12 @@ export function createTestRouter() {
                 amount: 2000,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-03-01'),
+                projectAt: new Date('2023-03-01 09:00:00'),
                 manager: '김넙죽',
                 content: '예금이자',
                 amount: 261,
                 balance: 261,
-                transactionAt: new Date('2023-05-01'),
+                transactionAt: new Date('2023-05-01 09:00:00'),
                 IncomeId: income301.id,
                 ...account2,
             });
@@ -149,13 +147,33 @@ export function createTestRouter() {
                 amount: 1543856,
             });
             await model.Transaction.create({
-                projectAt: new Date('2023-05-30'),
+                projectAt: new Date('2023-05-30 09:00:00'),
                 manager: '김넙죽',
                 content: '격려금',
                 amount: 186441,
                 balance: 682690,
-                transactionAt: new Date('2023-05-30'),
+                transactionAt: new Date('2023-05-30 09:00:00'),
                 ExpenseId: expense401.id,
+                ...account1,
+            });
+
+            const expense404 = await model.Expense.create({
+                BudgetId: budget_id,
+                code: '404',
+                source: '학생회비',
+                category: '비정기사업비',
+                project: '사무소모품 및 유지',
+                content: '복리후생비',
+                amount: 60000,
+            });
+            await model.Transaction.create({
+                projectAt: new Date('2023-05-30 12:00:00'),
+                manager: '김넙죽',
+                content: '복리후생비',
+                amount: 61370,
+                balance: 621320,
+                transactionAt: new Date('2023-05-30 12:00:00'),
+                ExpenseId: expense404.id,
                 ...account1,
             });
 
@@ -178,26 +196,6 @@ export function createTestRouter() {
                 content: '회의비',
                 amount: 120000,
                 note: '내부 문제로 LT 사업 진행하지 않아 미집행',
-            });
-
-            const expense404 = await model.Expense.create({
-                BudgetId: budget_id,
-                code: '404',
-                source: '학생회비',
-                category: '비정기사업비',
-                project: '사무소모품 및 유지',
-                content: '복리후생비',
-                amount: 60000,
-            });
-            await model.Transaction.create({
-                projectAt: new Date('2023-05-30'),
-                manager: '김넙죽',
-                content: '복리후생비',
-                amount: 61370,
-                balance: 621320,
-                transactionAt: new Date('2023-05-30'),
-                ExpenseId: expense404.id,
-                ...account1,
             });
 
             res.json({

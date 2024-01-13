@@ -112,7 +112,7 @@ describe('API /accounts', function () {
         });
     });
 
-    describe('PUT /:id', function () {
+    describe('PUT /:account_id', function () {
         it('계좌 정보를 수정할 수 있다.', async function () {
             const accountName = '주계좌';
             const accountNumber = '1234567890';
@@ -164,7 +164,7 @@ describe('API /accounts', function () {
         });
     });
 
-    describe('DELETE /:id', function () {
+    describe('DELETE /:account_id', function () {
         it('계좌 정보를 삭제할 수 있다.', async function () {
             const accountNumber = '1234567890';
             const accountBank = '우리은행';

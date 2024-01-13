@@ -57,6 +57,7 @@ paths:
                     description: ValidationError
                 '404':
                     description: NotFoundError
+    /budgets/expense/:expense_id:
         put:
             description: 지출항목 수정 (자신의 피감기구만 호출 가능).
             tags:
