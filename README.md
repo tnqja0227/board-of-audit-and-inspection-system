@@ -18,7 +18,7 @@ npm run dev
 ## How to contribute?
 
 1. **CAUTION**: new commits of `master` branch cause automatic the deployment to published API server. It might cause unexpected API errors or data losses.
-3. Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
+2. Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## API Document
 
