@@ -34,7 +34,7 @@ class ExpenseController {
     updateExpense = async (req: Request, res: Response, next: NextFunction) => {
         logger.info('ExpenseController: updateExpense called');
 
-        const expenseId = req.params.expenseId;
+        const expenseId = req.params.expense_id;
         const source = req.body.source;
         const category = req.body.category;
         const project = req.body.project;
@@ -57,7 +57,7 @@ class ExpenseController {
     deleteExpense = async (req: Request, res: Response, next: NextFunction) => {
         logger.info('ExpenseController: deleteExpense called');
 
-        const expenseId = req.params.expenseId;
+        const expenseId = req.params.expense_id;
         const dto = new DeleteExpenseDto(expenseId);
         await this.expenseService.deleteExpense(dto);
         res.sendStatus(200);

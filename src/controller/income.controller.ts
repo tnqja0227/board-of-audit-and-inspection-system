@@ -32,7 +32,7 @@ class IncomeController {
     updateIncome = async (req: Request, res: Response, next: NextFunction) => {
         logger.info('IncomeController: updateIncome called');
 
-        const incomeId = req.params.incomeId;
+        const incomeId = req.params.income_id;
         const source = req.body.source;
         const category = req.body.category;
         const content = req.body.content;
@@ -53,7 +53,7 @@ class IncomeController {
     deleteIncome = async (req: Request, res: Response, next: NextFunction) => {
         logger.info('IncomeController: deleteIncome called');
 
-        const incomeId = req.params.incomeId;
+        const incomeId = req.params.income_id;
         const dto = new DeleteIncomeDto(incomeId);
         await this.incomeService.deleteIncome(dto);
         res.sendStatus(200);

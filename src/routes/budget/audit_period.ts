@@ -8,6 +8,16 @@ export function createPeriodRouter() {
     const router = express.Router();
     router.use(wrapAsync(validateIsAdmin));
 
+    router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+        const auditPeriods = await AuditPeriod.findAll({
+            order: [
+                ['year', 'ASC'],
+                ['half', 'ASC'],
+            ],
+        });
+        res.json(auditPeriods);
+    });
+
     router.post(
         '/:year/:half',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {

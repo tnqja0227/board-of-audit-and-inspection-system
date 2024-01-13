@@ -4,7 +4,7 @@ import { wrapAsync } from '../../middleware';
 import { validateOrganization } from '../../middleware/auth';
 import { createIncomeRouter } from './income';
 import { createExpenseRouter } from './expense';
-import { createPeriodRouter } from './period';
+import { createPeriodRouter } from './audit_period';
 import { BudgetController } from '../../controller';
 
 export function createBudgetsRouter() {
