@@ -23,6 +23,7 @@ const {
     Expense,
     Transaction,
     Account,
+    Card,
 } = require('../model');
 
 Organization.hasOne(User, {
@@ -39,6 +40,10 @@ Organization.hasMany(Account, {
     onDelete: 'CASCADE',
 });
 Account.belongsTo(Organization);
+
+Organization.hasMany(Card, {
+    onDelete: 'CASCADE',
+});
 
 Budget.hasMany(Income, {
     onDelete: 'CASCADE',

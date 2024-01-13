@@ -5,6 +5,7 @@ import {
     Account,
     AuditPeriod,
     Budget,
+    Card,
     Expense,
     Income,
     Organization,
@@ -30,6 +31,7 @@ export async function initDB() {
         Transaction,
         AuditPeriod,
         Account,
+        Card,
     ];
 
     for (const model of models) {

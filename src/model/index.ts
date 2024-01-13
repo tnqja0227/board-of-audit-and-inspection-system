@@ -6,6 +6,7 @@ import Expense from './expense';
 import Transaction from './transaction';
 import AuditPeriod from './audit_period';
 import Account from './account';
+import Card from './card';
 
 export {
     Organization,
@@ -16,4 +17,5 @@ export {
     Transaction,
     AuditPeriod,
     Account,
+    Card,
 };
