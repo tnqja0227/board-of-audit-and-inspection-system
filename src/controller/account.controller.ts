@@ -43,13 +43,13 @@ class AccountController {
             req.body.accountOwner,
         );
         await this.accountService.update(dto);
-        res.json({ success: true });
+        res.sendStatus(200);
     };
 
     delete = async (req: Request, res: Response, next: NextFunction) => {
         const dto = new DeleteAccountDto(req.params.account_id);
         await this.accountService.delete(dto);
-        res.json({ success: true });
+        res.sendStatus(200);
     };
 }
 
