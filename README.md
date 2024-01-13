@@ -15,6 +15,11 @@ docker compose -f compose-dev.yaml up
 npm run dev
 ```
 
+## How to contribute?
+
+1. **CAUTION**: new commits of `master` branch cause automatic the deployment to published API server. It might cause unexpected API errors or data losses.
+3. Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## API Document
 
 [API document](https://dev-bai.gdsckaist.com/api-docs)
