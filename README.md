@@ -126,6 +126,15 @@ erDiagram
         string half
         string URI
     }
+    organizations ||--o{ cards: has
+    cards {
+        int id PK
+        int OrganizationId FK
+        int year
+        string half
+        string name
+        string cardNumber
+    }
     organizations ||--o{ accounts : has
     accounts {
         int id PK
@@ -136,7 +145,6 @@ erDiagram
         string accountNumber
         string accountBank
         string accountOwner
-        string cardNumber
     }
 ```
 
