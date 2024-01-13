@@ -29,7 +29,6 @@ class AccountController {
             req.body.accountNumber,
             req.body.accountBank,
             req.body.accountOwner,
-            req.body.cardNumber,
         );
         const account = await this.accountService.create(dto);
         res.json(account.toJSON());
@@ -42,7 +41,6 @@ class AccountController {
             req.body.accountNumber,
             req.body.accountBank,
             req.body.accountOwner,
-            req.body.cardNumber,
         );
         await this.accountService.update(dto);
         res.json({ success: true });

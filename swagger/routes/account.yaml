@@ -40,15 +40,10 @@ paths:
                                     type: string
                                     description: 예금주
                                     example: 김넙죽
-                                cardNumber:
-                                    type: string
-                                    description: 카드번호
-                                    example: 123456789
                             required:
                                 - accountNumber
                                 - accountBank
                                 - accountOwner
-                                - cardNumber
             responses:
                 '200':
                     description: OK
@@ -81,15 +76,10 @@ paths:
                                     type: string
                                     description: 예금주
                                     example: 김넙죽
-                                cardNumber:
-                                    type: string
-                                    description: 카드번호
-                                    example: 123456789
                             required:
                                 - accountNumber
                                 - accountBank
                                 - accountOwner
-                                - cardNumber
             responses:
                 '200':
                     description: OK
@@ -136,10 +126,6 @@ definitions:
                 type: string
                 description: 예금주
                 example: 김넙죽
-            cardNumber:
-                type: string
-                description: 카드번호
-                example: 123456789
             created_at:
                 type: timestamp
                 example: 2020-01-01 00:00:00
@@ -153,4 +139,3 @@ definitions:
             - accountNumber
             - accountBank
             - accountOwner
-            - cardNumber
