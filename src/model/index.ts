@@ -6,7 +6,7 @@ import Expense from './expense';
 import Transaction from './transaction';
 import AuditPeriod from './audit_period';
 import Account from './account';
-import ExpenseRecord from './expense_record';
+import TransactionRecord from './expense_record';
 
 export {
     Organization,
@@ -17,5 +17,5 @@ export {
     Transaction,
     AuditPeriod,
     Account,
-    ExpenseRecord,
+    TransactionRecord,
 };

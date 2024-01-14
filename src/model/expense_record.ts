@@ -1,14 +1,14 @@
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../db';
 
-class ExpenseRecord extends Model {
+class TransactionRecord extends Model {
     declare id: number;
     declare transactionId: number; // 통장 거래 내역 id
     declare key: string; // s3 bucket 상에서 이미지의 key
     declare note: string; // 비고
 }
 
-ExpenseRecord.init(
+TransactionRecord.init(
     {
         id: {
             type: DataTypes.INTEGER.UNSIGNED,
@@ -33,9 +33,9 @@ ExpenseRecord.init(
         },
     },
     {
-        tableName: 'expense_records',
+        tableName: 'transaction_records',
         sequelize,
     },
 );
 
-export default ExpenseRecord;
+export default TransactionRecord;

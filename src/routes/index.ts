@@ -5,7 +5,7 @@ import { createTransactionsRouter } from './transaction';
 import { createTestRouter } from './test';
 import { createAccountsRouter } from './account';
 import { createBudgetsRouter } from './budget';
-import { createExpenseRecordsRouter } from './expense_record';
+import { createTransactionRecordsRouter } from './transaction_record';
 
 export function createRouter() {
     const router = express.Router();
@@ -15,7 +15,7 @@ export function createRouter() {
     router.use('/transactions', createTransactionsRouter());
     router.use('/users', createUsersRouter());
     router.use('/test', createTestRouter());
-    router.use('/expense_records', createExpenseRecordsRouter());
+    router.use('/', createTransactionRecordsRouter());
 
     return router;
 }

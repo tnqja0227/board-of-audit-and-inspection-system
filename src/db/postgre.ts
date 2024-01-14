@@ -23,6 +23,7 @@ const {
     Expense,
     Transaction,
     Account,
+    TransactionRecord,
 } = require('../model');
 
 Organization.hasOne(User, {
