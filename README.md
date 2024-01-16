@@ -68,16 +68,6 @@ erDiagram
         string note
     }
     budgets ||--o{ expenses: has
-    budgets ||--o{ specifications: has
-    specifications {
-        int id PK
-        int BudgetId FK
-        string accountNumber
-        string accountBank
-        string accountOwner
-        string URI
-        string note
-    }
     expenses {
         int id PK
         int BudgetId FK
@@ -150,6 +140,13 @@ erDiagram
         string accountNumber
         string accountBank
         string accountOwner
+    }
+    accounts ||--o{ account_records: has
+    account_records {
+        int id PK
+        int AccountId FK
+        string URI
+        string note
     }
 ```
 
