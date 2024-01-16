@@ -1,6 +1,12 @@
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
-import { Transaction, TransactionRecord } from '../model';
+import {
+    Transaction,
+    TransactionRecord,
+    Income,
+    Expense,
+    Budget,
+} from '../model';
 import { validateAuditPeriod, wrapAsync } from '../middleware';
 import { validateOrganization } from '../middleware/auth';
 import { BadRequestError } from '../utils/errors';
@@ -13,7 +19,7 @@ import { findRequestedOrganization } from '../middleware/auth';
 
 export function createTransactionRecordsRouter() {
     const router = express.Router();
-    // router.use(wrapAsync(validateOrganization));
+    router.use(wrapAsync(validateOrganization));
     router.get(
         '/test',
         upload.single('file'),
@@ -65,8 +71,8 @@ export function createTransactionRecordsRouter() {
     );
 
     router.post(
-        '/:organization/:transactionId',
-        // validateOrganization,
+        '/:organizationId/:transactionId',
+        validateOrganization,
         upload.single('file'),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             if (!req.file) {
@@ -78,11 +84,64 @@ export function createTransactionRecordsRouter() {
                 return ret;
             }
 
-            // TODO: transaction_id validation
-            const organization = req.params.organization;
-            const audit_year = '2024'; // TODO: get audit year dynamically
-            const audit_half_period = 'Spring'; // TODO: get audit half period dynamically
-            const fileKey = `${organization}/${audit_year}/${audit_half_period}/expense_records/${req.params.transactionId}/${req.file.filename}`;
+            // TODO: transaction 존재 여부 확인, audit_year, audit_half_period 추출 로직을 서비스로 분리.
+
+            let audit_year = null;
+            let audit_half_period = null;
+            try {
+                const transaction = await Transaction.findOne({
+                    where: {
+                        id: req.params.transactionId,
+                    },
+                });
+
+                if (!transaction) {
+                    throw new BadRequestError(
+                        'Failed to find Transaction to upload',
+                    );
+                }
+
+                if (transaction.IncomeId) {
+                    const income = await Income.findOne({
+                        where: {
+                            id: transaction.IncomeId,
+                        },
+                    });
+                    let budget = await Budget.findOne({
+                        where: {
+                            id: income?.BudgetId,
+                        },
+                    });
+                    audit_year = budget?.year;
+                    audit_half_period = budget?.half;
+                } else if (transaction.ExpenseId) {
+                    const expense = await Expense.findOne({
+                        where: {
+                            id: transaction.ExpenseId,
+                        },
+                    });
+                    let budget = await Budget.findOne({
+                        where: {
+                            id: expense?.BudgetId,
+                        },
+                    });
+                    audit_year = budget?.year;
+                    audit_half_period = budget?.half;
+                } else {
+                    throw new BadRequestError(
+                        'Failed to find Income or Expense to upload',
+                    );
+                }
+            } catch (error) {
+                const ret = {
+                    statusCode: 400,
+                    message: 'Failed to find Transaction to upload',
+                };
+                res.json(ret);
+                return ret;
+            }
+
+            const fileKey = `${req.params.organizationId}/${audit_year}/${audit_half_period}/expense_records/${req.params.transactionId}/${req.file.filename}`;
             // TODO: 중복 확인
             const uploadResponse = await uploadFileToS3(req.file.path, fileKey);
             if (uploadResponse.statusCode !== 200) {
