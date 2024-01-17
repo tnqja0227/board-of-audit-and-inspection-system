@@ -30,6 +30,8 @@ const RECIEVINGACCOUNTBANK = '우리은행';
 const RECIEVINGACCOUNTNUMBER = '1234567890';
 const RECIEVINGACCOUNTOWNER = '최넙죽';
 
+const KEY = 'test/test.jpg';
+
 describe('API /transaction_record', function () {
     let app: Express.Application;
     var stubValidateOrganization: sinon.SinonStub;
@@ -112,12 +114,45 @@ describe('API /transaction_record', function () {
 
     describe('GET /:organization_id/:year/:half', function () {
         it('피감기관 별로 거래 내역 증빙 자료의 목록을 확인할 수 있다.', async function () {
-            // transaction record 하나 생성
-            // transaction record 목록 조회 API 호출
-            // response status code 200
-            // 반환된 transaction record 목록이 생성한 transaction record 목록과 일치함
+            const transactionRecord = await model.TransactionRecord.create({
+                transactionId: transaction.id,
+                key: KEY,
+                note: NOTE,
+            });
+
+            const res = await chai
+                .request(app)
+                .get(`/transaction_records/${organization.id}/${YEAR}/${HALF}`);
+
+            expect(res).to.have.status(200);
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0].transactionId).to.equal(transaction.id);
+            expect(res.body[0].key).to.equal(KEY);
+            expect(res.body[0].note).to.equal(NOTE);
         });
     });
+
+    // describe('GET /:organization_id/:year/:half/:transaction_id', function () {
+    //     it('피감기관 별로 거래 내역 증빙 자료의 목록을 확인할 수 있다.', async function () {
+    //         const transactionRecord = await model.TransactionRecord.create({
+    //             transactionId: transaction.id,
+    //             key: KEY,
+    //             note: NOTE,
+    //         });
+
+    //         const res = await chai
+    //             .request(app)
+    //             .get(
+    //                 `/transaction_records/${organization.id}/${YEAR}/${HALF}/${transaction.id}`,
+    //             );
+
+    //         expect(res).to.have.status(200);
+
+    //         expect(res.body[0].transactionId).to.equal(transaction.id);
+    //         expect(res.body[0].key).to.equal(KEY);
+    //         expect(res.body[0].note).to.equal(NOTE);
+    //     });
+    // });
 
     describe('POST /:organization/:year/:half/:transaction_id', function () {
         it('피감기관의 거래 내역 증빙 자료를 추가할 수 있다.', async function () {
@@ -125,6 +160,26 @@ describe('API /transaction_record', function () {
             // transaction record 하나 생성 API 호출
             // response status code 200
             // 반환된 transaction record가 생성한 transaction record와 일치함
+
+            const res = await chai
+                .request(app)
+                .post(
+                    `/transaction_records/${organization.id}/${YEAR}/${HALF}/${transaction.id}`,
+                )
+                .send({
+                    key: KEY,
+                    note: NOTE,
+                });
+            expect(res).to.have.status(200);
+
+            const transactionRecords = await model.TransactionRecord.findAll({
+                where: {
+                    transactionId: transaction.id,
+                },
+            });
+            expect(transactionRecords.length).to.equal(1);
+            expect(transactionRecords[0].key).to.equal(KEY);
+            expect(transactionRecords[0].note).to.equal(NOTE);
         });
     });
 
@@ -134,6 +189,25 @@ describe('API /transaction_record', function () {
             // transaction record 하나 삭제 API 호출
             // response status code 200
             // 아무 것도 반환 안 됨.
+
+            const transactionRecord = await model.TransactionRecord.create({
+                transactionId: transaction.id,
+                key: KEY,
+                note: NOTE,
+            });
+
+            const res = await chai
+                .request(app)
+                .delete(
+                    `/transaction_records/${organization.id}/${YEAR}/${HALF}/${transaction.id}/${transactionRecord.id}`,
+                );
+            expect(res).to.have.status(200);
+            const transactionRecords = await model.TransactionRecord.findAll({
+                where: {
+                    transactionId: transaction.id,
+                },
+            });
+            expect(transactionRecords.length).to.equal(0);
         });
     });
 });
