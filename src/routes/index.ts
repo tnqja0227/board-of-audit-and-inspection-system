@@ -15,7 +15,7 @@ export function createRouter() {
     router.use('/transactions', createTransactionsRouter());
     router.use('/users', createUsersRouter());
     router.use('/test', createTestRouter());
-    router.use('/', createTransactionRecordsRouter());
+    router.use('/transaction_records', createTransactionRecordsRouter());
 
     return router;
 }

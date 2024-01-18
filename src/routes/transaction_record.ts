@@ -35,7 +35,7 @@ export function createTransactionRecordsRouter() {
                 const organization = 'test_org_1'; // test
                 const audit_year = '2024'; // TODO: get audit year dynamically
                 const audit_half_period = 'Spring'; // TODO: get audit half period dynamically
-                const fileKey = `${organization}/${audit_year}/${audit_half_period}/expense_records/${req.file.filename}`;
+                const fileKey = `${organization}/${audit_year}/${audit_half_period}/transaction_records/${req.file.filename}`;
 
                 const uploadResponse = await uploadFileToS3(
                     req.file?.path,
@@ -83,7 +83,7 @@ export function createTransactionRecordsRouter() {
                 res.json(ret);
                 return ret;
             }
-
+            logger.info('got file: ', req.file);
             // TODO: transaction 존재 여부 확인, audit_year, audit_half_period 추출 로직을 서비스로 분리.
 
             let audit_year = null;
@@ -141,7 +141,7 @@ export function createTransactionRecordsRouter() {
                 return ret;
             }
 
-            const fileKey = `${req.params.organizationId}/${audit_year}/${audit_half_period}/expense_records/${req.params.transactionId}/${req.file.filename}`;
+            const fileKey = `${req.params.organizationId}/${audit_year}/${audit_half_period}/transaction_records/${req.params.transactionId}/${req.file.filename}`;
             // TODO: 중복 확인
             const uploadResponse = await uploadFileToS3(req.file.path, fileKey);
             if (uploadResponse.statusCode !== 200) {
@@ -177,7 +177,7 @@ export function createTransactionRecordsRouter() {
             if (req.file) {
                 const audit_year = '2024'; // TODO: get audit year dynamically
                 const audit_half_period = 'Spring'; // TODO: get audit half period dynamically, ENUM 타입으로 바꾸기
-                const fileKey = `${req.params.organization}/${audit_year}/${audit_half_period}/expense_records/${req.params.transaction_id}/${req.file.filename}`;
+                const fileKey = `${req.params.organization}/${audit_year}/${audit_half_period}/transaction_records/${req.params.transaction_id}/${req.file.filename}`;
                 // TODO: 중복 확인
                 const uploadResponse = await uploadFileToS3(
                     req.file.path,
@@ -261,7 +261,7 @@ export function createTransactionRecordsRouter() {
     );
 
     router.delete(
-        '/:transaction_record_id',
+        '/:organizationId/:transaction_record_id',
         validateOrganization,
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             try {
