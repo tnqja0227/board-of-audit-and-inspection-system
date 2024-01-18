@@ -7,6 +7,8 @@ import Transaction from './transaction';
 import AuditPeriod from './audit_period';
 import Account from './account';
 import TransactionRecord from './transaction_record';
+import AccountRecord from './account_record';
+import CardEvidence from './card_evidence';
 
 export {
     Organization,
@@ -18,4 +20,6 @@ export {
     AuditPeriod,
     Account,
     TransactionRecord,
+    AccountRecord,
+    CardEvidence,
 };
