@@ -28,7 +28,7 @@ TransactionRecord.init(
             allowNull: false,
         },
         note: {
-            type: DataTypes.TEXT,
+            type: DataTypes.STRING,
             allowNull: true,
         },
     },
