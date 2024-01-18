@@ -7,6 +7,7 @@ import { initDB } from '../../src/db/utils';
 import { createApp } from '../../src/app';
 import { readFileSync } from 'fs';
 import * as s3Service from '../../src/service/s3';
+import { FILE } from 'dns';
 
 chai.use(chaiHttp);
 
@@ -35,6 +36,7 @@ const RECIEVINGACCOUNTOWNER = '최넙죽';
 const KEY = 'test/test.jpg';
 const TEST_IMAGE_PATH = './test/assets/image1.jpg';
 const TEST_IMAGE = readFileSync(TEST_IMAGE_PATH);
+const FILENAME = 'test.jpg';
 
 describe('API /transaction_record', function () {
     let app: Express.Application;
@@ -158,18 +160,13 @@ describe('API /transaction_record', function () {
 
     describe('POST /:organizationId/:transactionId', function () {
         it('피감기관의 거래 내역 증빙 자료를 추가할 수 있다.', async function () {
-            // transaction record 하나 생성
-            // transaction record 하나 생성 API 호출
-            // response status code 200
-            // 반환된 transaction record가 생성한 transaction record와 일치함
-
             const res = await chai
                 .request(app)
                 .post(
                     `/transaction_records/${organization.id}/${transaction.id}`,
                 )
                 .set('Content-Type', 'multipart/form-data')
-                .attach('file', TEST_IMAGE, 'test.jpg')
+                .attach('file', TEST_IMAGE, FILENAME)
                 .field('memo', NOTE);
 
             expect(res).to.have.status(200);
@@ -179,9 +176,16 @@ describe('API /transaction_record', function () {
                     transactionId: transaction.id,
                 },
             });
+            const fileKey = `${organization.id}/${YEAR}/${HALF}/transaction_records/${transaction.id}`;
             expect(transactionRecords.length).to.equal(1);
             expect(transactionRecords[0].note).to.equal(NOTE);
-            // TODO: key에 대한 확인도 해야하는가?
+
+            // FILENAME 앞 부분 folder까지가 일치해야 함.
+            const fileKeyUptoFolder = transactionRecords[0].key
+                .split('/')
+                .slice(0, -1)
+                .join('/');
+            expect(fileKeyUptoFolder).to.equal(fileKey);
         });
     });
 
