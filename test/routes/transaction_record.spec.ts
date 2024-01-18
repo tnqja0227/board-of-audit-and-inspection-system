@@ -7,7 +7,6 @@ import { initDB } from '../../src/db/utils';
 import { createApp } from '../../src/app';
 import { readFileSync } from 'fs';
 import * as s3Service from '../../src/service/s3';
-import { FILE } from 'dns';
 
 chai.use(chaiHttp);
 
