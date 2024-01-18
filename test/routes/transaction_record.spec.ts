@@ -191,11 +191,6 @@ describe('API /transaction_record', function () {
 
     describe('DELETE /:organizationId/:transaction_record_id', function () {
         it('피감기관의 거래 내역 증빙 자료를 삭제할 수 있다.', async function () {
-            // transaction record 하나 생성
-            // transaction record 하나 삭제 API 호출
-            // response status code 200
-            // 아무 것도 반환 안 됨.
-
             const transactionRecord = await model.TransactionRecord.create({
                 transactionId: transaction.id,
                 key: KEY,
