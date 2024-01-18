@@ -35,3 +35,5 @@ AccountRecord.init(
         ],
     },
 );
+
+export default AccountRecord;

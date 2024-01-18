@@ -40,3 +40,5 @@ CardEvidence.init(
         ],
     },
 );
+
+export default CardEvidence;
