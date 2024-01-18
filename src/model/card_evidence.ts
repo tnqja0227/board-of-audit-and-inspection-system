@@ -6,7 +6,7 @@ class CardEvidence extends Model {
     declare organizationId: number;
     declare year: string;
     declare half: string;
-    declare uri: string;
+    declare key: string;
 }
 
 CardEvidence.init(
@@ -24,7 +24,7 @@ CardEvidence.init(
             type: DataTypes.STRING,
             allowNull: false,
         },
-        uri: {
+        key: {
             type: DataTypes.STRING,
             allowNull: false,
         },
