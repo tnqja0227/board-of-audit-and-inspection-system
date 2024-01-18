@@ -1,5 +1,5 @@
 paths:
-    /expense_records/:transaction_id:
+    /transaction_records/:transaction_id:
         post:
             description: 지출내역 증빙 자료 생성 (자신의 피감기구만 호출 가능).
             tags:
@@ -42,14 +42,14 @@ paths:
                 400:
                     description: BadRequestError. Invalid input.
 
-    /expense_records/:expense_record_id:
+    /transaction_records/:transaction_record_id:
         put:
             description: 지출내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
             parameters:
                 - in: path
-                  name: expense_record_id
+                  name: transaction_record_id
                   required: true
                   schema:
                       type: string
@@ -90,7 +90,7 @@ paths:
                 - 지출내역 증빙 자료
             parameters:
                 - in: path
-                  name: expense_record_id
+                  name: transaction_record_id
                   required: true
                   schema:
                       type: string
@@ -123,7 +123,7 @@ definitions:
             key:
                 type: string
                 description: 증빙 자료의 key. S3 bucket과 결합하여 S3에서의 key가 된다.
-                example: https://example.com/expense_record.pdf
+                example: https://example.com/transaction_record.pdf
             memo:
                 type: string
                 description: 메모
