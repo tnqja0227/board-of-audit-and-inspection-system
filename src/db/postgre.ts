@@ -61,6 +61,11 @@ Expense.hasMany(Transaction, {
 });
 Transaction.belongsTo(Expense);
 
+Transaction.hasMany(TransactionRecord, {
+    onDelete: 'CASCADE',
+});
+TransactionRecord.belongsTo(Transaction);
+
 sequelize.authenticate().catch((err) => {
     logger.error('Unable to connect to the PostgreSQL database:');
     throw err;
