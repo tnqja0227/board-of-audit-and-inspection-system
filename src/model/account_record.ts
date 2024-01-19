@@ -23,16 +23,18 @@ AccountRecord.init(
             type: DataTypes.STRING,
             allowNull: true,
         },
+        accountId: {
+            type: DataTypes.INTEGER.UNSIGNED,
+            allowNull: false,
+            references: {
+                model: 'accounts',
+                key: 'id',
+            },
+        },
     },
     {
         tableName: 'account_records',
         sequelize,
-        indexes: [
-            {
-                unique: true,
-                fields: ['accountId'],
-            },
-        ],
     },
 );
 

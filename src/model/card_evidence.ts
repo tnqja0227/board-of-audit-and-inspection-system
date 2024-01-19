@@ -28,6 +28,14 @@ CardEvidence.init(
             type: DataTypes.STRING,
             allowNull: false,
         },
+        organizationId: {
+            type: DataTypes.INTEGER.UNSIGNED,
+            allowNull: false,
+            references: {
+                model: 'organizations',
+                key: 'id',
+            },
+        },
     },
     {
         tableName: 'card_evidences',
