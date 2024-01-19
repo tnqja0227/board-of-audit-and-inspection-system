@@ -11,6 +11,8 @@ import {
     Transaction,
     User,
     TransactionRecord,
+    CardEvidence,
+    AccountRecord,
 } from '../model';
 
 export async function initDB() {
@@ -32,6 +34,8 @@ export async function initDB() {
         AuditPeriod,
         Account,
         TransactionRecord,
+        AccountRecord,
+        CardEvidence,
     ];
 
     for (const model of models) {

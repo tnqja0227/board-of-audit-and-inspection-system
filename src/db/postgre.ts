@@ -24,6 +24,8 @@ const {
     Transaction,
     Account,
     TransactionRecord,
+    AccountRecord,
+    CardEvidence,
 } = require('../model');
 
 Organization.hasOne(User, {
@@ -40,6 +42,16 @@ Organization.hasMany(Account, {
     onDelete: 'CASCADE',
 });
 Account.belongsTo(Organization);
+
+Organization.hasMany(CardEvidence, {
+    onDelete: 'CASCADE',
+});
+CardEvidence.belongsTo(Organization);
+
+Account.hasOne(AccountRecord, {
+    onDelete: 'CASCADE',
+});
+AccountRecord.belongsTo(Account);
 
 Budget.hasMany(Income, {
     onDelete: 'CASCADE',
