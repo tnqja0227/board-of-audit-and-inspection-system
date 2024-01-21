@@ -98,7 +98,7 @@ describe('API /account_records', function () {
         await model.Organization.destroy(options);
     });
 
-    describe('GET /:organization_id/:accountId', function () {
+    describe('GET /:organization_id/:account_id', function () {
         it('피감기관 별로 통장 입출금 증빙 자료를 조회할 수 있다.', async function () {
             const accountRecord = await model.AccountRecord.create({
                 accountId: account.id,
@@ -118,7 +118,7 @@ describe('API /account_records', function () {
         });
     });
 
-    describe('POST /:organizationId/:accountId', function () {
+    describe('POST /:organizationId/:account_id', function () {
         it('피감기관의 통장 입출금 내역 증빙 자료를 추가할 수 있다.', async function () {
             const res = await chai
                 .request(app)
