@@ -36,6 +36,7 @@ const KEY = 'test/test.jpg';
 const TEST_IMAGE_PATH = './test/assets/image1.jpg';
 const TEST_IMAGE = readFileSync(TEST_IMAGE_PATH);
 const FILENAME = 'test.jpg';
+const NEW_MEMO = '새로운 비고';
 
 describe('API /transaction_record', function () {
     let app: Express.Application;
@@ -186,6 +187,37 @@ describe('API /transaction_record', function () {
                 .join('/');
             expect(fileKeyUptoFolder).to.equal(fileKey);
         });
+    });
+
+    describe('PUT /:organizationId/:transaction_record_id', function () {
+        it('피감기관의 거래 내역 증빙 자료의 비고란을 수정할 수 있다.', async function () {
+            const transactionRecord = await model.TransactionRecord.create({
+                transactionId: transaction.id,
+                key: KEY,
+                note: NOTE,
+            });
+
+            const res = await chai
+                .request(app)
+                .put(
+                    `/transaction_records/${organization.id}/${transactionRecord.id}`,
+                )
+                .send({
+                    memo: NEW_MEMO,
+                });
+
+            expect(res).to.have.status(200);
+            const transactionRecords = await model.TransactionRecord.findAll({
+                where: {
+                    id: transactionRecord.id,
+                },
+            });
+            expect(transactionRecords.length).to.equal(1);
+            expect(transactionRecords[0].note).to.equal(NEW_MEMO);
+            expect(transactionRecords[0].key).to.equal(KEY);
+        });
+
+        // TODO: 사진 수정에 관련된 테스트 작성.
     });
 
     describe('DELETE /:organizationId/:transaction_record_id', function () {
