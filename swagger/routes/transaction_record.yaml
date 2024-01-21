@@ -1,10 +1,16 @@
 paths:
-    /transaction_records/:transaction_id:
+    /transaction_records/:organizationId/:transactionId:
         post:
             description: 지출내역 증빙 자료 생성 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
             parameters:
+                - in: path
+                  name: organizationId
+                  required: true
+                  schema:
+                      type: string
+                  description: 피감기구 ID.
                 - in: path
                   name: transaction_id
                   required: true
@@ -20,7 +26,7 @@ paths:
                             properties:
                                 memo:
                                     type: string
-                                    description: Optional memo for the expense record.
+                                    description: Optional memo for the transaction record.
                                 file:
                                     type: string
                                     format: binary
@@ -32,7 +38,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/definitions/ExpenseRecord'
+                                $ref: '#/definitions/TransactionRecord'
                 401:
                     description: UnauthorizedError
                 403:
@@ -42,12 +48,18 @@ paths:
                 400:
                     description: BadRequestError. Invalid input.
 
-    /transaction_records/:transaction_record_id:
+    /transaction_records/:organizationId/:transaction_record_id:
         put:
             description: 지출내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
             parameters:
+                - in: path
+                  name: organizationId
+                  required: true
+                  schema:
+                      type: string
+                  description: 피감기구 ID.
                 - in: path
                   name: transaction_record_id
                   required: true
@@ -63,7 +75,7 @@ paths:
                             properties:
                                 memo:
                                     type: string
-                                    description: Optional memo for the expense record.
+                                    description: Optional memo for the transaction record.
                                 file:
                                     type: string
                                     format: binary
@@ -74,7 +86,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/definitions/ExpenseRecord'
+                                $ref: '#/definitions/TransactionRecord'
                 401:
                     description: UnauthorizedError
                 403:
@@ -100,7 +112,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/definitions/ExpenseRecord'
+                                $ref: '#/definitions/TransactionRecord'
                 401:
                     description: UnauthorizedError
                 403:
@@ -109,7 +121,7 @@ paths:
                     description: NotFoundError
 
 definitions:
-    ExpenseRecord:
+    TransactionRecord:
         type: object
         properties:
             id:
