@@ -6,8 +6,6 @@ import { AuditPeriod } from '../../model';
 
 export function createPeriodRouter() {
     const router = express.Router();
-    router.use(wrapAsync(validateIsAdmin));
-
     router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         const auditPeriods = await AuditPeriod.findAll({
             order: [
@@ -17,6 +15,8 @@ export function createPeriodRouter() {
         });
         res.json(auditPeriods);
     });
+
+    router.use(wrapAsync(validateIsAdmin));
 
     router.post(
         '/:year/:half',
