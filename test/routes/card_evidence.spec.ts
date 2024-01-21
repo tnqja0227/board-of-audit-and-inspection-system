@@ -20,7 +20,7 @@ const TEST_IMAGE_PATH = './test/assets/image1.jpg';
 const TEST_IMAGE = readFileSync(TEST_IMAGE_PATH);
 const FILENAME = 'test.jpg';
 
-describe('API /card_evidence', function () {
+describe('API /card_evidences', function () {
     let app: Express.Application;
     var stubValidateOrganization: sinon.SinonStub;
     let organization: model.Organization;
