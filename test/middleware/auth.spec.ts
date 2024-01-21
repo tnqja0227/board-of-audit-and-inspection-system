@@ -1,10 +1,13 @@
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
 import sinon from 'sinon';
+import chaiAsPromised from 'chai-as-promised';
 import { initDB } from '../../src/db/utils';
 import * as auth from '../../src/middleware/auth';
 import { Request, Response } from 'express';
 import * as model from '../../src/model';
 import * as errors from '../../src/utils/errors';
+
+chai.use(chaiAsPromised);
 
 describe('Middleware: auth', function () {
     afterEach(function () {
