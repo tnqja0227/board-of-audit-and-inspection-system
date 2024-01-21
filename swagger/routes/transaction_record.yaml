@@ -102,6 +102,12 @@ paths:
                 - 지출내역 증빙 자료
             parameters:
                 - in: path
+                  name: organizationId
+                  required: true
+                  schema:
+                      type: string
+                  description: 피감기구 ID.
+                - in: path
                   name: transaction_record_id
                   required: true
                   schema:
