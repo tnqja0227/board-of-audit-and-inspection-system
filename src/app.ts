@@ -37,17 +37,27 @@ const options = {
 // initialize swagger-jsdoc
 const swaggerSpec = swaggerJSDoc(options);
 
-const sessionMiddleware = session({
+const sessionConfig = {
     store: redisStore,
     secret: (process.env.SESSION_SECRET as string) || 'keyboard cat',
     resave: false,
     saveUninitialized: false,
-    cookie: {
+    cookie: {},
+};
+
+if (process.env.NODE_ENV === 'production') {
+    sessionConfig.cookie = {
         httpOnly: true,
         sameSite: 'none',
         secure: true,
-    },
-});
+    };
+} else {
+    sessionConfig.cookie = {
+        httpOnly: true,
+    };
+}
+
+const sessionMiddleware = session(sessionConfig);
 
 export function createApp() {
     const app = express();
