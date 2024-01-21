@@ -1,0 +1,186 @@
+paths:
+    /card_evidences/:organization_id/:year/:half:
+        get:
+            description: 피감기구가 등록한 카드 거래 내역 증빙 자료를 모두 조회합니다 (자신의 피감기구만 호출 가능).
+            tags:
+                - 카드 거래 내역 증빙 자료
+            parameters:
+                - in: path
+                  name: organization_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 피감기구 ID.
+                - in: path
+                  name: year
+                  required: true
+                  schema:
+                      type: string
+                  description: 회계기간 년도.
+                - in: path
+                  name: half
+                  required: true
+                  schema:
+                      type: string
+                  description: 회계기간 반기.
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/definitions/CardEvidence'
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+        post:
+            description: 카드 거래 내역 증빙 자료 생성 (자신의 피감기구만 호출 가능).
+            tags:
+                - 카드 거래 내역 증빙 자료
+            parameters:
+                - in: path
+                  name: organization_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 피감기구 ID.
+                - in: path
+                  name: year
+                  required: true
+                  schema:
+                      type: string
+                  description: 회계기간 년도.
+                - in: path
+                  name: half
+                  required: true
+                  schema:
+                      type: string
+                  description: 회계기간 반기.
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                file:
+                                    type: string
+                                    format: binary
+                                    description: The image or PDF file of the receipt.
+                            required:
+                                - file
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/CardEvidence'
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+                '400':
+                    description: BadRequestError. Invalid input.
+    /card_evidences/:organization_id/:card_evidence_id:
+        put:
+            description: 카드 거래 내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
+            tags:
+                - 카드 거래 내역 증빙 자료
+            parameters:
+                - in: path
+                  name: organization_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 피감기구 ID.
+                - in: path
+                  name: card_evidence_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 카드 거래 내역 증빙 자료 object ID.
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                file:
+                                    type: string
+                                    format: binary
+                                    description: The image or PDF file of the receipt.
+                            required:
+                                - file
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/CardEvidence'
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+                '400':
+                    description: BadRequestError. Invalid input.
+        delete:
+            description: 카드 거래 내역 증빙 자료 삭제 (자신의 피감기구만 호출 가능).
+            tags:
+                - 카드 거래 내역 증빙 자료
+            parameters:
+                - in: path
+                  name: organization_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 피감기구 ID.
+                - in: path
+                  name: card_evidence_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 카드 거래 내역 증빙 자료 object ID.
+            responses:
+                '200':
+                    description: OK
+                '401':
+                    description: UnauthorizedError
+                '403':
+                    description: ValidationError
+                '404':
+                    description: NotFoundError
+                '400':
+                    description: BadRequestError. Invalid input.
+
+definitions:
+    CardEvidence:
+        type: object
+        properties:
+            id:
+                type: string
+                description: 카드 거래 내역 증빙 자료 ID
+            year:
+                type: string
+                description: 회계연도
+                example: 2023
+            half:
+                type: string
+                description: 회계기간 반기
+                example: FALL
+            key:
+                type: string
+                description: 카드 거래 내역 증빙 자료 파일의 bucket key
+                example: organization_id/year/half/card_evidences/filename.jpg
+            organizationId:
+                type: integer
+                description: 피감기구 ID
+                example: 1
