@@ -21,7 +21,7 @@ CardEvidence.init(
             allowNull: false,
         },
         half: {
-            type: DataTypes.STRING,
+            type: DataTypes.ENUM('spring', 'fall'),
             allowNull: false,
         },
         key: {
