@@ -20,55 +20,6 @@ import { findRequestedOrganization } from '../middleware/auth';
 export function createTransactionRecordsRouter() {
     const router = express.Router();
     router.use(wrapAsync(validateOrganization));
-    router.get(
-        '/test',
-        upload.single('file'),
-        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            if (!req.file) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'No file was uploaded to the server',
-                };
-                res.json(ret);
-            } else {
-                logger.info('got file: ', req.file);
-                const organization = 'test_org_1'; // test
-                const audit_year = '2024'; // TODO: get audit year dynamically
-                const audit_half_period = 'Spring'; // TODO: get audit half period dynamically
-                const fileKey = `${organization}/${audit_year}/${audit_half_period}/transaction_records/${req.file.filename}`;
-
-                const uploadResponse = await uploadFileToS3(
-                    req.file?.path,
-                    fileKey,
-                );
-                fs.unlinkSync(req.file.path);
-                if (uploadResponse.statusCode !== 200) {
-                    const ret = {
-                        statusCode: 400,
-                        message: 'Failed to upload file to S3',
-                    };
-                    res.json(ret);
-                }
-                logger.info('uploadResponse: ', uploadResponse);
-
-                // delete test
-                logger.info('deleting file: ', fileKey);
-                const deleteResponse = await deleteFileFromS3(fileKey);
-                if (deleteResponse.statusCode !== 200) {
-                    const ret = {
-                        statusCode: 400,
-                        message: 'Failed to delete file from S3',
-                    };
-                    res.json(ret);
-                }
-                const ret = {
-                    statusCode: 200,
-                    message: 'upload and delete success',
-                };
-                res.json(ret);
-            }
-        }),
-    );
 
     router.post(
         '/:organizationId/:transactionId',
