@@ -20,6 +20,50 @@ import { findRequestedOrganization } from '../middleware/auth';
 export function createTransactionRecordsRouter() {
     const router = express.Router();
     router.use(wrapAsync(validateOrganization));
+    router.get(
+        '/:organization_id/:year/:half',
+        validateOrganization,
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const { organization_id, year, half } = req.params;
+            const transactionRecords = await TransactionRecord.findAll({
+                include: [
+                    {
+                        model: Transaction,
+                        include: [
+                            {
+                                model: Income,
+                                include: [
+                                    {
+                                        model: Budget,
+                                        where: {
+                                            year: year,
+                                            half: half,
+                                            OrganizationId: organization_id,
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                model: Expense,
+                                include: [
+                                    {
+                                        model: Budget,
+                                        where: {
+                                            year: year,
+                                            half: half,
+                                            OrganizationId: organization_id,
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            });
+
+            res.status(200).json(transactionRecords);
+        }),
+    );
 
     router.post(
         '/:organizationId/:transactionId',
