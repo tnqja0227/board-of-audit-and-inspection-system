@@ -152,36 +152,7 @@ erDiagram
 
 ### Deployment
 
-```mermaid
-%%{init: {'theme': 'default' } }%%
-flowchart TB
-    %%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
-    api_server
-    nginx
-    postgres[(postgres)]
-    postgres_backup_manager
-    redis[(redis)]
-    volume
-
-    request --> nginx
-    subgraph EC2
-        subgraph Docker Compose
-            direction RL
-            nginx <--> api_server
-            api_server <--> postgres
-            api_server <--> redis
-            postgres_backup_manager --> |dump|postgres
-        end
-        volume -. mount .-> postgres_backup_manager
-    end
-
-    subgraph S3
-    bucket
-    end
-
-    bucket -. mount .-> volume
-    api_server <--> bucket
-```
+![architecture](/assets/architecture.png)
 
 ## Maintainer
 
