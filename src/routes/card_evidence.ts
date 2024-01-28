@@ -72,7 +72,7 @@ export function createCardEvidenceRouter() {
                 message: 'Uploaded CardEvidence successfully',
             };
             logger.info('create card evidence success');
-            res.json(ret);
+            res.json(ret).status(200);
         }),
     );
 
