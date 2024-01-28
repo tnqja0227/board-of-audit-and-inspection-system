@@ -20,10 +20,10 @@ export function createAccountRecordRouter() {
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             const accountRecord = await AccountRecord.findAll({
                 where: {
-                    organizationId: req.params.organization_id,
                     accountId: req.params.account_id,
                 },
             });
+
             res.json(accountRecord).status(200);
         }),
     );
@@ -90,6 +90,41 @@ export function createAccountRecordRouter() {
                 message: 'Uploaded AccountRecord successfully',
             };
             res.json(ret);
+        }),
+    );
+
+    router.delete(
+        '/:organization_id/:account_record_id',
+        validateOrganization,
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            const accountRecord = await AccountRecord.findOne({
+                where: {
+                    id: req.params.account_record_id,
+                },
+            });
+            if (!accountRecord) {
+                const ret = {
+                    statusCode: 400,
+                    message: 'No such account record',
+                };
+                res.json(ret).status(400);
+                return ret;
+            }
+            const s3ret = await deleteFileFromS3(accountRecord.key);
+            if (s3ret.statusCode !== 200) {
+                const ret = {
+                    statusCode: 400,
+                    message: 'Failed to delete file from S3',
+                };
+                res.json(ret).status(400);
+                return ret;
+            }
+            await accountRecord.destroy();
+            const ret = {
+                statusCode: 200,
+                message: 'Deleted AccountRecord successfully',
+            };
+            res.json(ret).status(200);
         }),
     );
 
