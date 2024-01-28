@@ -124,6 +124,7 @@ describe('API /account_records', function () {
                 .request(app)
                 .post(`/account_records/${organization.id}/${account.id}`)
                 .set('Content-Type', 'multipart/form-data')
+                .field('note', NOTE) // Add this line to send req.body.note
                 .attach('file', TEST_IMAGE, FILENAME);
 
             expect(res).to.have.status(200);
@@ -133,7 +134,7 @@ describe('API /account_records', function () {
                 },
             });
 
-            const fileKey = `${organization.id}/${YEAR}/${HALF}/accounts/${account.id}/account_records`;
+            const fileKey = `${organization.id}/${YEAR}/${HALF}/account_records/${account.id}`;
             expect(accountRecords.length).to.equal(1);
             expect(accountRecords[0].note).to.equal(NOTE);
 
