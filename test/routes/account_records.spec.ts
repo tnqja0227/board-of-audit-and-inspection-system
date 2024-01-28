@@ -14,7 +14,7 @@ chai.use(chaiHttp);
 const ORGANIZATION_NAME = '감사원';
 
 // for account
-const YEAR = 2023;
+const YEAR = '2023';
 const HALF = 'spring';
 const NAME = '김넙죽';
 const ACCOUNT_NUMBER = '1234567890';
@@ -96,6 +96,7 @@ describe('API /account_records', function () {
             cascade: true,
         };
         await model.Organization.destroy(options);
+        await model.Account.destroy(options);
     });
 
     describe('GET /:organization_id/:account_id', function () {
