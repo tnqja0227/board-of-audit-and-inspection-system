@@ -11,7 +11,7 @@ import * as s3Service from '../../src/service/s3';
 chai.use(chaiHttp);
 
 const ORGANIZATION_NAME = '감사원';
-const YEAR = 2023;
+const YEAR = '2023';
 const HALF = 'spring';
 
 const NOTE = '비고'; // 비고
