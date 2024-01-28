@@ -49,7 +49,7 @@ export function createCardEvidenceRouter() {
                 throw new BadRequestError('No such organization');
             }
             logger.info('parameter checked');
-            const key = `${organization.name}/${req.params.year}/${req.params.half}/card_evidences/${req.file.filename}`;
+            const key = `${organization.id}/${req.params.year}/${req.params.half}/card_evidences/${req.file.filename}`;
 
             const uploadResponse = await uploadFileToS3(key, req.file.path);
             if (uploadResponse.statusCode !== 200) {
