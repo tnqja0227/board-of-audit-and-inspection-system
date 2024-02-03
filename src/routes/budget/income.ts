@@ -16,6 +16,11 @@ export function createIncomeRouter() {
         wrapAsync(budgetController.getIncomeBudget),
     );
 
+    router.get(
+        '/list/:organization_id/:year/:half',
+        wrapAsync(incomeController.listIncomes),
+    );
+
     router.use(wrapAsync(validateAuditPeriod));
 
     router.post(

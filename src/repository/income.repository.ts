@@ -1,7 +1,32 @@
-import { CreateIncomeDto, DeleteIncomeDto, UpdateIncomeDto } from '../dto';
+import {
+    CreateIncomeDto,
+    DeleteIncomeDto,
+    FiscalHalfDTO,
+    UpdateIncomeDto,
+} from '../dto';
 import { Income } from '../model';
+import { sequelize } from '../db';
 
 class IncomeRepository {
+    async listIncomes(dto: FiscalHalfDTO) {
+        const schemaName = process.env.NODE_ENV || 'development';
+        return sequelize.query(
+            `SELECT I."id",
+                I."code"
+            FROM ${schemaName}."budgets" B
+                LEFT JOIN ${schemaName}."incomes" I
+                ON B."id" = I."BudgetId"
+            WHERE B."OrganizationId" = ?
+                AND B."year" = ?
+                AND B."half" = ?
+            ORDER BY I."code"`,
+            {
+                type: 'SELECT',
+                replacements: [dto.organizationId, dto.year, dto.half],
+            },
+        );
+    }
+
     async createIncome(dto: CreateIncomeDto) {
         const income = await Income.create({
             BudgetId: dto.budgetId,

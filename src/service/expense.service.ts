@@ -1,8 +1,18 @@
-import { CreateExpenseDto, DeleteExpenseDto, UpdateExpenseDto } from '../dto';
+import {
+    CreateExpenseDto,
+    DeleteExpenseDto,
+    FiscalHalfDTO,
+    UpdateExpenseDto,
+} from '../dto';
 import { ExpenseRepository } from '../repository';
 
 class ExpenseService {
     private expenseRepository: ExpenseRepository = new ExpenseRepository();
+
+    async listExpenses(dto: FiscalHalfDTO) {
+        const expenses = await this.expenseRepository.listExpenses(dto);
+        return expenses;
+    }
 
     async createExpense(dto: CreateExpenseDto) {
         const expense = await this.expenseRepository.createExpense(dto);
