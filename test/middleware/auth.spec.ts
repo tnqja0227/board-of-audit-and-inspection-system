@@ -251,5 +251,28 @@ describe('Middleware: auth', function () {
                 await auth.findRequestedOrganization(req);
             expect(requestedOrganizationId).to.equal(organization.id);
         });
+
+        it('요청에 account_id가 있을 경우 organization_id를 반환한다.', async function () {
+            const account = await model.Account.create({
+                year: 2023,
+                half: 'spring',
+                name: '주계좌',
+                accountNumber: '1234567890',
+                accountBank: '국민은행',
+                accountOwner: '김넙죽',
+                OrganizationId: organization.id,
+            });
+
+            const req = {
+                params: {
+                    account_id: account.id,
+                },
+                body: {},
+            } as any as Request;
+
+            const requestedOrganizationId =
+                await auth.findRequestedOrganization(req);
+            expect(requestedOrganizationId).to.equal(organization.id);
+        });
     });
 });
