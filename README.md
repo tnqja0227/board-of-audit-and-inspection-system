@@ -141,7 +141,7 @@ erDiagram
         string accountBank
         string accountOwner
     }
-    accounts ||--o{ account_records: has
+    accounts ||--|| account_records: has
     account_records {
         int id PK
         int AccountId FK
