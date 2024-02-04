@@ -24,6 +24,9 @@ const {
     Transaction,
     Account,
     Card,
+    TransactionRecord,
+    AccountRecord,
+    CardRecord,
 } = require('../model');
 
 Organization.hasOne(User, {
@@ -44,6 +47,17 @@ Account.belongsTo(Organization);
 Organization.hasMany(Card, {
     onDelete: 'CASCADE',
 });
+Card.belongsTo(Organization);
+
+Organization.hasMany(CardRecord, {
+    onDelete: 'CASCADE',
+});
+CardRecord.belongsTo(Organization);
+
+Account.hasOne(AccountRecord, {
+    onDelete: 'CASCADE',
+});
+AccountRecord.belongsTo(Account);
 
 Budget.hasMany(Income, {
     onDelete: 'CASCADE',
@@ -64,6 +78,11 @@ Expense.hasMany(Transaction, {
     onDelete: 'CASCADE',
 });
 Transaction.belongsTo(Expense);
+
+Transaction.hasMany(TransactionRecord, {
+    onDelete: 'CASCADE',
+});
+TransactionRecord.belongsTo(Transaction);
 
 sequelize.authenticate().catch((err) => {
     logger.error('Unable to connect to the PostgreSQL database:');

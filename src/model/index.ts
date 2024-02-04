@@ -6,6 +6,9 @@ import Expense from './expense';
 import Transaction from './transaction';
 import AuditPeriod from './audit_period';
 import Account from './account';
+import TransactionRecord from './transaction_record';
+import AccountRecord from './account_record';
+import CardRecord from './card_record';
 import Card from './card';
 
 export {
@@ -17,5 +20,8 @@ export {
     Transaction,
     AuditPeriod,
     Account,
+    TransactionRecord,
+    AccountRecord,
+    CardRecord,
     Card,
 };

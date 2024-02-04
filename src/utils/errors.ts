@@ -47,3 +47,13 @@ export class DuplicateError extends Error {
         this.code = 409;
     }
 }
+
+export class BadGatewayError extends Error {
+    code: number;
+
+    constructor(message: string) {
+        super(message);
+        this.name = 'BadGatewayError';
+        this.code = 502;
+    }
+}
