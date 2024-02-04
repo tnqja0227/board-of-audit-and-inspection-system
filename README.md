@@ -100,8 +100,8 @@ erDiagram
         string receivingAccountOwner
         boolean hasBill
     }
-    transactions ||--o{ transactions_evidences: has
-    transactions_evidences {
+    transactions ||--o{ transactions_records: has
+    transactions_records {
         int id PK
         int TransactionId FK
         string URI
@@ -113,8 +113,8 @@ erDiagram
         date start
         date end
     }
-    organizations ||--o{ card_evidences: has
-    card_evidences {
+    organizations ||--o{ card_records: has
+    card_records {
         int id PK
         int OrganizationId FK
         int year
