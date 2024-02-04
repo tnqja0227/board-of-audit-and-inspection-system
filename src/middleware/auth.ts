@@ -126,7 +126,7 @@ async function findOrganizationByCardRecordID(
     }
     return Promise.resolve(cardRecord.OrganizationId);
 }
-      
+
 async function findOrganizationByAccountId(account_id: string | number) {
     const account = await Account.findByPk(account_id);
     if (!account) {
