@@ -23,6 +23,7 @@ const {
     Expense,
     Transaction,
     Account,
+    Card,
     TransactionRecord,
     AccountRecord,
     CardRecord,
@@ -42,6 +43,11 @@ Organization.hasMany(Account, {
     onDelete: 'CASCADE',
 });
 Account.belongsTo(Organization);
+
+Organization.hasMany(Card, {
+    onDelete: 'CASCADE',
+});
+Card.belongsTo(Organization);
 
 Organization.hasMany(CardRecord, {
     onDelete: 'CASCADE',

@@ -4,6 +4,11 @@ import { IncomeRepository } from '../repository';
 class IncomeService {
     private incomeRepository: IncomeRepository = new IncomeRepository();
 
+    async listIncomes(dto: any) {
+        const incomes = await this.incomeRepository.listIncomes(dto);
+        return incomes;
+    }
+
     async createIncome(dto: CreateIncomeDto) {
         const income = await this.incomeRepository.createIncome(dto);
         return income;

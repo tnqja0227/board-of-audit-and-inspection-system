@@ -16,6 +16,11 @@ export function createExpenseRouter() {
         wrapAsync(budgetController.getExpenseBudget),
     );
 
+    router.get(
+        '/list/:organization_id/:year/:half',
+        wrapAsync(expenseController.listExpenses),
+    );
+
     router.use(wrapAsync(validateAuditPeriod));
 
     router.post(

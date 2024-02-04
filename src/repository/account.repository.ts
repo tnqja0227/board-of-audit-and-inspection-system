@@ -27,7 +27,6 @@ class AccountRepository {
             accountNumber: dto.accountNumber,
             accountBank: dto.accountBank,
             accountOwner: dto.accountOwner,
-            cardNumber: dto.cardNumber,
             OrganizationId: dto.organizationId,
         });
         return account;
@@ -40,7 +39,6 @@ class AccountRepository {
                 accountNumber: dto.accountNumber,
                 accountBank: dto.accountBank,
                 accountOwner: dto.accountOwner,
-                cardNumber: dto.cardNumber,
             },
             {
                 where: {

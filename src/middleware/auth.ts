@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { NotFoundError, UnauthorizedError } from '../utils/errors';
 import logger from '../config/winston';
-import { Budget, CardRecord, Expense, Income } from '../model';
+import { Account, Budget, CardRecord, Expense, Income } from '../model';
 
 const ROLE_ADMIN = 'admin';
 const ROLE_USER = 'user';
@@ -80,6 +80,8 @@ export async function findRequestedOrganization(req: Request) {
         return findOrganizationByExpenseId(req.body.expense_id);
     } else if (req.params.card_evidence_id) {
         return findOrganizationByCardRecordID(req.params.card_record_id);
+    } else if (req.params.account_id) {
+        return findOrganizationByAccountId(req.params.account_id);
     }
 
     logger.debug('Cannot find OrganizationId in request');
@@ -123,4 +125,13 @@ async function findOrganizationByCardRecordID(
         throw new NotFoundError('카드 증빙 자료 ID가 존재하지 않습니다.');
     }
     return Promise.resolve(cardRecord.OrganizationId);
+}
+      
+async function findOrganizationByAccountId(account_id: string | number) {
+    const account = await Account.findByPk(account_id);
+    if (!account) {
+        logger.debug(`Account ID ${account_id} is not found}`);
+        throw new NotFoundError('계좌 ID가 존재하지 않습니다.');
+    }
+    return Promise.resolve(account.OrganizationId);
 }

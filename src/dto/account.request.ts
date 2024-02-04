@@ -18,7 +18,6 @@ export class CreateAccountDto {
     accountNumber: string;
     accountBank: string;
     accountOwner: string;
-    cardNumber: string;
 
     constructor(
         organizationId: string | number,
@@ -28,7 +27,6 @@ export class CreateAccountDto {
         accountNumber: string,
         accountBank: string,
         accountOwner: string,
-        cardNumber: string,
     ) {
         this.organizationId = organizationId;
         this.year = year;
@@ -37,7 +35,6 @@ export class CreateAccountDto {
         this.accountNumber = accountNumber;
         this.accountBank = accountBank;
         this.accountOwner = accountOwner;
-        this.cardNumber = cardNumber;
     }
 }
 
@@ -47,7 +44,6 @@ export class UpdateAccountDto {
     accountNumber: string;
     accountBank: string;
     accountOwner: string;
-    cardNumber: string;
 
     constructor(
         accountId: string | number,
@@ -55,14 +51,12 @@ export class UpdateAccountDto {
         accountNumber: string,
         accountBank: string,
         accountOwner: string,
-        cardNumber: string,
     ) {
         this.accountId = accountId;
         this.name = name;
         this.accountNumber = accountNumber;
         this.accountBank = accountBank;
         this.accountOwner = accountOwner;
-        this.cardNumber = cardNumber;
     }
 }
 

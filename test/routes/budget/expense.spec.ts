@@ -85,6 +85,66 @@ describe('API /budgets/expense', function () {
         await model.Organization.destroy(options);
     });
 
+    describe('GET /list/:organization_id/:year/:half', function () {
+        it('예산(지출) 목록을 조회할 수 있다', async function () {
+            const expense401 = await model.Expense.create({
+                BudgetId: budget.id,
+                code: '401',
+                source: '학생회비',
+                category: '운영비',
+                project: '격려기금',
+                content: '격려금',
+                amount: 1543856,
+            });
+
+            const expense402 = await model.Expense.create({
+                BudgetId: budget.id,
+                code: '402',
+                source: '학생회비',
+                category: '정기사업비',
+                project: '감사원 LT',
+                content: '복리후생비',
+                amount: 120000,
+            });
+
+            const expense403 = await model.Expense.create({
+                BudgetId: budget.id,
+                code: '403',
+                source: '학생회비',
+                category: '회의비',
+                project: '감사원 회의',
+                content: '회의비',
+                amount: 120000,
+                note: '내부 문제로 LT 사업 진행하지 않아 미집행',
+            });
+
+            const expense404 = await model.Expense.create({
+                BudgetId: budget.id,
+                code: '404',
+                source: '학생회비',
+                category: '비정기사업비',
+                project: '사무소모품 및 유지',
+                content: '복리후생비',
+                amount: 60000,
+            });
+
+            const res = await chai
+                .request(app)
+                .get(
+                    `/budgets/expense/list/${budget.OrganizationId}/${budget.year}/${budget.half}`,
+                );
+            expect(res).to.have.status(200);
+            expect(res.body[0].id).to.equal(expense401.id);
+            expect(res.body[0].code).to.equal(expense401.code);
+            expect(res.body[1].id).to.equal(expense402.id);
+            expect(res.body[1].code).to.equal(expense402.code);
+            expect(res.body[2].id).to.equal(expense403.id);
+            expect(res.body[2].code).to.equal(expense403.code);
+            expect(res.body[3].id).to.equal(expense404.id);
+            expect(res.body[3].code).to.equal(expense404.code);
+        });
+    });
+
     describe('POST /:budget_id', function () {
         it('예산(지출)을 생성할 수 있다', async function () {
             const res = await chai

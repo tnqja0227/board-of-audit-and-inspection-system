@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "start": "NODE_ENV=production ts-node src/index.ts",
-        "test": "NODE_ENV=test nyc --reporter=text ts-mocha test/**/*.spec.ts --exit",
+        "test": "NODE_ENV=test nyc --reporter=text ts-mocha test/**/*.spec.ts test/**/**/*.spec.ts --exit",
         "dev": "NODE_ENV=development ts-node-dev --respawn src/index.ts"
     },
     "author": "Kyungho Byoun",
@@ -49,6 +49,7 @@
         "chai": "^4.3.10",
         "chai-http": "^4.4.0",
         "mocha": "^10.2.0",
+        "prettier": "3.2.4",
         "sinon": "^16.1.0",
         "swagger-jsdoc": "^6.2.8",
         "ts-mocha": "^10.0.0",

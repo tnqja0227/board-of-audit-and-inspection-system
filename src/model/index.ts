@@ -9,6 +9,7 @@ import Account from './account';
 import TransactionRecord from './transaction_record';
 import AccountRecord from './account_record';
 import CardRecord from './card_record';
+import Card from './card';
 
 export {
     Organization,
@@ -22,4 +23,5 @@ export {
     TransactionRecord,
     AccountRecord,
     CardRecord,
+    Card,
 };

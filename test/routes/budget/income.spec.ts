@@ -83,6 +83,60 @@ describe('API /budgets/income', function () {
         await model.Organization.destroy(options);
     });
 
+    describe('GET /list/:organization_id/:year/:half', function () {
+        it('예산(수입) 목록을 조회할 수 있다', async function () {
+            const income101 = await model.Income.create({
+                BudgetId: budget.id,
+                code: '101',
+                source: '학생회비',
+                category: '중앙회계',
+                content: '중앙회계 지원금',
+                amount: 180000,
+            });
+
+            const income102 = await model.Income.create({
+                BudgetId: budget.id,
+                code: '102',
+                source: '학생회비',
+                category: '중앙회계',
+                content: '중앙회계 이월금',
+                amount: 632238,
+            });
+
+            const income103 = await model.Income.create({
+                BudgetId: budget.id,
+                code: '103',
+                source: '학생회비',
+                category: '격려기금',
+                content: '격려금',
+                amount: 1543856,
+            });
+
+            const income301 = await model.Income.create({
+                BudgetId: budget.id,
+                code: '301',
+                source: '자치',
+                category: '예금이자',
+                content: '예금이자',
+                amount: 2000,
+            });
+            const res = await chai
+                .request(app)
+                .get(
+                    `/budgets/income/list/${budget.OrganizationId}/${budget.year}/${budget.half}`,
+                );
+            expect(res).to.have.status(200);
+            expect(res.body[0].id).to.equal(income101.id);
+            expect(res.body[0].code).to.equal(income101.code);
+            expect(res.body[1].id).to.equal(income102.id);
+            expect(res.body[1].code).to.equal(income102.code);
+            expect(res.body[2].id).to.equal(income103.id);
+            expect(res.body[2].code).to.equal(income103.code);
+            expect(res.body[3].id).to.equal(income301.id);
+            expect(res.body[3].code).to.equal(income301.code);
+        });
+    });
+
     describe('POST /:budget_id', function () {
         it('예산(수입)을 생성할 수 있다', async function () {
             const res = await chai

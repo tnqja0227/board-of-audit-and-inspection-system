@@ -1,18 +1,16 @@
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../db';
 
-class Account extends Model {
+class Card extends Model {
     declare id: number;
     declare year: number;
     declare half: string;
-    declare name: string; // 계좌 이름
-    declare accountNumber: string; // 계좌번호
-    declare accountBank: string; // 은행명
-    declare accountOwner: string; // 예금주
+    declare name: string; // 카드 이름
+    declare cardNumber: string; // 카드번호
     declare OrganizationId: number;
 }
 
-Account.init(
+Card.init(
     {
         id: {
             type: DataTypes.INTEGER.UNSIGNED,
@@ -34,21 +32,13 @@ Account.init(
             type: DataTypes.STRING,
             allowNull: true,
         },
-        accountNumber: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        accountBank: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        accountOwner: {
+        cardNumber: {
             type: DataTypes.STRING,
             allowNull: false,
         },
     },
     {
-        tableName: 'accounts',
+        tableName: 'cards',
         sequelize,
         indexes: [
             {
@@ -59,4 +49,4 @@ Account.init(
     },
 );
 
-export default Account;
+export default Card;
