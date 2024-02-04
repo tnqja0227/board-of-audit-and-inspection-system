@@ -1,22 +1,16 @@
 paths:
-    /account_records/:organization_id/:account_id:
+    /account_records/:account_id:
         get:
             description: 피감기구가 등록한 통장 계좌의 입출금 내역 증빙 자료를 모두 조회합니다 (자신의 피감기구만 호출 가능).
             tags:
                 - 통장 입출금 내역 증빙 자료
             parameters:
                 - in: path
-                  name: organization_id
-                  required: true
-                  schema:
-                      type: string
-                  description: 피감기구 ID.
-                - in: path
                   name: account_id
                   required: true
                   schema:
                       type: string
-                  description: 통장 account object ID.
+                  description: 통장 ID
             responses:
                 '200':
                     content:
@@ -36,12 +30,6 @@ paths:
             tags:
                 - 통장 입출금 내역 증빙 자료
             parameters:
-                - in: path
-                  name: organization_id
-                  required: true
-                  schema:
-                      type: string
-                  description: 피감기구 ID.
                 - in: path
                   name: account_id
                   required: true
@@ -78,63 +66,14 @@ paths:
                     description: NotFoundError
                 '400':
                     description: BadRequestError. Invalid input.
-
-    /account_records/:organization_id/:account_record_id:
-        put:
-            description: 통장 입출금 내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
-            tags:
-                - 통장 입출금 내역 증빙 자료
-            parameters:
-                - in: path
-                  name: organization_id
-                  required: true
-                  schema:
-                      type: string
-                  description: 피감기구 ID.
-                - in: path
-                  name: account_record_id
-                  required: true
-                  schema:
-                      type: string
-                  description: account record object ID.
-            requestBody:
-                required: true
-                content:
-                    multipart/form-data:
-                        schema:
-                            type: object
-                            properties:
-                                memo:
-                                    type: string
-                                    description: Optional memo for the account record.
-                                file:
-                                    type: string
-                                    format: binary
-                                    description: The image or PDF file of the receipt.
-
-            responses:
-                '200':
-                    description: OK
-                '401':
-                    description: UnauthorizedError
-                '403':
-                    description: ValidationError
-                '404':
-                    description: NotFoundError
-                '400':
-                    description: BadRequestError. Invalid input.
+                '502':
+                    description: BadGatewayError. S3 upload failed.
         delete:
             description: 통장 입출금 내역 증빙 자료 삭제 (자신의 피감기구만 호출 가능).
             tags:
                 - 통장 입출금 내역 증빙 자료
             parameters:
                 - in: path
-                  name: organization_id
-                  required: true
-                  schema:
-                      type: string
-                  description: 피감기구 ID.
-                - in: path
                   name: account_record_id
                   required: true
                   schema:
@@ -151,6 +90,8 @@ paths:
                     description: NotFoundError
                 '400':
                     description: BadRequestError. Invalid input.
+                '502':
+                    description: BadGatewayError. S3 delete failed.
 
 definitions:
     AccountRecord:
@@ -159,12 +100,12 @@ definitions:
             id:
                 type: integer
                 description: 통장 입출금 내역 증빙 자료 ID
-            accountId:
-                type: integer
-                description: 통장 계좌 account object ID
-            key:
+            URI:
                 type: string
                 description: 통장 입출금 내역 증빙 자료 파일의 s3 key
             note:
                 type: string
-                description: 통장 입출금 내역 증빙 자료 메모
+                description: 비고
+            AccountId:
+                type: integer
+                description: 계좌 ID

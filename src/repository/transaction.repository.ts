@@ -135,7 +135,7 @@ FROM
             WHERE "OrganizationId" = :organizationId AND "year" = :year AND "half" = :half
         )
     ) as TIE
-    UNION ALL
+    UNION
     (
         SELECT T."id", E."code", T."projectAt", T."transactionAt", T."updatedAt", 
             T."manager", T."content", T."amount" * -1, T."balance", T."accountNumber", T."accountBank", T."accountOwner", 

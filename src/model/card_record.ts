@@ -1,15 +1,15 @@
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../db';
 
-class CardEvidence extends Model {
+class CardRecord extends Model {
     declare id: number;
-    declare organizationId: number;
     declare year: string;
     declare half: string;
-    declare key: string;
+    declare URI: string;
+    declare OrganizationId: number;
 }
 
-CardEvidence.init(
+CardRecord.init(
     {
         id: {
             type: DataTypes.INTEGER.UNSIGNED,
@@ -24,29 +24,21 @@ CardEvidence.init(
             type: DataTypes.ENUM('spring', 'fall'),
             allowNull: false,
         },
-        key: {
+        URI: {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        organizationId: {
-            type: DataTypes.INTEGER.UNSIGNED,
-            allowNull: false,
-            references: {
-                model: 'organizations',
-                key: 'id',
-            },
-        },
     },
     {
-        tableName: 'card_evidences',
+        tableName: 'card_records',
         sequelize,
         indexes: [
             {
                 unique: true,
-                fields: ['year', 'half', 'organizationId'],
+                fields: ['year', 'half', 'OrganizationId'],
             },
         ],
     },
 );
 
-export default CardEvidence;
+export default CardRecord;

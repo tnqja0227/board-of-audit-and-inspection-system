@@ -1,16 +1,33 @@
 paths:
-    /transaction_records/:organizationId/:transactionId:
+    /transaction_records/:transaction_id:
+        get:
+            description: 지출내역 증빙 자료 조회 (자신의 피감기구만 호출 가능).
+            tags:
+                - 지출내역 증빙 자료
+            parameters:
+                - in: path
+                  name: transaction_id
+                  required: true
+                  schema:
+                      type: string
+                  description: 통장거래내역 ID.
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/TransactionRecord'
+                401:
+                    description: UnauthorizedError
+                403:
+                    description: ValidationError
+                404:
+                    description: NotFoundError
         post:
             description: 지출내역 증빙 자료 생성 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
             parameters:
-                - in: path
-                  name: organizationId
-                  required: true
-                  schema:
-                      type: string
-                  description: 피감기구 ID.
                 - in: path
                   name: transaction_id
                   required: true
@@ -24,9 +41,9 @@ paths:
                         schema:
                             type: object
                             properties:
-                                memo:
+                                note:
                                     type: string
-                                    description: Optional memo for the transaction record.
+                                    description: Optional note for the transaction record.
                                 file:
                                     type: string
                                     format: binary
@@ -47,66 +64,14 @@ paths:
                     description: NotFoundError
                 400:
                     description: BadRequestError. Invalid input.
-
-    /transaction_records/:organizationId/:transaction_record_id:
-        put:
-            description: 지출내역 증빙 자료 수정 (자신의 피감기구만 호출 가능).
-            tags:
-                - 지출내역 증빙 자료
-            parameters:
-                - in: path
-                  name: organizationId
-                  required: true
-                  schema:
-                      type: string
-                  description: 피감기구 ID.
-                - in: path
-                  name: transaction_record_id
-                  required: true
-                  schema:
-                      type: string
-                  description: 지출내역 증빙 자료 object ID.
-            requestBody:
-                required: true
-                content:
-                    multipart/form-data:
-                        schema:
-                            type: object
-                            properties:
-                                memo:
-                                    type: string
-                                    description: Optional memo for the transaction record.
-                                file:
-                                    type: string
-                                    format: binary
-                                    description: The image or PDF file of the receipt.
-
-            responses:
-                200:
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/definitions/TransactionRecord'
-                401:
-                    description: UnauthorizedError
-                403:
-                    description: ValidationError
-                404:
-                    description: NotFoundError
-                400:
-                    description: BadRequestError. Invalid input.
-
+                502:
+                    description: BadGatewayError. S3 upload failed.
+    /transaction_records/:transaction_record_id:
         delete:
             description: 지출내역 증빙 자료 삭제 (자신의 피감기구만 호출 가능).
             tags:
                 - 지출내역 증빙 자료
             parameters:
-                - in: path
-                  name: organizationId
-                  required: true
-                  schema:
-                      type: string
-                  description: 피감기구 ID.
                 - in: path
                   name: transaction_record_id
                   required: true
@@ -137,12 +102,12 @@ definitions:
             transaction_id:
                 type: integer
                 description: 통장거래내역 ID
-                example: 200
-            key:
+                example: 1
+            URI:
                 type: string
-                description: 증빙 자료의 key. S3 bucket과 결합하여 S3에서의 key가 된다.
-                example: https://example.com/transaction_record.pdf
+                description: 증빙 자료의 URI
+                example: https://bai-kaist.s3.ap-northeast-2.amazonaws.com/2/test_1.png
             memo:
                 type: string
-                description: 메모
-                example: 'memo'
+                description: 비고
+                example: '식비 영수증'

@@ -3,128 +3,109 @@ import { Request, Response, NextFunction } from 'express';
 import { AccountRecord, Organization, Account } from '../model';
 import { validateAuditPeriod, wrapAsync } from '../middleware';
 import { validateOrganization } from '../middleware/auth';
-import { BadRequestError } from '../utils/errors';
-import { uploadFileToS3, deleteFileFromS3 } from '../service/s3';
-import multer from 'multer';
+import { upload } from '../config/multer';
 import logger from '../config/winston';
-const upload = multer({ dest: 'uploads/' });
-import fs from 'fs';
+import { BadGatewayError, NotFoundError } from '../utils/errors';
+import { deleteFileFromS3, s3keyToUri, uploadFileToS3 } from '../config/s3';
 
+// TODO: split this into multiple layers
 export function createAccountRecordRouter() {
     const router = express.Router();
     router.use(wrapAsync(validateOrganization));
 
     router.get(
-        '/:organization_id/:account_id',
-        validateOrganization,
+        '/:account_id',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            const accountRecord = await AccountRecord.findAll({
+            logger.info('AccountRecordController: getAccountRecord called');
+            const accountRecord = await AccountRecord.findOne({
                 where: {
-                    accountId: req.params.account_id,
+                    AccountId: req.params.account_id,
                 },
             });
+            if (!accountRecord) {
+                throw new NotFoundError(
+                    `${req.params.account_id}에 해당하는 통장 입출금 내역 증빙 자료가 존재하지 않습니다.`,
+                );
+            }
 
+            accountRecord.URI = s3keyToUri(accountRecord.URI);
             res.json(accountRecord).status(200);
         }),
     );
 
+    router.use(wrapAsync(validateAuditPeriod));
+
     router.post(
-        '/:organization_id/:account_id',
-        validateOrganization,
+        '/:account_id',
         upload.single('file'),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            if (!req.file) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'No file attached',
-                };
-                res.json(ret).status(400);
-                return ret;
-            }
+            logger.info('AccountRecordController: createAccountRecord called');
 
-            const organization = await Organization.findOne({
-                where: {
-                    id: req.params.organization_id,
-                },
-            });
-            if (!organization) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'No such organization',
-                };
-                res.json(ret).status(400);
-                return ret;
-            }
             const account = await Account.findOne({
                 where: {
                     id: req.params.account_id,
                 },
             });
             if (!account) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'No such account',
-                };
-                res.json(ret).status(400);
-                return ret;
+                throw new NotFoundError(
+                    `${req.params.account_id}에 해당하는 계좌가 존재하지 않습니다.`,
+                );
             }
-            const key = `${organization.id}/${account.year}/${account.half}/account_records/${req.params.account_id}/${req.file.filename}`;
 
-            const uploadResponse = await uploadFileToS3(key, req.file.path);
-            if (uploadResponse.statusCode !== 200) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'Failed to upload file to S3',
-                };
-                res.json(ret);
-                return ret;
-            }
-            await AccountRecord.create({
-                accountId: req.params.account_id,
-                key: key,
-                note: req.body.note,
+            const organization = await Organization.findOne({
+                where: {
+                    id: account.OrganizationId,
+                },
             });
+            if (!organization) {
+                throw new NotFoundError(
+                    `${account.OrganizationId}에 해당하는 피감기구가 존재하지 않습니다.`,
+                );
+            }
 
-            const ret = {
-                statusCode: 200,
-                message: 'Uploaded AccountRecord successfully',
-            };
-            res.json(ret);
+            // key in S3 bucket
+            const key = `${organization.name}/${account.year}/${
+                account.half
+            }/account_records/${account.name || account.id}`;
+
+            const uploadResponse = await uploadFileToS3(req.file!, key);
+            if (uploadResponse.statusCode !== 200) {
+                throw new BadGatewayError(
+                    'S3에 파일을 업로드하는데 실패했습니다.',
+                );
+            }
+
+            const accountRecord = await AccountRecord.create({
+                URI: key,
+                note: req.body.note,
+                AccountId: req.params.account_id,
+            });
+            res.json(accountRecord);
         }),
     );
 
     router.delete(
-        '/:organization_id/:account_record_id',
-        validateOrganization,
+        '/:account_record_id',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            const accountRecord = await AccountRecord.findOne({
-                where: {
-                    id: req.params.account_record_id,
-                },
-            });
+            logger.info('AccountRecordController: deleteAccountRecord called');
+
+            const accountRecord = await AccountRecord.findByPk(
+                req.params.account_record_id,
+            );
             if (!accountRecord) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'No such account record',
-                };
-                res.json(ret).status(400);
-                return ret;
+                throw new NotFoundError(
+                    `${req.params.account_record_id}에 해당하는 통장 입출금 내역 증빙 자료가 존재하지 않습니다.`,
+                );
             }
-            const s3ret = await deleteFileFromS3(accountRecord.key);
-            if (s3ret.statusCode !== 200) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'Failed to delete file from S3',
-                };
-                res.json(ret).status(400);
-                return ret;
+            const deleteResponse = await deleteFileFromS3(accountRecord.URI);
+            if (deleteResponse.statusCode !== 204) {
+                throw new BadGatewayError(
+                    'S3에서 파일을 삭제하는데 실패했습니다.',
+                );
             }
+
             await accountRecord.destroy();
-            const ret = {
-                statusCode: 200,
-                message: 'Deleted AccountRecord successfully',
-            };
-            res.json(ret).status(200);
+            res.sendStatus(200);
         }),
     );
 

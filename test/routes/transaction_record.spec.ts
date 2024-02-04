@@ -6,7 +6,8 @@ import * as model from '../../src/model';
 import { initDB } from '../../src/db/utils';
 import { createApp } from '../../src/app';
 import { readFileSync } from 'fs';
-import * as s3Service from '../../src/service/s3';
+import * as s3Service from '../../src/config/s3';
+import * as validate_audit_period from '../../src/middleware/validate_audit_period';
 
 chai.use(chaiHttp);
 
@@ -41,6 +42,7 @@ const NEW_MEMO = '새로운 비고';
 describe('API /transaction_record', function () {
     let app: Express.Application;
     var stubValidateOrganization: sinon.SinonStub;
+    var stubValidateAuditPeriod: sinon.SinonStub;
     let organization: model.Organization;
     let budget: model.Budget;
     let income: model.Income;
@@ -59,18 +61,24 @@ describe('API /transaction_record', function () {
                 return next();
             });
 
+        stubValidateAuditPeriod = sinon
+            .stub(validate_audit_period, 'validateAuditPeriod')
+            .callsFake(async (req, res, next) => {
+                return next();
+            });
+
         stubS3Upload = sinon
             .stub(s3Service, 'uploadFileToS3')
-            .callsFake(async (filepath, key) => {
+            .callsFake(async (filepath, URI) => {
                 return Promise.resolve({
-                    uri: `${process.env.AWS_S3_BUCKET_NAME}/${key}`,
+                    uri: `${process.env.AWS_S3_BUCKET_NAME}/${URI}`,
                     statusCode: 200,
                 });
             });
 
         stubS3Delete = sinon
             .stub(s3Service, 'deleteFileFromS3')
-            .callsFake(async (key) => {
+            .callsFake(async (URI) => {
                 return Promise.resolve({
                     statusCode: 200,
                 });
@@ -80,6 +88,7 @@ describe('API /transaction_record', function () {
 
     after(function () {
         stubValidateOrganization.restore();
+        stubValidateAuditPeriod.restore();
         stubS3Upload.restore();
         stubS3Delete.restore();
     });
@@ -93,7 +102,7 @@ describe('API /transaction_record', function () {
             manager: MANAGER,
             year: YEAR,
             half: HALF,
-            organizationId: organization.id,
+            OrganizationId: organization.id,
         });
 
         expense = await model.Expense.create({
@@ -138,101 +147,60 @@ describe('API /transaction_record', function () {
         await model.TransactionRecord.destroy(options);
     });
 
-    describe('GET /:organization_id/:year/:half', function () {
-        it('피감기관 별로 거래 내역 증빙 자료의 목록을 확인할 수 있다.', async function () {
-            const transactionRecord = await model.TransactionRecord.create({
-                transactionId: transaction.id,
-                key: KEY,
-                note: NOTE,
+    describe('GET /:transaction_id', function () {
+        it('통장거래내역의 거래 내역 증빙 자료의 목록을 확인할 수 있다.', async function () {
+            const record1 = await model.TransactionRecord.create({
+                TransactionId: transaction.id,
+                URI: 'test/test.jpg',
+            });
+            const record2 = await model.TransactionRecord.create({
+                TransactionId: transaction.id,
+                URI: 'test/test2.jpg',
             });
 
             const res = await chai
                 .request(app)
-                .get(`/transaction_records/${organization.id}/${YEAR}/${HALF}`);
-
+                .get(`/transaction_records/${transaction.id}`);
+            console.log(res.body);
             expect(res).to.have.status(200);
-            expect(res.body.length).to.equal(1);
-            expect(res.body[0].transactionId).to.equal(transaction.id);
-            expect(res.body[0].key).to.equal(KEY);
-            expect(res.body[0].note).to.equal(NOTE);
+            expect(res.body.length).to.equal(2);
+            expect(res.body[0].TransactionId).to.equal(transaction.id);
+            expect(res.body[0].URI).to.equal(s3Service.s3keyToUri(record1.URI));
+            expect(res.body[1].TransactionId).to.equal(transaction.id);
+            expect(res.body[1].URI).to.equal(s3Service.s3keyToUri(record2.URI));
         });
     });
 
-    describe('POST /:organizationId/:transactionId', function () {
-        it('피감기관의 거래 내역 증빙 자료를 추가할 수 있다.', async function () {
+    describe('POST /:transaction_id', function () {
+        it('통장거래내역의 거래 내역 증빙 자료를 추가할 수 있다.', async function () {
             const res = await chai
                 .request(app)
-                .post(
-                    `/transaction_records/${organization.id}/${transaction.id}`,
-                )
+                .post(`/transaction_records/${transaction.id}`)
                 .set('Content-Type', 'multipart/form-data')
-                .attach('file', TEST_IMAGE, FILENAME)
-                .field('memo', NOTE);
-
+                .attach('file', TEST_IMAGE, FILENAME);
             expect(res).to.have.status(200);
 
             const transactionRecords = await model.TransactionRecord.findAll({
                 where: {
-                    transactionId: transaction.id,
+                    TransactionId: transaction.id,
                 },
             });
-            const fileKey = `${organization.id}/${YEAR}/${HALF}/transaction_records/${transaction.id}`;
+            const key = `${organization.name}/${YEAR}/${HALF}/transaction_records/${transaction.id}/${FILENAME}`;
             expect(transactionRecords.length).to.equal(1);
-            expect(transactionRecords[0].note).to.equal(NOTE);
-
-            // FILENAME 앞 부분 folder까지가 일치해야 함.
-            const fileKeyUptoFolder = transactionRecords[0].key
-                .split('/')
-                .slice(0, -1)
-                .join('/');
-            expect(fileKeyUptoFolder).to.equal(fileKey);
+            expect(transactionRecords[0].URI).to.equal(key);
         });
     });
 
-    describe('PUT /:organizationId/:transaction_record_id', function () {
-        it('피감기관의 거래 내역 증빙 자료의 비고란을 수정할 수 있다.', async function () {
+    describe('DELETE /:transaction_record_id', function () {
+        it('통장 거래 내역 증빙 자료를 삭제할 수 있다.', async function () {
             const transactionRecord = await model.TransactionRecord.create({
-                transactionId: transaction.id,
-                key: KEY,
-                note: NOTE,
+                TransactionId: transaction.id,
+                URI: KEY,
             });
 
             const res = await chai
                 .request(app)
-                .put(
-                    `/transaction_records/${organization.id}/${transactionRecord.id}`,
-                )
-                .send({
-                    memo: NEW_MEMO,
-                });
-
-            expect(res).to.have.status(200);
-            const transactionRecords = await model.TransactionRecord.findAll({
-                where: {
-                    id: transactionRecord.id,
-                },
-            });
-            expect(transactionRecords.length).to.equal(1);
-            expect(transactionRecords[0].note).to.equal(NEW_MEMO);
-            expect(transactionRecords[0].key).to.equal(KEY);
-        });
-
-        // TODO: 사진 수정에 관련된 테스트 작성.
-    });
-
-    describe('DELETE /:organizationId/:transaction_record_id', function () {
-        it('피감기관의 거래 내역 증빙 자료를 삭제할 수 있다.', async function () {
-            const transactionRecord = await model.TransactionRecord.create({
-                transactionId: transaction.id,
-                key: KEY,
-                note: NOTE,
-            });
-
-            const res = await chai
-                .request(app)
-                .delete(
-                    `/transaction_records/${organization.id}/${transactionRecord.id}`,
-                );
+                .delete(`/transaction_records/${transactionRecord.id}`);
             expect(res).to.have.status(200);
             const transactionRecords = await model.TransactionRecord.findAll({
                 where: {

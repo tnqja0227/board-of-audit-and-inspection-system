@@ -6,292 +6,144 @@ import {
     Income,
     Expense,
     Budget,
+    Organization,
 } from '../model';
 import { validateAuditPeriod, wrapAsync } from '../middleware';
 import { validateOrganization } from '../middleware/auth';
-import { BadRequestError } from '../utils/errors';
-import { uploadFileToS3, deleteFileFromS3 } from '../service/s3';
-import multer from 'multer';
+import { BadGatewayError, NotFoundError } from '../utils/errors';
+import { s3keyToUri, uploadFileToS3 } from '../config/s3';
 import logger from '../config/winston';
-const upload = multer({ dest: 'uploads/' });
-import fs from 'fs';
-import { findRequestedOrganization } from '../middleware/auth';
+import { upload } from '../config/multer';
 
 export function createTransactionRecordsRouter() {
     const router = express.Router();
     router.use(wrapAsync(validateOrganization));
-    router.get(
-        '/:organization_id/:year/:half',
-        validateOrganization,
-        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            const { organization_id, year, half } = req.params;
-            const transactionRecords = await TransactionRecord.findAll({
-                include: [
-                    {
-                        model: Transaction,
-                        include: [
-                            {
-                                model: Income,
-                                include: [
-                                    {
-                                        model: Budget,
-                                        where: {
-                                            year: year,
-                                            half: half,
-                                            OrganizationId: organization_id,
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                model: Expense,
-                                include: [
-                                    {
-                                        model: Budget,
-                                        where: {
-                                            year: year,
-                                            half: half,
-                                            OrganizationId: organization_id,
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            });
 
-            res.status(200).json(transactionRecords);
+    router.get(
+        '/:transaction_id',
+        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
+            logger.info(
+                'TransactionRecordController: getTransactionRecord called',
+            );
+            const transactionRecords = await TransactionRecord.findAll({
+                where: {
+                    TransactionId: req.params.transaction_id,
+                },
+            });
+            transactionRecords.forEach((transactionRecord) => {
+                transactionRecord.URI = s3keyToUri(transactionRecord.URI);
+            });
+            res.json(transactionRecords);
         }),
     );
+
+    router.use(wrapAsync(validateAuditPeriod));
 
     router.post(
-        '/:organizationId/:transactionId',
-        validateOrganization,
+        '/:transaction_id',
         upload.single('file'),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            if (!req.file) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'No file was uploaded',
-                };
-                res.json(ret);
-                return ret;
-            }
-            logger.info('got file: ', req.file);
-            // TODO: transaction 존재 여부 확인, audit_year, audit_half_period 추출 로직을 서비스로 분리.
+            logger.info(
+                'TransactionRecordController: createTransactionRecord called',
+            );
 
-            let audit_year = null;
-            let audit_half_period = null;
-            try {
-                const transaction = await Transaction.findOne({
-                    where: {
-                        id: req.params.transactionId,
-                    },
-                });
-
-                if (!transaction) {
-                    throw new BadRequestError(
-                        'Failed to find Transaction to upload',
-                    );
-                }
-
-                if (transaction.IncomeId) {
-                    const income = await Income.findOne({
-                        where: {
-                            id: transaction.IncomeId,
-                        },
-                    });
-                    let budget = await Budget.findOne({
-                        where: {
-                            id: income?.BudgetId,
-                        },
-                    });
-                    audit_year = budget?.year;
-                    audit_half_period = budget?.half;
-                } else if (transaction.ExpenseId) {
-                    const expense = await Expense.findOne({
-                        where: {
-                            id: transaction.ExpenseId,
-                        },
-                    });
-                    let budget = await Budget.findOne({
-                        where: {
-                            id: expense?.BudgetId,
-                        },
-                    });
-                    audit_year = budget?.year;
-                    audit_half_period = budget?.half;
-                } else {
-                    throw new BadRequestError(
-                        'Failed to find Income or Expense to upload',
-                    );
-                }
-            } catch (error) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'Failed to find Transaction to upload',
-                };
-                res.json(ret);
-                return ret;
-            }
-
-            const fileKey = `${req.params.organizationId}/${audit_year}/${audit_half_period}/transaction_records/${req.params.transactionId}/${req.file.filename}`;
-            // TODO: 중복 확인
-            const uploadResponse = await uploadFileToS3(req.file.path, fileKey);
-            if (uploadResponse.statusCode !== 200) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'Failed to upload file to S3',
-                };
-                res.json(ret);
-            }
-
-            fs.unlinkSync(req.file.path);
-
-            // const URI = uploadResponse.uri;
-            const transactionRecord = await TransactionRecord.create({
-                transactionId: req.params.transactionId,
-                key: fileKey,
-                note: req.body.memo,
+            const transaction = await Transaction.findOne({
+                where: {
+                    id: req.params.transaction_id,
+                },
             });
-            const ret = {
-                statusCode: 200,
-                message: 'upload success',
-                TransactionRecord: transactionRecord,
-            };
-            res.json(ret);
-        }),
-    );
-
-    router.put(
-        '/:organization/:transaction_record_id',
-        validateOrganization,
-        upload.single('file'),
-        wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            if (req.file) {
-                const audit_year = '2024'; // TODO: get audit year dynamically
-                const audit_half_period = 'Spring'; // TODO: get audit half period dynamically, ENUM 타입으로 바꾸기
-                const fileKey = `${req.params.organization}/${audit_year}/${audit_half_period}/transaction_records/${req.params.transaction_id}/${req.file.filename}`;
-                // TODO: 중복 확인
-                const uploadResponse = await uploadFileToS3(
-                    req.file.path,
-                    fileKey,
+            if (!transaction) {
+                throw new NotFoundError(
+                    `${req.params.transaction_id}에 해당하는 통장 거래 내역이 존재하지 않습니다.`,
                 );
-                if (uploadResponse.statusCode !== 200) {
-                    const ret = {
-                        statusCode: 400,
-                        message: 'Failed to upload file to S3',
-                    };
-                    res.json(ret);
-                }
-                fs.unlinkSync(req.file.path);
-                // const URI = uploadResponse.uri;
-                const originalKey = await TransactionRecord.findOne({
-                    where: {
-                        id: req.params.transaction_record_id,
-                    },
-                }).then((transactionRecord) => {
-                    return transactionRecord?.key;
-                });
-                if (!originalKey) {
-                    const ret = {
-                        statusCode: 400,
-                        message: 'Failed to find TransactionRecord to update',
-                    };
-                    res.json(ret);
-                    return ret;
-                }
-
-                await TransactionRecord.update(
-                    {
-                        key: fileKey,
-                        note: req.body.memo,
-                    },
-                    {
-                        where: {
-                            id: req.params.transaction_record_id,
-                        },
-                    },
-                );
-
-                const deleteResponse = await deleteFileFromS3(originalKey);
-                if (deleteResponse.statusCode !== 200) {
-                    const ret = {
-                        statusCode: 400,
-                        message: 'Failed to delete file from S3',
-                    };
-                    res.json(ret);
-                } // TODO: Error handling properly.
-
-                const ret = {
-                    statusCode: 200,
-                    message:
-                        'Updated TransactionRecord successfully with new file',
-                };
-                res.json(ret);
-            } else {
-                // No file was uploaded. Only update the memo.
-                try {
-                    await TransactionRecord.update(
-                        {
-                            note: req.body.memo,
-                        },
-                        {
-                            where: {
-                                id: req.params.transaction_record_id,
-                            },
-                        },
-                    );
-                    res.sendStatus(200);
-                } catch (error) {
-                    const ret = {
-                        statusCode: 400,
-                        message: 'Failed to update TransactionRecord',
-                    };
-                    res.json(ret);
-                }
             }
+
+            let budgetId;
+            if (transaction.IncomeId) {
+                const income = await Income.findOne({
+                    where: {
+                        id: transaction.IncomeId,
+                    },
+                });
+                if (!income) {
+                    throw new NotFoundError(
+                        `${transaction.IncomeId}에 해당하는 수입이 존재하지 않습니다.`,
+                    );
+                }
+                budgetId = income.BudgetId;
+            } else if (transaction.ExpenseId) {
+                const expense = await Expense.findOne({
+                    where: {
+                        id: transaction.ExpenseId,
+                    },
+                });
+                if (!expense) {
+                    throw new NotFoundError(
+                        `${transaction.ExpenseId}에 해당하는 지출이 존재하지 않습니다.`,
+                    );
+                }
+                budgetId = expense.BudgetId;
+            }
+            const budget = await Budget.findOne({
+                where: {
+                    id: budgetId,
+                },
+            });
+            if (!budget) {
+                throw new NotFoundError(
+                    `${budgetId}에 해당하는 예산이 존재하지 않습니다.`,
+                );
+            }
+            const year = budget.year;
+            const half = budget.half;
+            const organizationId = budget.OrganizationId;
+
+            const organization = await Organization.findOne({
+                where: {
+                    id: organizationId,
+                },
+            });
+            if (!organization) {
+                throw new NotFoundError(
+                    `${organizationId}에 해당하는 기구가 존재하지 않습니다.`,
+                );
+            }
+
+            const key = `${
+                organization.name
+            }/${year}/${half}/transaction_records/${
+                req.params.transaction_id
+            }/${req.file!.originalname}`;
+
+            const uploadResponse = await uploadFileToS3(req.file!, key);
+            if (uploadResponse.statusCode !== 200) {
+                throw new BadGatewayError(
+                    'S3에 파일을 업로드하는데 실패했습니다.',
+                );
+            }
+
+            const transactionRecord = await TransactionRecord.create({
+                TransactionId: req.params.transaction_id,
+                URI: key,
+                note: req.body.note,
+            });
+            transactionRecord.URI = s3keyToUri(transactionRecord.URI);
+            res.json(transactionRecord);
         }),
     );
 
     router.delete(
-        '/:organizationId/:transaction_record_id',
-        validateOrganization,
+        '/:transaction_record_id',
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
-            try {
-                const key = await TransactionRecord.findOne({
-                    where: {
-                        id: req.params.transaction_record_id,
-                    },
-                }).then((TransactionRecord) => {
-                    return TransactionRecord?.key;
-                });
-
-                if (!key) {
-                    throw new BadRequestError(
-                        'Failed to find TransactionRecord to delete',
-                    );
-                }
-
-                const deleteResponse = await deleteFileFromS3(key);
-                if (deleteResponse.statusCode !== 200) {
-                    throw new BadRequestError('Failed to delete file from S3'); // TODO: Error handling properly.
-                }
-                await TransactionRecord.destroy({
-                    where: {
-                        id: req.params.transaction_record_id,
-                    },
-                });
-                res.sendStatus(200);
-            } catch (error) {
-                const ret = {
-                    statusCode: 400,
-                    message: 'Failed to find TransactionRecord to delete',
-                };
-                res.json(ret);
-                return ret;
-            }
+            logger.info(
+                'TransactionRecordController: deleteTransactionRecord called',
+            );
+            await TransactionRecord.destroy({
+                where: {
+                    id: req.params.transaction_record_id,
+                },
+            });
+            res.sendStatus(200);
         }),
     );
     return router;

@@ -54,3 +54,7 @@ export async function deleteFileFromS3(key: string) {
         throw error;
     }
 }
+
+export function s3keyToUri(key: string) {
+    return `https://${process.env.AWS_STORAGE_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+}

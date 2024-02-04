@@ -6,7 +6,8 @@ import * as model from '../../src/model';
 import { initDB } from '../../src/db/utils';
 import { createApp } from '../../src/app';
 import { readFileSync } from 'fs';
-import * as s3Service from '../../src/service/s3';
+import * as s3Service from '../../src/config/s3';
+import * as validate_audit_period from '../../src/middleware/validate_audit_period';
 
 chai.use(chaiHttp);
 
@@ -14,22 +15,21 @@ const ORGANIZATION_NAME = '감사원';
 const YEAR = '2023';
 const HALF = 'spring';
 
-const NOTE = '비고'; // 비고
 const KEY = 'test.jpg';
 const TEST_IMAGE_PATH = './test/assets/image1.jpg';
 const TEST_IMAGE = readFileSync(TEST_IMAGE_PATH);
 const FILENAME = 'test.jpg';
 
-describe('API /card_evidences', function () {
+describe('API /card_records', function () {
     let app: Express.Application;
     var stubValidateOrganization: sinon.SinonStub;
+    var stubValidateAuditPeriod: sinon.SinonStub;
     let organization: model.Organization;
 
     var stubS3Upload: sinon.SinonStub;
     var stubS3Delete: sinon.SinonStub;
 
     before(async function () {
-        this.timeout(10000);
         await initDB();
 
         stubValidateOrganization = sinon
@@ -38,20 +38,25 @@ describe('API /card_evidences', function () {
                 return next();
             });
 
+        stubValidateAuditPeriod = sinon
+            .stub(validate_audit_period, 'validateAuditPeriod')
+            .callsFake(async (req, res, next) => {
+                return next();
+            });
+
         stubS3Upload = sinon
             .stub(s3Service, 'uploadFileToS3')
-            .callsFake(async (filepath, key) => {
+            .callsFake(async (file, URI) => {
                 return Promise.resolve({
-                    uri: `${process.env.AWS_S3_BUCKET_NAME}/${key}`,
                     statusCode: 200,
                 });
             });
 
         stubS3Delete = sinon
             .stub(s3Service, 'deleteFileFromS3')
-            .callsFake(async (key) => {
+            .callsFake(async (URI) => {
                 return Promise.resolve({
-                    statusCode: 200,
+                    statusCode: 204,
                 });
             });
         app = createApp();
@@ -59,6 +64,7 @@ describe('API /card_evidences', function () {
 
     after(function () {
         stubValidateOrganization.restore();
+        stubValidateAuditPeriod.restore();
         stubS3Upload.restore();
         stubS3Delete.restore();
     });
@@ -75,77 +81,88 @@ describe('API /card_evidences', function () {
             cascade: true,
         };
         await model.Organization.destroy(options);
+        await model.CardRecord.destroy(options);
     });
 
     describe('GET /:organization_id/:year/:half', function () {
-        it('피감기관 별로 카드 지출 내역 증빙 자료를 조회할 수 있다.', async function () {
-            const cardEvidence = await model.CardEvidence.create({
-                organizationId: organization.id,
+        it('피감기관의 카드 지출 내역 증빙 자료를 조회할 수 있다.', async function () {
+            const record = await model.CardRecord.create({
+                OrganizationId: organization.id,
                 year: YEAR,
                 half: HALF,
-                key: KEY,
+                URI: 'test1.jpg',
             });
 
             const res = await chai
                 .request(app)
-                .get(`/card_evidences/${organization.id}/${YEAR}/${HALF}`);
+                .get(`/card_records/${organization.id}/${YEAR}/${HALF}`);
 
             expect(res).to.have.status(200);
-            expect(res.body.length).to.equal(1);
-            expect(res.body[0].organizationId).to.equal(organization.id);
-            expect(res.body[0].key).to.equal(KEY);
+            expect(res.body.OrganizationId).to.equal(organization.id);
+            expect(res.body.URI).to.equal(s3Service.s3keyToUri(record.URI));
         });
     });
 
-    describe('POST /:organizationId/:year/:half', function () {
+    describe('POST /:organization_id/:year/:half', function () {
         it('피감기관의 카드 거래 내역 증빙 자료를 추가할 수 있다.', async function () {
             const res = await chai
                 .request(app)
-                .post(`/card_evidences/${organization.id}/${YEAR}/${HALF}`)
+                .post(`/card_records/${organization.id}/${YEAR}/${HALF}`)
                 .set('Content-Type', 'multipart/form-data')
                 .attach('file', TEST_IMAGE, FILENAME);
 
             expect(res).to.have.status(200);
-            const cardEvidences = await model.CardEvidence.findAll({
+            const cardRecord = await model.CardRecord.findOne({
                 where: {
-                    organizationId: organization.id,
+                    OrganizationId: organization.id,
                     year: YEAR,
                     half: HALF,
                 },
             });
-            const fileKey = `${organization.id}/${YEAR}/${HALF}/card_evidences`;
-            expect(cardEvidences.length).to.equal(1);
-
-            // FILENAME 앞 부분 folder까지가 일치해야 함.
-            const fileKeyUptoFolder = cardEvidences[0].key
-                .split('/')
-                .slice(0, -1)
-                .join('/');
-            expect(fileKeyUptoFolder).to.equal(fileKey);
+            const key = `${organization.name}/${YEAR}/${HALF}/card_records/${FILENAME}`;
+            expect(key).to.equal(cardRecord!.URI);
         });
-    });
 
-    describe('DELETE /:organizationId/:cardEvidenceId', function () {
-        it('피감기관의 카드 거래 내역 증빙 자료를 삭제할 수 있다.', async function () {
-            const cardEvidence = await model.CardEvidence.create({
-                organizationId: organization.id,
+        it('같은 피감기구 및 회계연도, 반기에 이미 증빙 자료가 존재할 경우, 기존의 증빙자료를 덮어쓰기한다.', async function () {
+            const cardRecord = await model.CardRecord.create({
+                OrganizationId: organization.id,
                 year: YEAR,
                 half: HALF,
-                key: KEY,
+                URI: 'test1.jpg',
             });
 
             const res = await chai
                 .request(app)
-                .delete(
-                    `/card_evidences/${organization.id}/${cardEvidence.id}`,
-                );
+                .post(`/card_records/${organization.id}/${YEAR}/${HALF}`)
+                .set('Content-Type', 'multipart/form-data')
+                .attach('file', TEST_IMAGE, FILENAME);
+
             expect(res).to.have.status(200);
-            const cardEvidences = await model.CardEvidence.findAll({
+            expect(res.body.URI).not.to.equal(cardRecord.URI);
+            const key = `${organization.name}/${YEAR}/${HALF}/card_records/${FILENAME}`;
+            expect(res.body.URI).to.equal(s3Service.s3keyToUri(key));
+        });
+    });
+
+    describe('DELETE /:card_record_id', function () {
+        it('피감기관의 카드 거래 내역 증빙 자료를 삭제할 수 있다.', async function () {
+            const cardRecord = await model.CardRecord.create({
+                OrganizationId: organization.id,
+                year: YEAR,
+                half: HALF,
+                URI: KEY,
+            });
+
+            const res = await chai
+                .request(app)
+                .delete(`/card_records/${cardRecord.id}`);
+            expect(res).to.have.status(200);
+            const cardRecords = await model.CardRecord.findAll({
                 where: {
-                    id: cardEvidence.id,
+                    id: cardRecord.id,
                 },
             });
-            expect(cardEvidences.length).to.equal(0);
+            expect(cardRecords.length).to.equal(0);
         });
     });
 });

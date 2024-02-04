@@ -11,7 +11,7 @@ import {
     Transaction,
     User,
     TransactionRecord,
-    CardEvidence,
+    CardRecord,
     AccountRecord,
 } from '../model';
 
@@ -35,7 +35,7 @@ export async function initDB() {
         Account,
         TransactionRecord,
         AccountRecord,
-        CardEvidence,
+        CardRecord,
     ];
 
     for (const model of models) {

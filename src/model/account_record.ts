@@ -3,9 +3,9 @@ import { sequelize } from '../db';
 
 class AccountRecord extends Model {
     declare id: number;
-    declare accountId: number;
-    declare key: string;
+    declare URI: string;
     declare note: string;
+    declare AccountId: number;
 }
 
 AccountRecord.init(
@@ -15,21 +15,13 @@ AccountRecord.init(
             autoIncrement: true,
             primaryKey: true,
         },
-        key: {
+        URI: {
             type: DataTypes.STRING,
             allowNull: false,
         },
         note: {
             type: DataTypes.STRING,
             allowNull: true,
-        },
-        accountId: {
-            type: DataTypes.INTEGER.UNSIGNED,
-            allowNull: false,
-            references: {
-                model: 'accounts',
-                key: 'id',
-            },
         },
     },
     {
