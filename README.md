@@ -156,7 +156,7 @@ erDiagram
 
 ## Maintainer
 
-| Name                                      | Email                   |
-| ----------------------------------------- | ----------------------- |
-| [Kyungho Byoun](https://github.com/byunk) | kyungho.byoun@gmail.com |
-|                                           |                         |
+| Name                                        | Email                   |
+| ------------------------------------------- | ----------------------- |
+| [Kyungho Byoun](https://github.com/byunk)   | kyungho.byoun@gmail.com |
+| [Youngmin Ryou](https://github.com/yym0329) | yym3055@gmail.com       |
