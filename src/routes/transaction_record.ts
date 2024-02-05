@@ -17,10 +17,10 @@ import { upload } from '../config/multer';
 
 export function createTransactionRecordsRouter() {
     const router = express.Router();
-    router.use(wrapAsync(validateOrganization));
 
     router.get(
         '/:transaction_id',
+        wrapAsync(validateOrganization),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info(
                 'TransactionRecordController: getTransactionRecord called',
@@ -41,6 +41,7 @@ export function createTransactionRecordsRouter() {
 
     router.post(
         '/:transaction_id',
+        wrapAsync(validateOrganization),
         upload.single('file'),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info(
@@ -134,6 +135,7 @@ export function createTransactionRecordsRouter() {
 
     router.delete(
         '/:transaction_record_id',
+        wrapAsync(validateOrganization),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info(
                 'TransactionRecordController: deleteTransactionRecord called',

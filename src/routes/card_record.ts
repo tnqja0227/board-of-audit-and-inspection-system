@@ -11,10 +11,10 @@ import { upload } from '../config/multer';
 // TODO: split this into multiple layers
 export function createCardRecordRouter() {
     const router = express.Router();
-    router.use(wrapAsync(validateOrganization));
 
     router.get(
         '/:organization_id/:year/:half',
+        wrapAsync(validateOrganization),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('CardRecordController: getCardRecords called');
             const cardRecord = await CardRecord.findOne({
@@ -38,6 +38,7 @@ export function createCardRecordRouter() {
 
     router.post(
         '/:organization_id/:year/:half',
+        wrapAsync(validateOrganization),
         upload.single('file'),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('CardRecordController: createCardRecord called');
@@ -90,6 +91,7 @@ export function createCardRecordRouter() {
 
     router.delete(
         '/:card_record_id',
+        wrapAsync(validateOrganization),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('CardRecordController: deleteCardEvidence called');
 

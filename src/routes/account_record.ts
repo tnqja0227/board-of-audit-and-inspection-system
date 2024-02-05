@@ -11,10 +11,10 @@ import { deleteFileFromS3, s3keyToUri, uploadFileToS3 } from '../config/s3';
 // TODO: split this into multiple layers
 export function createAccountRecordRouter() {
     const router = express.Router();
-    router.use(wrapAsync(validateOrganization));
 
     router.get(
         '/:account_id',
+        wrapAsync(validateOrganization),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('AccountRecordController: getAccountRecord called');
             const accountRecord = await AccountRecord.findOne({
@@ -37,6 +37,7 @@ export function createAccountRecordRouter() {
 
     router.post(
         '/:account_id',
+        wrapAsync(validateOrganization),
         upload.single('file'),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('AccountRecordController: createAccountRecord called');
@@ -86,6 +87,7 @@ export function createAccountRecordRouter() {
 
     router.delete(
         '/:account_record_id',
+        wrapAsync(validateOrganization),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('AccountRecordController: deleteAccountRecord called');
 
