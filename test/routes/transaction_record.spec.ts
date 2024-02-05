@@ -161,7 +161,6 @@ describe('API /transaction_record', function () {
             const res = await chai
                 .request(app)
                 .get(`/transaction_records/${transaction.id}`);
-            console.log(res.body);
             expect(res).to.have.status(200);
             expect(res.body.length).to.equal(2);
             expect(res.body[0].TransactionId).to.equal(transaction.id);
