@@ -34,10 +34,9 @@ export function createCardRecordRouter() {
         }),
     );
 
-    router.use(wrapAsync(validateAuditPeriod));
-
     router.post(
         '/:organization_id/:year/:half',
+        wrapAsync(validateAuditPeriod),
         wrapAsync(validateOrganization),
         upload.single('file'),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -89,8 +88,10 @@ export function createCardRecordRouter() {
         }),
     );
 
+    // TODO: year와 half가 존재하지 않을 경우, validateAuditPeriod에서 현재 기간의 auditPeriod를 찾아서 사용하도록 수정
     router.delete(
         '/:card_record_id',
+        // wrapAsync(validateAuditPeriod),
         wrapAsync(validateOrganization),
         wrapAsync(async (req: Request, res: Response, next: NextFunction) => {
             logger.info('CardRecordController: deleteCardEvidence called');
