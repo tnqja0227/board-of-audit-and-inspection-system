@@ -1,0 +1,63 @@
+paths:
+    /organizations:
+        get:
+            description: 모든 피감기구 조회 (관리자 권한)
+            tags:
+                - 피감기구
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/definitions/Organization'
+                '401':
+                    description: UnauthorizedError
+        post:
+            description: 피감기구 생성 (관리자 권한)
+            tags:
+                - 피감기구
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                    description: 피감기구 이름
+                                    example: 감사원
+                            required:
+                                - name
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/definitions/Organization'
+                '401':
+                    description: UnauthorizedError
+
+definitions:
+    Organization:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 피감기구 ID
+            name:
+                type: string
+                description: 피감기구 이름
+                example: 감사원
+            created_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+            updated_at:
+                type: timestamp
+                example: 2020-01-01 00:00:00
+        required:
+            - id
+            - name
+            - createdAt
+            - updatedAt

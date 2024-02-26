@@ -16,7 +16,7 @@ services:
             - redisdata:/var/lib/redis/data
         ports:
             - 6379:6379
-    node:
+    api:
         build:
             context: .
             args:
@@ -24,10 +24,19 @@ services:
                 - DB_PORT=5432
                 - DB_USER=postgres
                 - DB_PASSWORD=password
-        environment:
-            - NODE_ENV=development
+        volumes:
+            - $PWD/logs:/app/logs
         ports:
             - 3000:3000
+    nginx:
+        image: nginx:alpine
+        restart: always
+        volumes:
+            - /etc/letsencrypt:/etc/letsencrypt
+            - $PWD/nginx:/etc/nginx/conf.d
+        ports:
+            - 80:80
+            - 443:443
 
 volumes:
     pgdata:

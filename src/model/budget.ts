@@ -6,6 +6,8 @@ class Budget extends Model {
     declare manager: string; // 기구장
     declare year: number; // 예산년도
     declare half: string; // 반기 ('spring', 'fall')
+    declare isReadonly: boolean; // 읽기전용 여부
+    declare OrganizationId: number;
 }
 
 Budget.init(
@@ -29,6 +31,11 @@ Budget.init(
         half: {
             type: DataTypes.ENUM('spring', 'fall'),
             allowNull: false,
+        },
+        isReadonly: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
         },
     },
     {

@@ -1,27 +1,15 @@
-import express from 'express';
-import { redisClient } from './db';
-import {
-    budgets,
-    documents,
-    organizations,
-    transactions,
-    users,
-} from './routes';
 import bodyParser from 'body-parser';
-import session from 'express-session';
 import { config } from 'dotenv';
-import RedisStore from 'connect-redis';
-import {
-    Organization,
-    User,
-    Budget,
-    Income,
-    Expense,
-    Transaction,
-} from './model';
+import express from 'express';
+import session from 'express-session';
 import swaggerUi from 'swagger-ui-express';
-import fs from 'fs';
-import YAML from 'yaml';
+import logger from './config/winston';
+import { initDB } from './db/utils';
+import { errorHandler, requestLogger } from './middleware/common';
+import cors from 'cors';
+import { redisStore } from './db';
+import { createRouter } from './routes';
+import swaggerJSDoc from 'swagger-jsdoc';
 
 declare module 'express-session' {
     export interface SessionData {
@@ -29,56 +17,88 @@ declare module 'express-session' {
     }
 }
 
-async function initDB() {
-    // TODO: change schema name according to environmental variable
-    // sequelize.createSchema('development', {}).catch((err) => {
-    //     console.log(err);
-    // });
-
-    const models = [Organization, User, Budget, Income, Expense, Transaction];
-    for (const model of models) {
-        // TODO: change schema name according to environmental variable
-        // await model.sync({ force: true });
-        await model.sync();
-    }
-}
-
-initDB().catch((err) => {
-    console.log(err);
-});
-
-const redisStore = new RedisStore({
-    client: redisClient,
-    prefix: 'BAI:',
-    ttl: 86400,
-});
-
 config();
 
-const file = fs.readFileSync('swagger.yaml', 'utf8');
-const swaggerDocument = YAML.parse(file);
+// Swagger definition
+const swaggerDefinition = {
+    openapi: '3.0.0',
+    info: {
+        title: 'KAIST board of audit and inspection system API',
+        version: '1.0.0',
+    },
+    // host: 'localhost:3000',
+    // basePath: '/api',
+};
 
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use(
-    session({
-        store: redisStore,
-        secret: process.env.SESSION_SECRET as string,
-        resave: false,
-        saveUninitialized: false,
-    }),
-);
-app.use(function (req, res, next) {
-    console.log('%s %s %s', req.method, req.url, req.path);
-    next();
-});
+const options = {
+    swaggerDefinition,
+    apis: ['swagger/**/*.yaml'],
+};
+// initialize swagger-jsdoc
+const swaggerSpec = swaggerJSDoc(options);
 
-app.use('/organizations', organizations);
-app.use('/budgets', budgets);
-app.use('/transactions', transactions);
-app.use('/documents', documents);
-app.use('/users', users);
+const sessionConfig = {
+    store: redisStore,
+    secret: (process.env.SESSION_SECRET as string) || 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {},
+};
 
-app.listen(3000);
+if (process.env.NODE_ENV === 'production') {
+    sessionConfig.cookie = {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+    };
+} else {
+    sessionConfig.cookie = {
+        httpOnly: true,
+    };
+}
+
+const sessionMiddleware = session(sessionConfig);
+
+export function createApp() {
+    const app = express();
+
+    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== undefined) {
+        initDB()
+            .then(() => {
+                logger.info('Database connected');
+            })
+            .catch((err) => {
+                logger.error(err);
+                throw err;
+            });
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+        app.set('trust proxy', 1);
+    }
+    app.use(
+        cors({
+            origin: [
+                'http://localhost:3000',
+                'http://dev-bai.gdsckaist.com',
+                'https://dev-bai.gdsckaist.com',
+                'https://gdsc-front-dev.vercel.app',
+            ],
+            methods: ['GET', 'PUT', 'POST', 'DELETE'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true,
+        }),
+    );
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.use(sessionMiddleware);
+    app.use(requestLogger);
+
+    app.use(createRouter());
+    app.use(errorHandler);
+
+    logger.debug('App created');
+
+    return app;
+}

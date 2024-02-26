@@ -1,0 +1,247 @@
+paths:
+    /users:
+        get:
+            description: 계정 목록 조회 (관리자만 호출 가능, 피감기관 이름 순 정렬)
+            tags:
+                - 계정
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/definitions/User'
+                '401':
+                    description: UnauthorizedError. 비밀번호가 일치하지 않습니다.
+        post:
+            description: 계정 생성
+            tags:
+                - 계정
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 이메일
+                                    example: example@kaist.ac.kr
+                                organization_name:
+                                    type: string
+                                    description: 피감기관 이름
+                                    example: 감사원
+                            required:
+                                - email
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    email:
+                                        type: string
+                                        description: 이메일
+                                        example: example@kaist.ac.kr
+                                    password:
+                                        type: string
+                                        description: 비밀번호
+                                        example: abcdeABCDE!@
+                                    role:
+                                        type: string
+                                        description: 권한
+                                        example: user
+                                    is_disabled:
+                                        type: boolean
+                                        description: 계정 비활성화 여부
+                                        example: false
+                                    organization_id:
+                                        type: integer
+                                        description: 피감기관 id
+                                        example: 1
+                                required:
+                                    - email
+                                    - password
+                                    - role
+                                    - is_disabled
+                                    - organization_id
+                '400':
+                    description: BadRequestError. 비밀번호는 8자 이상 12자 이하여야 합니다.
+                '409':
+                    description: ValidationError. 이미 존재하는 이메일입니다.
+    /users/admin:
+        post:
+            description: 관리자 계정 생성 (관리자만 호출 가능)
+            tags:
+                - 계정
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 이메일
+                                    example: admin@kaist.ac.kr
+                                password:
+                                    type: string
+                                    description: 비밀번호
+                                    example: password
+                            required:
+                                - email
+                                - password
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    email:
+                                        type: string
+                                        description: 이메일
+                                        example: admin@kaist.ac.kr
+                                    role:
+                                        type: string
+                                        description: 권한
+                                        example: admin
+                '409':
+                    description: DuplicateError. 이미 존재하는 이메일입니다.
+    /users/login:
+        post:
+            description: 로그인. 세션 생성.
+            tags:
+                - 계정
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 이메일
+                                    example: example@kaist.ac.kr
+                                password:
+                                    type: string
+                                    description: 비밀번호
+                                    example: password
+                            required:
+                                - email
+                                - password
+            responses:
+                '200':
+                    description: OK
+                '400':
+                    description: BadRequestError. 비밀번호는 8자 이상 12자 이하여야 합니다.
+                '401':
+                    description: UnauthorizedError. 비밀번호가 일치하지 않습니다.
+    /users/password:
+        post:
+            description: 비밀번호 변경
+            tags:
+                - 계정
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 이메일
+                                    example: example@kaist.ac.kr
+                                password:
+                                    type: string
+                                    description: 비밀번호
+                                    example: password
+                                new_password:
+                                    type: string
+                                    description: 새로운 비밀번호
+                                    example: new_password
+                            required:
+                                - password
+            responses:
+                '200':
+                    description: OK
+                '401':
+                    description: UnauthorizedError. 비밀번호가 일치하지 않습니다.
+    /users/disable:
+        put:
+            description: 계정 비활성화 (관리자만 호출 가능)
+            tags:
+                - 계정
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 이메일
+                                    example: example@kaist.ac.kr
+                            required:
+                                - email
+            responses:
+                '200':
+                    description: OK
+    /users/enable:
+        put:
+            description: 계정 활성화 (관리자만 호출 가능)
+            tags:
+                - 계정
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                    description: 이메일
+                                    example: example@kaist.ac.kr
+                            required:
+                                - email
+            responses:
+                '200':
+                    description: OK
+
+definitions:
+    User:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: 사용자 ID
+            email:
+                type: string
+                description: 이메일
+                example: example@kaist.ac.kr
+            organization_name:
+                type: string
+                description: 피감기관 이름
+                example: 감사원
+            password:
+                type: string
+                description: 비밀번호 (변경이 이루어졌다면 null, 처음 발급된 비밀번호라면 비밀번호가 노출됨)
+                example: abcdeABCDE!@
+            role:
+                type: string
+                enum: ['user', 'admin']
+                description: 권한
+                example: user
+            isDisabled:
+                type: boolean
+                description: 계정 비활성화 여부
+                example: false
+        required:
+            - id
+            - email
+            - organization_name
+            - password
+            - role
+            - isDisabled

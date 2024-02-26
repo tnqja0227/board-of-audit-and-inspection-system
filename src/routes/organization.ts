@@ -1,41 +1,19 @@
-// 피감기구
-
 import express from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Organization } from '../model';
+import { validateIsAdmin } from '../middleware/auth';
+import { wrapAsync } from '../middleware';
+import { OrganizationController } from '../controller';
 
-const router = express.Router();
+export function createOrganizationsRouter() {
+    const router = express.Router();
+    const organizationController = new OrganizationController();
 
-router.get('/', async (req, res, next) => {
-    try {
-        const organizations = await Organization.findAll();
-        res.json(organizations.map((organization) => organization.toJSON()));
-    } catch (error) {
-        next(error);
-    }
-});
+    router.use(wrapAsync(validateIsAdmin));
 
-router.post('/', async (req, res, next) => {
-    try {
-        const organization = await Organization.create({
-            name: req.body.name,
-        });
-        res.json(organization.toJSON());
-    } catch (error) {
-        next(error);
-    }
-});
+    router.get('/', wrapAsync(organizationController.findAll));
 
-router.delete('/', async (req, res, next) => {
-    try {
-        await Organization.destroy({
-            where: {
-                name: req.body.name,
-            },
-        });
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
+    router.post('/', wrapAsync(organizationController.createOrganization));
 
-export const organizations = router;
+    return router;
+}

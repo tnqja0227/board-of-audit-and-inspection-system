@@ -5,7 +5,10 @@ class User extends Model {
     declare id: number;
     declare email: string;
     declare password: string;
+    declare initialPassword: string;
     declare role: string;
+    declare isDisabled: boolean; // 계정 비활성화 여부
+    declare OrganizationId: number;
 }
 
 User.init(
@@ -27,10 +30,19 @@ User.init(
             type: DataTypes.STRING(64),
             allowNull: false,
         },
+        initialPassword: {
+            type: DataTypes.STRING(64),
+            allowNull: true,
+        },
         role: {
             type: DataTypes.ENUM('admin', 'user'),
             allowNull: false,
             defaultValue: 'user',
+        },
+        isDisabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
         },
     },
     {

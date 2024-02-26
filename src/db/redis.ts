@@ -1,8 +1,23 @@
 import { createClient } from 'redis';
+import RedisStore from 'connect-redis';
+import logger from '../config/winston';
 
-const client = createClient();
+const url =
+    process.env.NODE_ENV === 'production'
+        ? 'redis://redis:6379'
+        : 'redis://localhost:6379';
 
-client.on('error', (err) => console.log('Redis Client Error', err));
-client.connect().catch(console.error);
+const redisClient = createClient({ url });
+redisClient.on('error', (err) => logger.error('Redis Client Error', err));
+redisClient.connect().catch((err) => {
+    logger.error('Unable to connect to the Redis database:');
+    throw err;
+});
 
-export const redisClient = client;
+const redisStore = new RedisStore({
+    client: redisClient,
+    prefix: 'BAI:',
+    ttl: 86400,
+});
+
+export { redisClient, redisStore };
